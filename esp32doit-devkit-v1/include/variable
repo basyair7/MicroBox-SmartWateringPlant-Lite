@@ -1,0 +1,52 @@
+/**
+ *  @file variable
+ *  @version 1.0.0
+ *  @brief This file contains the pin definitions and configuration constants for the project.
+ *  @date 2025
+ *  @author basyair7
+ *  
+ *  @copyright
+ *  Copyright (C) 2025, basyair7
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include <Arduino.h>
+
+// PIN I/O COMPONENTS
+// Don't use GPIO22 (I2C SCL) and GPIO21 (I2C SDA) 
+#define LED_RUNNING BUILTIN_LED ///< Pin for Built-in LED indicator pin
+#define LED_WARNING 4
+#define BOOTBUTTON 0           ///< Pin for the boot button
+#define PIN_DHT    14          ///< Pin for the DHT module
+#define PIN_SMS    35          ///< Pin for the Soil Moisture Sensor
+
+// Define pinout relay
+#define RELAY1 26
+#define RELAY2 27
+#define VAR_SWITCH "RELAY_"
+
+#define WATERING_LVL_MAX 80 //< Watering Level Maximum for Soil Moisture
+#define WATERING_LVL_MIN 30 //< Watering Level Minimum for Soil Moisture
+
+inline const uint16_t RELAY_PINS[2] = {
+    RELAY1, RELAY2
+};
+
+inline const String VALUE_DEFAULT[2] {
+    "Relay 1", "Relay 2"
+};
+
+// EEPROM address definitions
+// Don't replace these addresses as they are cirtical for EEPROM operations
+#define ADDR_EEPROM_WIFI_MODE   0x04 ///< EEPROM address for storing Wi-Fi mode

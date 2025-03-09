@@ -1,0 +1,111 @@
+/**
+ *  @file LCDdisplay
+ *  @version 1.0.0
+ *  @author basyair7
+ *  @date 2025
+ * 
+ *  @brief
+ *  This header file defines the LCDdisplay class, which provides a wrapper around the
+ *  LiquidCrystal_I2C library to facilitate LCD operations with I2C communication.
+ * 
+ *  @copyright
+ *  Copyright (C) 2025, basyair7
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+*/
+
+#pragma once
+
+#include <Arduino.h>
+#include <LiquidCrystal_I2C.h>
+
+/**
+ * @class LCDdisplay
+ * @brief A class for handling LCD display operations with I2C communication.
+ */
+class LCDdisplay {
+    LiquidCrystal_I2C _lcd_obj; ///< Internal LCD object using I2C communication
+
+    public:
+        int cols = 16; ///< Number of columns in the LCD display
+        int rows = 2;  ///< Number of rows in the LCD display
+
+        /**
+         * @brief Constructor of LCDdisplay.
+         * @param cols Number of columns (default: 16)
+         * @param rows Number of rows (default: 2) 
+         */
+        LCDdisplay(int cols = 16, int rows = 2) : 
+            cols(cols), rows(rows), _lcd_obj(0x27, cols, rows) {}
+
+        /**
+         * @brief Initializes the LCD display.
+         * @details This function initializes the LCD, turns on the backlight,
+         *          and clears the screen.
+         */
+        void init() {
+            this->_lcd_obj.init();
+            this->_lcd_obj.backlight();
+            this->_lcd_obj.clear();
+        }
+
+        /**
+         * @brief Clears the LCD display
+         */
+        void clear() {
+            this->_lcd_obj.clear();
+        }
+
+        /**
+         * @brief Controls the LCD backlight.
+         * @param x if `true`, turn the backlight on; if `false` turns it off.
+         */
+        void backlight(bool x) {
+            if (x) this->_lcd_obj.backlight();
+            else this->_lcd_obj.noBacklight();
+        }
+
+        /**
+         * @brief Sets the cursor position on the LCD.
+         * @param col The column index (0-based)
+         * @param row The row index (0-based)
+         */
+        void setCursor(const uint8_t col, const uint8_t row) {
+            this->_lcd_obj.setCursor(col, row);
+        }
+
+        /**
+         * @brief Prints a value to the LCD at the current cursor position.
+         * @tparam T Type of the value to print.
+         * @param x The value to print.
+         */
+        template <typename T>
+        void print(const T &x) {
+            this->_lcd_obj.print(x);
+        }
+
+        /**
+         * @brief Prints a value to a specified position on the LCD.
+         * @tparam T Type of the value to print.
+         * @param x The value to print.
+         * @param col The column index (0-based) where the text will start.
+         * @param row The row index (0-based) where the text will start.
+         */
+        template <typename T>
+        void print(const T &x, const uint8_t col, const uint8_t row)
+        {
+            this->_lcd_obj.setCursor(col, row);
+            this->_lcd_obj.print(x);
+        }
+};

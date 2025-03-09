@@ -1,0 +1,158 @@
+/**
+ *  @file SysHandlers
+ *  @version 1.0.0
+ *  @date 2025
+ *  @author basyair7
+ *  
+ *  @copyright
+ *  Copyright (C) 2025, basyair7
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include <Arduino.h>
+#include <WiFi.h>
+#include "MyEEPROM"
+#include "../externobj"
+
+class RebootSys {
+    static RebootSys &instance() {
+        static RebootSys instance;
+        return instance;
+    }
+
+    void _run(unsigned long *lastTime, bool state) {
+        static unsigned long _previous_Millis = 0;
+        static int _count_down = 3;
+        static bool _message_Printed = false;
+
+        if (state) {
+            unsigned long _elapsed = millis() - *lastTime;
+
+            if (!_message_Printed) {
+                Serial.println(F("\n\nReboot System.. Please wait\n"));
+                _message_Printed = true;
+            }
+
+            if (_elapsed <= 3000 && millis() - _previous_Millis >= 1000)
+            {
+                _previous_Millis = millis();
+                Serial.println(_count_down--);
+            }
+            else if (_elapsed > 6000 && _elapsed <= 9000 && _count_down <= 0)
+            {
+                ESP.restart();
+            }
+        }
+    }
+
+    public:
+        static void run(unsigned long *lastTime, bool state) {
+            instance()._run(lastTime, state);
+        }
+};
+
+/**
+ * @class AutoChangeState
+ * @brief Monitors WiFi status and executes actions if the connection remains lost for a specified timeout duration.
+ */
+class AutoChangeState {
+    MyEEPROM eeprom; //!< Instance  of MyEEPROM for EEPROM operations
+    bool autoChangeEnable = false; //!< Flag indicating whether autChange is enable
+    unsigned long timeout = 0; //!< Timeout value in milliseconds
+    unsigned long startMillis = millis(); //!< Start time WiFi disconnected
+
+    static AutoChangeState &instance() {
+        static AutoChangeState instance;
+        return instance;
+    }
+
+    void PrintOutRemaining(unsigned long minutes, unsigned long seconds)
+    {
+        static unsigned long lastPrintTime = 0;
+        if (millis() - lastPrintTime >= 1000L) {
+            lastPrintTime = millis();
+
+            // Print remaining time in MM:SS format
+            Serial.print(F("Wi-Fi disconnected. Remaining time: "));
+            if (minutes < 10)
+                Serial.print(F("0"));
+            Serial.print(minutes);
+            Serial.print(F(":"));
+            if (seconds < 10)
+                Serial.print(F("0"));
+            Serial.println(seconds);
+        }
+    }
+
+    void changeState() {
+        if (WiFi.status() == WL_CONNECTED) {
+            // Reset the timer only if Wi-Fi is reconnected
+            startMillis = millis();
+            // Serial.println(F("Wi-Fi connected. Timer reset."));
+            led_warning.off();
+        }
+        else {
+            // If Wi-Fi is disconnected
+            led_warning.run(true, 1000);
+            unsigned long elapsed = millis() - startMillis;
+
+            if (elapsed >= timeout) {
+                // Execute action after timeout
+                Serial.println(F("Wi-Fi disconnected for 30 minutes. Saving state and resetting ESP."));
+                this->eeprom.save_wifi_state(false);
+                delay(1000);
+                ESP.restart(); // Perform restart
+            }
+            else {
+                // Calculated remaining time and convert to minutes and seconds
+                unsigned long remaining = this->timeout - elapsed;
+                remaining /= 1000; // Convert from milliseconds to seconds
+                unsigned long minutes = remaining / 60; // Calculate minutes
+                unsigned long seconds = remaining % 60; // Calculate seconds
+
+                this->PrintOutRemaining(minutes, seconds);
+            }
+        }
+    }
+
+    void _run(uint32_t TIMEOUT) {
+        if (TIMEOUT <= 1) {
+            Serial.println(F("Timeout must be greater that 1 minute."));
+            return;
+        }
+
+        // Convert timeout to milliseconds
+        this->timeout = TIMEOUT * 60 * 1000;
+
+        // Update autoChangeEnable state every 5 seconds
+        static unsigned long lastReadTime = 0;
+        if ((millis() - lastReadTime) >= 5000) {
+            lfsprog.readConfigState(
+                AUTOCHANGE, 
+                &this->autoChangeEnable
+            );
+            lastReadTime = millis();
+        }
+
+        // Proceed only if autoChange is enabled
+        if (this->autoChangeEnable && WiFi.getMode() == WIFI_STA)
+            this->changeState();
+    }
+
+    public:
+        static void run(uint32_t TIMEOUT = 30) {
+            // Ensure the singleton instance runs the logic
+            instance()._run(TIMEOUT);
+        }
+};

@@ -1,0 +1,78 @@
+/**
+ *  @file ProgramWiFi
+ *  @version 1.0.0
+ *  @author basyair7
+ *  @date 2025
+ * 
+ *  @copyright
+ *  Copyright (C) 2025, basyair7
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include <Arduino.h>
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <functional>
+#include "MyEEPROM"
+#include "../hardware/BootButton.h"
+#include "variable"
+
+class ProgramWiFiClass {
+    void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info);
+    void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
+    void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info);
+    void wifi_mode_ap(), wifi_mode_sta();
+
+    IPAddress local_ip, gateway, subnet;
+
+    BootButton Bootbtn_obj = BootButton(BOOTBUTTON, INPUT);
+
+    public:
+        String __SSID_STA__, __PASS_STA__;
+        String __SSID_AP__, __PASS_AP__;
+        String LOCALIPServer;
+    
+    public:
+        void setup(
+            const String ssid_sta, const String pass_sta,
+            const String ssid_ap, const String pass_ap
+        ) {
+            this->__SSID_STA__ = ssid_sta;
+            this->__SSID_AP__  = ssid_ap;
+            this->__PASS_STA__ = pass_sta;
+            this->__PASS_AP__  = pass_ap;
+        }
+
+        /**
+         * @brief initialize wifi function
+         * @param state Mode_AP = `false` or Mode_STA = `true`
+         */
+        void initWiFi(bool state) {
+            Serial.print("\nMode WiFi: ");
+            Serial.println(state ? F("WIFI_STA") : F("WIFI_AP"));
+            if (state) {
+                this->wifi_mode_sta();
+            }
+            else {
+                this->wifi_mode_ap();
+            }
+        }
+};
+
+#if !defined(NO_GLOBAL_INSTANCES) && !defined (NO_GLOBAL_ProgramWiFi)
+extern ProgramWiFiClass ProgramWiFi;
+#endif

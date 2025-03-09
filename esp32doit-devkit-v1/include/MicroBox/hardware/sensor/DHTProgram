@@ -1,0 +1,130 @@
+/**
+ *  @file DHTProgram
+ *  @version 1.0.0
+ *  @author basyair7
+ *  @date 2025
+ * 
+ *  @copyright
+ *  Copyright (C) 2025, basyair7
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include <Arduino.h>
+#include <DHT.h>
+#include <DHT_U.h>
+
+/**
+ * @class DHTProgram
+ * @brief Class to manage DHT sensor operations, including initialization and data retrieval.
+ */
+class DHTProgram {
+    DHT_Unified dht_obj;                ///< DHT sensor object
+    sensor_t sensor_t_obj;              ///< Sensor metadata object
+    sensors_event_t sensor_event_t_obj; ///< Sensor event object
+    uint32_t _delay;                    ///< Delay between sensor readings (milliseconds)
+    unsigned long __Last_Time;          ///< Timestamp of last sensor read
+    bool __check_begin;                 ///< Flag to check if sensor has been initialized
+
+    public:
+        float temperature = 0.0; ///< Last recorded temperature value
+        float humidity = 0.0;    ///< Last recorded humidity value
+
+    public:
+        /**
+         * @brief Constructor to initialize the DHT sensor object.
+         * @param pin GPIO pin where the DHT sensor is connected.
+         * @param type Type of DHT sensor (e.g., DHT11, DHT22).
+         */
+        DHTProgram(uint8_t pin, uint8_t type) : dht_obj(pin, type)
+        {
+            /* TODO (Not yet implemented) */
+        }
+
+        /**
+         * @brief Initialize device.
+         * @param Delay Time interval between sensor readings (default 1000ms)
+         */
+        void begin(uint32_t Delay = 1000UL) {
+            if (Delay < 1000UL) {
+                Serial.println(F("Delay value cannot be less that 1000ms"));
+                return;
+            }
+
+            this->dht_obj.begin();
+            this->dht_obj.temperature().getSensor(&this->sensor_t_obj);
+            this->dht_obj.humidity().getSensor(&this->sensor_t_obj);
+
+            this->_delay = Delay >= 1001L ? Delay : this->sensor_t_obj.min_delay / Delay;
+            this->information();
+            this->__check_begin = true;
+        }
+
+        /**
+         * @brief Reads sensor data and updates temperature and humidity values.
+         * @details Ensure the sensor has been initialized before reading values.
+         */
+        void running() {
+            if (!this->__check_begin) {
+                Serial.println(F("Error: DHTProgram not initialized! Call begin() first"));
+                return;
+            }
+
+            if ((unsigned long) (millis() - this->__Last_Time) >= (long unsigned int) this->_delay)
+            {
+                this->__Last_Time = millis();
+                // Retrieve temperature
+                this->dht_obj.temperature().getEvent(&this->sensor_event_t_obj);
+                this->temperature = (isnan(this->sensor_event_t_obj.temperature)) ? -1 : this->sensor_event_t_obj.temperature;
+
+                // Retrieve humidity
+                this->dht_obj.humidity().getEvent(&this->sensor_event_t_obj);
+                this->humidity = (isnan(this->sensor_event_t_obj.relative_humidity)) ? -1 : this->sensor_event_t_obj.relative_humidity;
+            }
+        }
+
+    private:
+        /**
+         * @brief Displays sensor information on the Serial Monitor.
+         * @details Prints details for both temperature and humidity sensors.
+         */
+        void information() {
+            Serial.println(F("DHTxx Unified Sensor Example"));
+            Serial.println(F("------------------------------------"));
+            
+            // Temperature sensor details
+            this->dht_obj.temperature().getSensor(&this->sensor_t_obj);
+            Serial.println(F("Temperature Sensor"));
+            Serial.print  (F("Sensor Type\t: ")); Serial.println(this->sensor_t_obj.name);
+            Serial.print  (F("Driver Ver\t: "));  Serial.println(this->sensor_t_obj.version);
+            Serial.print  (F("Unique ID\t: "));   Serial.println(this->sensor_t_obj.sensor_id);
+            Serial.print  (F("Max Value\t: "));   Serial.print(this->sensor_t_obj.max_value);  Serial.println(F(" °C"));
+            Serial.print  (F("Min Value\t: "));   Serial.print(this->sensor_t_obj.min_value);  Serial.println(F(" °C"));
+            Serial.print  (F("Resolution\t: "));  Serial.print(this->sensor_t_obj.resolution); Serial.println(F(" °C"));
+            Serial.println(F("------------------------------------"));
+
+            // Humidity sensor details
+            this->dht_obj.humidity().getSensor(&this->sensor_t_obj);
+            Serial.println(F("Humidity Sensor"));
+            Serial.print  (F("Sensor Type\t: ")); Serial.println(this->sensor_t_obj.name);
+            Serial.print  (F("Driver Ver\t: "));  Serial.println(this->sensor_t_obj.version);
+            Serial.print  (F("Unique ID\t: "));   Serial.println(this->sensor_t_obj.sensor_id);
+            Serial.print  (F("Max Value\t: "));   Serial.print(this->sensor_t_obj.max_value);  Serial.println(F(" %"));
+            Serial.print  (F("Min Value\t: "));   Serial.print(this->sensor_t_obj.min_value);  Serial.println(F(" %"));
+            Serial.print  (F("Resolution\t: "));  Serial.print(this->sensor_t_obj.resolution); Serial.println(F(" %"));
+            Serial.println(F("------------------------------------"));
+        }
+};

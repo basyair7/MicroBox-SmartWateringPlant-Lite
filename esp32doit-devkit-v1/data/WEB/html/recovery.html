@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1.0, user-scalable=no">
+    <meta name="author" content="basyair7">
+
+    <link rel="stylesheet" href="/css/recovery.css">
+    <link rel="stylesheet" href="../css/recovery.css">
+
+    <script src="/js/sweetalert.min.js"></script>
+    <script src="../js/sweetalert.min.js"></script>
+
+    <script src="js/clock.js"></script>
+    <script src="../js/clock.js"></script>
+
+    <script src="/js/reboot.js"></script>
+    <script src="../js/reboot.js"></script>
+
+    <script src="/js/reset-sys.js"></script>
+    <script src="../js/reset-sys.js"></script>
+    
+    <script src="/js/switchBlynk.js"></script>
+    <script src="../js/switchBlynk.js"></script>
+
+    <script type="text/javascript">
+        const version_webUI = () => {
+            document.getElementById("WEBUI_VERSION").textContent = "1.7";
+        }
+    </script>
+
+    <title>Recovery Menu - MicroBox (Smart Watering Plant) %VERSION_PROJECT%</title>
+</head>
+<body onload="Clock.run();">
+    <main class="container">
+        <h3 class="table-container">Dashboard Information</h3>
+        <section class="table-container">
+            <div>
+                <table>
+                    <caption>System Status</caption>
+                    <tbody>
+                        <tr>
+                            <td>Date Time</td> 
+                            <td>:</td>
+                            <td><span id="date"></span> <span id="time"></span></td>
+                        </tr>
+                        <tr>
+                            <td>Chipset</td>
+                            <td>:</td>
+                            <td>Xtensa dual-core 32-bit LX6</td>
+                        </tr>
+                        <tr>
+                            <td>HW Version</td>
+                            <td>:</td>
+                            <td>%HW_VERSION%</td>
+                        </tr>
+                        <tr>
+                            <td>SW Version</td>
+                            <td>:</td>
+                            <td>%SW_VERSION%</td>
+                        </tr>
+                        <tr>
+                            <td>WEBUI Version</td>
+                            <td>:</td>
+                            <td><span id="WEBUI_VERSION"></span></td>
+                            <script>version_webUI();</script>
+                        </tr>
+                        <tr>
+                            <td>Build Date</td>
+                            <td>:</td>
+                            <td>%BUILD_DATE%</td>
+                        </tr>
+                        <tr>
+                            <td>Firmware Region</td>
+                            <td>:</td>
+                            <td>%FIRMWARE_REGION</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <table>
+                    <caption>WiFi Status</caption>
+                    <tbody>
+                        <tr>
+                            <td>Chipset WiFi</td>
+                            <td>:</td>
+                            <td>ESP32 Board</td>
+                        </tr>
+                        <tr>
+                            <td>IP Address</td>
+                            <td>:</td>
+                            <td>%LOCALIP%</td>
+                        </tr>
+                        <tr>
+                            <td>Port</td>
+                            <td>:</td>
+                            <td>%PORT%</td>
+                        </tr>
+                        <tr>
+                            <td>SSID AP</td>
+                            <td>:</td>
+                            <td>%SSID_AP%</td>
+                        </tr>
+                        <tr>
+                            <td>Password AP</td>
+                            <td>:</td>
+                            <td>%PASS_AP%</td>
+                        </tr>
+                        <tr>
+                            <td>SSID STA</td>
+                            <td>:</td>
+                            <td>%SSID_STA%</td>
+                        </tr>
+                        <tr>
+                            <td>Password STA</td>
+                            <td>:</td>
+                            <td>%PASS_STA%</td>
+                        </tr>
+                        <tr>
+                            <td>Auto Change WiFi Mode</td>
+                            <td>:</td>
+                            <td>%AUTO_CHANGE_WIFI%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="actions table-container">
+            <div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>Configure WiFi STA</td>
+                            <td>:</td>
+                            <td><a href="http://%LOCALIP/config-wifi-sta" class="button">Run</a></td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Configure WiFi AP</td>
+                            <td>:</td>
+                            <td><a href="http://%LOCALIP/config-wifi-ap" class="button">Run</a></td>
+                        </tr>
+
+                        <tr>
+                            <td>Enable Blynk</td>
+                            <td>:</td>
+                            <td><a href="#" class="button" onclick="return switchBlynk.run()">Run</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>Firmware Update</td>
+                            <td>:</td>
+                            <td><a href="http://%LOCALIP%/update" class="button">Update</a></td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Reset System</td>
+                            <td>:</td>
+                            <td><a href="#" class="button" onclick='return reset.resetSystem("http://%LOCALIP%/reset-system")'>Run</a></td>
+                        </tr>
+
+                        <tr>
+                            <td>Restart WebServer</td>
+                            <td>:</td>
+                            <td><a href="#" class="button" onclick="return reboot.rebootServer()">Run</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

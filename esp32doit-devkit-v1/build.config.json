@@ -1,0 +1,7 @@
+{
+    "name": "MicroBOX_SmartWateringPlant",
+    "version": "1.0.0",
+    "typefile-1": "firmware",
+    "typefile-2": "littlefs",
+    "revision": 1
+}

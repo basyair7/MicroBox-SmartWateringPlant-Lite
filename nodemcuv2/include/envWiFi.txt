@@ -1,0 +1,6 @@
+// rename this file "envWiFi.h"
+
+#define WIFI_SSID_STA_DEFAULT   ""    //"insert you're SSID WiFi"
+#define WIFI_PSK_STA_DEFAULT    ""   //"insert you're Password WiFi"
+#define WIFI_SSID_AP_DEFAULT    "MicroBox-SmartWateringPlants"
+#define WIFI_PSK_AP_DEFAULT     "Admin#1234"

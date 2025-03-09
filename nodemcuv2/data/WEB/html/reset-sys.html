@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="basyair7">
+    
+    <link rel="stylesheet" href="../css/recovery.css">
+    <link rel="stylesheet" href="/css/recovery.css">
+
+    <script src="../js/sweetalert.min.js"></script>
+    <script src="/js/sweetalert.min.js"></script>
+
+    <title>Reset System - MicroBox (Smart Watering Plant) %VERSIONPROJECT%</title>
+</head>
+<body>
+    <script>
+        Swal.fire({
+            title: "Information",
+            text: "System has been reset",
+            icon: "info"
+        }).then(() => window.location.href="http://%LOCALIP%/recovery");
+    </script>
+</body>
+</html>

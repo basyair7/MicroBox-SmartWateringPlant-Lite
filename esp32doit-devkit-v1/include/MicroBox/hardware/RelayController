@@ -1,0 +1,140 @@
+/**
+ *  @file RelayController
+ *  @version 1.0.0
+ *  @author basyair7
+ *  @date 2025
+ *  
+ *  @copyright
+ *  Copyright (C) 2025, basyair7
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include <Arduino.h>
+#include <queue>
+#include <vector>
+#include "variable"
+
+#define RELAY_STATE_STR_BOOL(state) ((state) ? "ON" : "OFF") // for boolean
+
+struct RelayAction {
+    uint8_t pin_relay;
+    bool state;
+    int id_relay;
+    String label;
+    uint32_t delay, nextActionTime;
+    bool saveState;
+};
+
+class RelayController {
+    std::queue<RelayAction> actionQueue;
+    unsigned long LastActionTime = 0;
+    uint8_t ON = 0x0, OFF = 0x1;
+
+    public:
+        uint8_t pins_io_relay;
+        int id_relay;
+        bool relay_state, optocouple;
+        String label_relay;
+
+        const uint8_t relay_state_str_int(uint8_t pin) {
+            if (this->optocouple)
+                return pin ? 0 : 1;
+            else 
+                return pin ? 1 : 0;
+        }
+
+    public:
+        void begin(bool _optocouple = true, uint32_t _delay = 1000UL);
+        
+        void read(uint8_t pin_relay);
+        void read(String relay_varName);
+        void write(const uint8_t &pin_relay, const bool &state, uint32_t _delay);
+        void write(const String &relay_varName, const bool &state, uint32_t _delay);
+        void write_without_save(const uint8_t &pin_relay, const bool &state, uint32_t _delay);
+        void write_without_save(const String &relay_varName, const bool &state, uint32_t _delay);
+
+        void processQueue();
+
+    private:
+        void executeAction(const RelayAction &action);
+
+        void showAction(const int id, const uint8_t pin, const String &name, const bool state, const String &MsgSaveState)
+        {
+            Serial.println(F("Relay Action : "));
+            Serial.print(F("Name\t\t: "));
+            Serial.println(name);
+            Serial.print(F("ID\t\t: "));
+            Serial.println(id);
+            Serial.print(F("PIN Relay\t: "));
+            Serial.println(pin);
+            Serial.printf("State\t\t: %s\n", state ? "ON" : "OFF");
+            Serial.print(F("Save State\t: "));
+            Serial.println(MsgSaveState);
+        }
+
+    public:
+        static int ID_RELAY;
+        static uint8_t PIN_IO_RELAY;
+        static bool RELAY_STATE;
+        static String LABEL_RELAY;
+        static bool OPTOCOUPLE;
+
+        static const uint8_t RELAY_STATE_STR_INT(uint8_t pin) {
+            if (RelayController::OPTOCOUPLE)
+                return pin ? 0 : 1;
+            else 
+                return pin ? 1 : 0;
+        }
+
+        static RelayController &instance() {
+            static RelayController instance;
+            return instance;
+        }
+
+        static void BEGIN(bool _optocouple = true, uint32_t _delay = 1000UL) {
+            RelayController::OPTOCOUPLE = _optocouple;
+            instance().begin(_optocouple, _delay);
+        }
+
+        static void READ(uint8_t pin_relay) {
+            instance().read(pin_relay);
+        }
+
+        static void READ(String relay_varName) {
+            instance().read(relay_varName);
+        }
+
+        static void WRITE(const uint8_t &pin_relay, const bool &state, uint32_t _delay)
+        {
+            instance().write(pin_relay, state, _delay);
+        }
+
+        static void WRITE(const String &relay_varName, const bool &state, uint32_t _delay)
+        {
+            instance().write(relay_varName, state, _delay);
+        }
+
+        static void WRITE_WITHOUT_SAVE(const uint8_t &pin_relay, const bool &state, uint32_t _delay)
+        {
+            instance().write_without_save(pin_relay, state, _delay);
+        }
+
+        static void WRITE_WITHOUT_SAVE(const String &relay_varName, const bool &state, uint32_t _delay)
+        {
+            instance().write_without_save(relay_varName, state, _delay);
+        }
+};

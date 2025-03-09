@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="basyair7">
+    <link rel="stylesheet" href="../css/config_wifi_sta.css">
+    <link rel="stylesheet" href="/css/config_wifi_sta.css">
+    <script src="../js/sweetalert.min.js"></script>
+    <script src="/js/sweetalert.min.js"></script>
+
+    <script type="text/javascript">
+        function validateForm() {
+            let password = document.getElementById("newpasswordsta");
+            let ssidsta  = document.getElementById("newssidsta");
+            if (ssidsta.value.trim() === "") {
+                swal.fire({
+                    icon: "warning",
+                    title: "Information",
+                    text: "New SSID STA cannot be empty."
+                });
+                
+                return false;
+            }
+
+            if (password.value.trim() === "" || password.value.length < 8) {
+                swal.fire({
+                    icon: "warning",
+                    title: "Information",
+                    text: "Password must be at least 8 characters long."
+                });
+
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+    <title>WiFi Configuration - MicroBOX (Smart Watering Plant) %VERSIONPROJECT%</title>
+</head>
+<body>
+    <main class="container">
+        <h4>WiFi Configuration - MicroBOX (Smart Watering Plant) %VERSIONPROJECT%</h4>
+        <form action="/save-config-wifi-sta" method="post" onsubmit="return validateForm()">
+            <table>
+                <thead>
+                    <caption>
+                        <b>Setup WiFi STA : </b>
+                    </caption>
+                </thead>
+                <tbody>
+                    <tr>
+                        <caption>Old Configuration : </caption>
+                    </tr>
+                    <tr>
+                        <td>SSID STA</td>
+                        <td>:</td>
+                        <td>%SSIDSTA%</td>
+                    </tr>
+                    <tr>
+                        <td>Password</td>
+                        <td>:</td>
+                        <td>%PASSWORDSTA%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <br />
+
+            <table>
+                <thead>
+                    <caption>New Configuration : </caption>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>New SSID STA</td>
+                        <td>:</td>
+                        <td><input type="text" name="newssidsta" id="newssidsta" required></td>
+                    </tr>
+                    <tr>
+                        <td>New Password STA</td>
+                        <td>:</td>
+                        <td><input type="password" name="newpasswordsta" id="newpasswordsta" required></td>
+                    </tr>
+                    <tr>
+                        <td> </td> <td> </td>
+                        <td><button type="submit" value="save"> Save </button></td>
+                    </tr>
+                    <tr>
+                        <td> </td> <td> </td>
+                        <td><a href="http://%LOCALIP%/recovery" class="button">Return to Menu</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+
+        <br />
+        <footer>
+            <p><b>Powered by : <a href="https://github.com/basyair7">Basyair7</a></b></p>
+        </footer>
+    </main>
+</body>
+</html>

@@ -1,0 +1,202 @@
+/**
+ *  @file WebServer
+ *  @version 1.0.0
+ *  @date 2025
+ *  @author
+ *  basyair7
+ *  
+ *  @copyright
+ *  Copyright (C) 2024, basyair7
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include <Arduino.h>
+#include <AsyncTCP.h>
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+#include <ESPmDNS.h>
+#include <ElegantOTA.h>
+#include <ArduinoJson.h>
+#include "info.h"
+#include "LFSMemory"
+#include "variable"
+#include "../externobj"
+
+#define APPJSON   "application/json"
+#define TEXTHTML  "text/html"
+#define TEXTPLAIN "text/plain"
+
+
+class WebServerClass : protected Info {
+    // Private member variable
+    const String DIRHTML = "/WEB/html/"; ///< Directory for HTML files
+    const String DIRCSS  = "/WEB/css/";  ///< Directory for CSS files
+    const String DIRJS   = "/WEB/js/";   ///< Directory for Javascript files
+
+    File file;                  ///< File object for file operations
+    String LocalIP;             ///< Local IP address of the server
+    IPAddress clientIP;         ///<
+    int port;                   ///< Port number for the server
+    AsyncWebServer serverAsync; ///< Async Web Server instance
+    AsyncWebSocket ws;          ///< Async Web Socket instance
+    MyEEPROM myeeprom_obj;      ///< EEPROM handler object
+
+    public:
+        /**
+         * @brief Constructor to initialize the web server with a specified port.
+         * @param port Port number the web server (default: 80).
+         */
+        WebServerClass(int port = 80) : serverAsync(port), ws("/ws") {
+            this->port = port;
+        }
+
+        /**
+         * @brief Initialize the web server, mDNS, and ElegantOTA.
+         */
+        void ServerInit(void);
+
+        /**
+         * @brief Update loop for ElegantOTA
+         */
+        void UpdateOTAloop(void);
+
+    private:
+        // Private methods for handling different web server functionalities
+
+        /**
+         * @brief Serve CSS and JavaScript files.
+         */
+        void run_css_js_webserver(void);
+
+        /**
+         * @brief Serve Routes
+         */
+        void Routes(void);
+        void RoutesSystem(void);
+        void RoutesRelay(void);
+
+        /**
+         * @brief Serve the recovery page.
+         * @param req Pointer to the web server request.
+         */
+        void RecoveryPage(AsyncWebServerRequest *req);
+
+        /**
+         * @brief Serve the index page.
+         * @param req Pointer to the web server request.
+         */
+        void index(AsyncWebServerRequest *req);
+        void DataWebServer(AsyncWebServerRequest *req);
+        void GetDataServer(DynamicJsonDocument &doc);
+
+        /**
+         * @brief Enable Blynk functionality
+         * @param req Pointer to the web server request.
+         */
+        void EnableBlynk(AsyncWebServerRequest *req);
+
+        /**
+         * @brief Reboot the system via web request.
+         * @param req Pointer to the web server request.
+         */
+        void RebootSys(AsyncWebServerRequest *req);
+
+        /**
+         * @brief Reset the system via web request.
+         * @param req Pointer to the web server request.
+         */
+        void ResetSys(AsyncWebServerRequest *req);
+
+        /**
+         * @brief UpdateAutoChangeWiFi
+         * @param req Pointer to the web server request.
+         */
+        void UpdateAutoChangeWiFi(AsyncWebServerRequest *req);
+
+        /**
+         * @brief Handle 404 Not Found errors.
+         * @param req Pointer to the web server request.
+         */
+        void handleNotFound(AsyncWebServerRequest *req);
+
+        /**
+         * @brief Read the content of a file into a String buffer.
+         * @param fileName Name of the file to read.
+         * @return Content of the file as a string.
+         */
+        String file_buffer(String fileName);
+
+        void handleError_deserializeJson(
+            const String &program,
+            DeserializationError error,
+            bool *errorState,
+            int *statoCode = nullptr,
+            String *res = nullptr
+        );
+
+    // handlers websocket
+    private:
+        void handleWebSocketMessage(void *args, uint8_t *data, size_t len);
+        void onEvent(
+            AsyncWebSocket *server, 
+            AsyncWebSocketClient *client, 
+            AwsEventType type,
+            void *arg,
+            uint8_t *data,
+            size_t len
+        );
+        void handleDataServeWS(AsyncWebSocketClient *client);
+        void handleToggleCheck(AsyncWebSocketClient *client, JsonDocument &doc);
+
+    
+    // Config wifi
+    private:
+        void WiFi_AP_Config_Main(AsyncWebServerRequest *req);
+        void WiFi_STA_Config_Main(AsyncWebServerRequest *req);
+        void Save_WiFi_AP_Config(AsyncWebServerRequest *req);
+        void Save_WiFi_STA_Config(AsyncWebServerRequest *req);
+
+        void wifi_ap_config_1(AsyncWebServerRequest *req);
+        void wifi_ap_config_2(AsyncWebServerRequest *req);
+        void wifi_sta_config_1(AsyncWebServerRequest *req);
+        void wifi_sta_config_2(AsyncWebServerRequest *req);
+
+    private:
+        String RelayChecked(uint8_t pinRelay);
+        void updateRelayState(String pinRelay, bool state);
+
+        void readRelayState(AsyncWebServerRequest *req);
+        void queryDataRelayStr(StaticJsonDocument<500> &doc);
+
+        void checkRelayState(AsyncWebServerRequest *req);
+        void queryDataRelay(AsyncWebServerRequest *req);
+        void postRelay(
+            AsyncWebServerRequest *req,
+            uint8_t *data, size_t len, size_t index, size_t total
+        );
+
+        // handlers Watering State
+        void AutoWatering(AsyncWebServerRequest *req);
+        void ManualWatering(AsyncWebServerRequest *req);
+        String stateChecked(bool x) {
+            return x ? "checked" : "";
+        }
+};
+
+#if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_WebServer)
+/**
+ * Global instance of WebServerClass.
+ */
+extern WebServerClass WebServer;
+#endif

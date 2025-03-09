@@ -1,0 +1,126 @@
+/**
+ *  @file EraseEEPROM.h
+ *  @version 1.0.0
+ *  @date 2024
+ *  @author basyair7
+ * 
+ *  @copyright
+ *  Copyright (C) 2024, basyair7
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include <Arduino.h>
+#include <EEPROM.h>
+
+/**
+ * @class EraseEEPROM
+ * @brief Singleton class for erasing the contents of EEPROM.
+ * 
+ * This class provides functionality to initialize and clear the EEPROM memory 
+ * across various platforms, including ESP32, ESP8266, and standard Arduino boards.
+ */
+class EraseEEPROM {
+    public:
+        /**
+         * @brief Get the singleton instance of the class.
+         * @return EraseEEPROM& Reference to the singleton instance.
+         */
+        static EraseEEPROM &instance() {
+            static EraseEEPROM instance;
+            return instance;
+        }
+
+        /**
+         * @brief Initialize the EEPROM for the given size (static method).
+         * @param size The size of EEPROM to initialize (default: 512 bytes).
+         * @return bool True if initialization succeeded, false otherwise.
+         */
+        static bool BEGIN(size_t size = 512) {
+            return instance().begin(size);
+        }
+
+        /**
+         * @brief Erase the entire EEPROM (static method).
+         * @return bool True if the erase operation succeeded, false otherwise.
+         */
+        static bool RUN() {
+            return instance().run();
+        }
+        
+    public:
+        /**
+         * @brief Initialize the EEPROM for the given size.
+         * 
+         * This function sets up the EEPROM based on the platform. For ESP32 and ESP8266,
+         * explicit initialization with a size is required, while Arduino boards do not 
+         * require initialization.
+         * 
+         * @param size The size of EEPROM to initialize (default: 512 bytes).
+         * @return bool True if initialization succeeded, false otherwise.
+         */
+        bool begin(size_t size = 512) {
+        #if defined(ESP32)
+            this->__eeprom_size = size;
+            this->__check_begin = EEPROM.begin(this->__eeprom_size);
+        #elif defined(ESP8266)
+            this->__eeprom_size = size;
+            EEPROM.begin(this->__eeprom_size);
+            this->__check_begin = true;
+        #else
+            // For Arduino, initialization is not required
+            this->__eeprom_size = size;
+            this->__check_begin = true;
+        #endif
+
+            return this->__check_begin;
+        }
+
+        /**
+         * @brief Perform the EEPROM erase operation.
+         * 
+         * This function writes zero to all EEPROM locations. For ESP32 and ESP8266, 
+         * it requires calling `EEPROM.commit()` to finalize the operation. For Arduino boards, 
+         * the data is directly written.
+         * 
+         * @return bool True if the erase operation succeeded, false otherwise.
+         */
+        bool run() {
+            if (!this->__check_begin) return false; // Ensure initialization was successful
+            if (this->__process) return true;      // Prevent re-execution if already processed
+
+        #if defined(ESP32) || defined(ESP8266)
+            // For ESP platforms
+            for (size_t i = 0; i < this->__eeprom_size; i++) {
+                EEPROM.write(i, 0);
+            }
+            this->__process = EEPROM.commit(); // Commit changes to EEPROM
+        #else
+            // For Arduino platforms
+            for (size_t i = 0; i < EEPROM.length(); i++) {
+                EEPROM.write(i, 0);
+            }
+            this->__process = true; // Mark process as completed
+        #endif
+
+            return this->__process;
+        }
+
+    private:
+        size_t __eeprom_size;      ///< Size of the EEPROM to be initialized/cleared.
+        bool __check_begin;        ///< Flag to indicate successful initialization.
+        bool __process = false;    ///< Flag to track if the erase operation has been completed.
+};

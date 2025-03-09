@@ -1,0 +1,23 @@
+{
+    "files.associations": {
+        "fstream": "cpp",
+        "variable": "cpp",
+        "vector": "cpp",
+        "DHTProgram": "cpp",
+        "LCDdisplay": "cpp",
+        "LFSMemory": "cpp",
+        "MyEEPROM": "cpp",
+        "RelayController": "cpp",
+        "RelayHandlers": "cpp",
+        "SoilMoisture": "cpp",
+        "WateringSys": "cpp",
+        "display": "cpp",
+        "WebServer": "cpp",
+        "EraseEEPROM": "cpp",
+        "ProgramWiFi": "cpp",
+        "SysHandlers": "cpp",
+        "externobj": "cpp",
+        "functional": "cpp",
+        "string": "cpp"
+    }
+}

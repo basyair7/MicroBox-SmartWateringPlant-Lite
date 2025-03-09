@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="basyair7">
+    <link rel="stylesheet" href="../css/config_rtc.css">
+    <link rel="stylesheet" href="/css/config_rtc.css">
+    <script src="../js/date_time_rtc.js"></script>
+    <script src="/js/date_time_rtc.js"></script>
+    <script src="../js/sweetalert.min.js"></script>
+    <script src="/js/sweetalert.min.js"></script>
+
+    <script type="text/javascript">
+        function validateForm() {
+            let date = document.getElementById("date");
+            let time = document.getElementById("time");
+            let seconds = document.getElementById("seconds");
+
+            if (date.value.trim() === "") {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Warning",
+                    text: "Date input cannot be empty."
+                });
+                return false;
+            }
+
+            if (time.value.trim() === "") {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Warning",
+                    text: "Time input cannot be empty."
+                });
+                return false;
+            }
+
+            if (seconds.value.trim() === "" || isNaN(seconds.value) || seconds.value < 0 || seconds.value >= 60) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Warning",
+                    text: "Seconds input must be a number between 0 and 59."
+                });
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+
+    <title>Setup RTC - MicroBOX (Smart Watering Plant) %VERSIONPROJECT%</title>
+</head>
+<body>
+    <main class="container">
+        <h4>Setup RTC Module</h4>
+        <table>
+            <tr>
+                <td>Date</td>
+                <td>:</td>
+                <td><span id="server-date">Loading...</span></td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>:</td>
+                <td><span id="server-time">Loading...</span></td>
+            </tr>
+        </table>
+        <form action="/save-config-rtc" method="post" onsubmit="return validateForm()">
+            <table>
+                <tr>
+                    <td>Date</td>
+                    <td>:</td>
+                    <td><input type="date" name="date" id="date" required></td>
+                </tr>
+                <tr>
+                    <td>Time</td>
+                    <td>:</td>
+                    <td><input type="time" name="time" id="time" required></td>
+                </tr>
+                <tr>
+                    <td>Seconds</td>
+                    <td>:</td>
+                    <td><input type="number" name="seconds" id="seconds" min="0" max="59" required></td>
+                </tr>
+                <tr>
+                    <td>Set 12-format</td>
+                    <td>:</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="twelve_hour_format" id="twelve_hour_format">
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+
+            <table>
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td><button type="submit">Save</button></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <a href="http://%LOCALIP%/recovery" class="button">Return to Menu</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+
+        <footer>
+            <p>
+                <b>Powered by : <a href="https://github.com/basyair7">Basyair7</a></b>
+            </p>
+        </footer>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // update data-server
+            DateTimeRTC.update(1500);
+            DateTimeRTC.listen();
+        });
+    </script>
+</body>
+</html>

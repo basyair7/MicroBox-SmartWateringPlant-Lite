@@ -1,0 +1,6 @@
+// rename this file "envWiFi.h"
+
+#define WIFI_SSID_STA_DEFAULT	""
+#define WIFI_PASS_STA_DEFAULT	""
+#define WIFI_SSID_AP_DEFAULT	""
+#define WIFI_PASS_AP_DEFAULT	""

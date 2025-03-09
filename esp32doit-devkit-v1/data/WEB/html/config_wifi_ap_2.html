@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="basyair7">
+    <link rel="stylesheet" href="../css/config_wifi_ap.css">
+    <link rel="stylesheet" href="/css/config_wifi_ap.css">
+    <script src="../js/sweetalert.min.js"></script>
+    <script src="/js/sweetalert.min.js"></script>
+    
+    <script type="text/javascript">
+        function validateForm() {
+            let ssid     = document.getElementById("newssid");
+            let password = document.getElementById("newpassword");
+            if (ssid.value.trim() === "") {
+                swal.fire({
+                    icon: "warning",
+                    title: "Information",
+                    text: "New SSID AP cannot be empty."
+                });
+                return false;
+            }
+
+            if (password.value.length < 8 || password.value.trim() === "") {
+                swal.fire({
+                    icon: "warning",
+                    title: "Information",
+                    text: "Password must be at least 8 characters long."
+                });
+                return false;
+            }
+
+            return true;
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+
+            if (validateForm()) {
+                const result = await swal.fire({
+                    icon: "warning",
+                    title: "Warning!",
+                    text: 'You have just changed the access point of this web server hotspot, please note that if you want to reset, delete the "config.json" file on the sd card. Click OK to continue.',
+                    showCancelButton: true,
+                    confirmButtonText: "OK",
+                    cancelButtonText: "Cancel"
+                });
+
+                if (result.isConfirmed) {
+                    event.target.submit();
+                }
+            }
+        }
+    </script>
+    <title>Hotspot Access Point Configuration - MicroBOX (Smart Watering Plant) %VERSION_PROJECT%</title>
+</head>
+<body>
+    <main class="container">
+        <h4>Hotspot Access Point Configuration - MicroBOX (Smart Watering Plant) %VERSION_PROJECT%</h4>
+        <form method="post" action="/save-config-wifi-ap" onsubmit="return handleSubmit(event)">
+            <table>
+                <thead>
+                    <caption><b>Setup Access Point : </b></caption>
+                </thead>
+                <tbody>
+                    <tr>
+                        <caption>Old Configuration : </caption>
+                    </tr>
+                    <tr>
+                        <td>SSID AP</td>
+                        <td>:</td>
+                        <td>%SSID_AP%</td>
+                    </tr>
+                    <tr>
+                        <td>Password</td>
+                        <td>:</td>
+                        <td>%PASS_AP%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <br />
+
+            <table>
+                <thead>
+                    <caption>New Configuration : </caption>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>New SSID AP</td>
+                        <td>:</td>
+                        <td><input type="text" name="newssid" id="newssid" required></td>
+                    </tr>
+
+                    <tr>
+                        <td>New Password AP</td>
+                        <td>:</td>
+                        <td><input type="password" name="newpassword" id="newpassword" required></td>
+                    </tr>
+                    <tr>
+                        <td> </td><td> </td>
+                        <td><button type="submit" value="save"> Save </button></td>
+                    </tr>
+                    <tr>
+                        <td> </td> <td></td>
+                        <td><a href="http://%LOCALIP%/recovery" class="button">Return to Menu</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+
+        <!-- <br />
+        <footer>
+            <p><b>Powered by : <a href="https://github.com/basyair7" target="_blank">Basyair7</a></b></p>
+        </footer> -->
+    </main>    
+</body>
+</html>

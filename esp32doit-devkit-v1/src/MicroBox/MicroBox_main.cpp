@@ -68,7 +68,6 @@ WateringSys wateringSys; //!< Watering System program
 unsigned long __lastMillis__ = 0, __lastTimeReboot__ = 0;
 bool RebootState = false; //!< Tracks ESP reboot state
 
-
 /**
  * @brief Task for running sensor update and watering control.
  * @param pvParameter Parameters for the task (not used).
@@ -126,37 +125,28 @@ void ThisRTOS::vTask1(void *pvParameter) {
             auto updateLCD = [](int state) {
                 lcd.clear();
 
-                switch(state) {
-                    case 0:
-                        lcd.print("Temp: ", 0, 0);
-                        lcd.print(dhtprog.temperature, 0, 1);
-                        lcd.print("°C", 0, 5);
-                        lcd.print("Hum: ", 1, 0);
-                        lcd.print(dhtprog.humidity, 1, 1);
-                        lcd.print("%", 1, 5);
-                        break;
+                if (state == 0 && state < 5) {
+                    lcd.print("Temp: ", 0, 0);
+                    lcd.print(dhtprog.temperature, 0, 1);
+                    lcd.print("°C", 0, 5);
+                }
 
-                    case 1:
-                        lcd.print("Auto Watering: ", 0, 0);
-                        lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
-                        lcd.print("Watering State: ", 1, 0);
-                        lcd.print(wateringSys.WateringProcess ? "Watering" : "Standby", 1, 1);
-                        break;
+                if (state > 5 && state < 7) {
+                    lcd.print("Auto Watering: ", 0, 0);
+                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
+                    lcd.print("Watering State: ", 1, 0);
+                    lcd.print(wateringSys.WateringProcess ? "Watering" : "Standby", 1, 1);
+                }
 
-                    case 3:
-                        lcd.print("WiFi mode: ", 0, 0);
-                        lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
-                        break;
-                    
-                    default:
-                        lcd.print("Unknown state", 0, 0);
-                        break;
+                if (state > 7 && state < 9) {
+                    lcd.print("WiFi mode: ", 0, 0);
+                    lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
                 }
             };
 
             static int lcdState = 0;
             updateLCD(lcdState);
-            lcdState = (lcdState + 1) % 3;
+            lcdState = (lcdState + 1) % 10;
         }
 
         // Delay the task for 100 miliseconds to control the task execution frequency

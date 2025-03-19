@@ -236,7 +236,11 @@ void MicroBox_Main::setup(unsigned long baud) {
     // Initialize EEPROM
     myeeprom_prog.initialize();
 
+    // Initialize LittleFS Program
     lfsprog.setupLFS();
+
+    // Initialize LCD Module
+    lcd.init();
 
     // Create FreeRTOS task
     // ThisRTOS *rtos = new ThisRTOS;

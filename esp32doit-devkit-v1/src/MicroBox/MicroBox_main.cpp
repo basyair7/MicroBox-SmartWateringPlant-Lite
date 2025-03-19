@@ -125,7 +125,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
             auto updateLCD = [](int state) {
                 lcd.clear();
 
-                if (state == 0 && state < 5) {
+                if (state < 5) {
                     lcd.print("Temp: ", 0, 0);
                     lcd.print(dhtprog.temperature, 0, 1);
                     lcd.print("°C", 0, 5);

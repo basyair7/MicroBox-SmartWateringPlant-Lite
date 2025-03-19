@@ -35,6 +35,7 @@
 #include "MicroBox/hardware/sensor/DHTProgram"
 #include "MicroBox/hardware/sensor/SoilMoisture"
 #include "MicroBox/hardware/RelayController"
+#include "MicroBox/hardware/LCDdisplay"
 
 // Include System Headers
 #include "MicroBox/software/BlynkProgram.h"
@@ -53,9 +54,10 @@
 // Initializes Sensor Program
 BootButton bootbtn(BOOTBUTTON, INPUT); //!< Boot button utility
 LEDBoard led_running, led_warning; //!< Led indikator program
+LCDdisplay lcd; //!< LCD utility module
 DHTProgram dhtprog(PIN_DHT, DHT22); //!< DHT sensor program
-SoilMoisture soilmoisture; //!< Soil Moisture sesnor management module
-RelayController relayController;
+SoilMoisture soilmoisture; //!< Soil Moisture sensor management module
+RelayController relayController; //!< Relay management module
 
 // Initializes System Program
 MyEEPROM myeeprom_prog;  //!< EEPROM utility module
@@ -65,6 +67,7 @@ WateringSys wateringSys; //!< Watering System program
 // Milliseconds trackers for task execution
 unsigned long __lastMillis__ = 0, __lastTimeReboot__ = 0;
 bool RebootState = false; //!< Tracks ESP reboot state
+
 
 /**
  * @brief Task for running sensor update and watering control.
@@ -87,10 +90,11 @@ void ThisRTOS::vTask1(void *pvParameter) {
         // Run dht sensor and update readings
         dhtprog.running();
 
-        static unsigned long LastTimeMonitor = 0;
-        if ((unsigned long) (millis() - LastTimeMonitor) >= 1000L)
+        static unsigned long LastTimeRefreshMonitor = 0;
+        static unsigned long LastTimeRefreshLCD = 0;
+        if ((unsigned long) (millis() - LastTimeRefreshMonitor) >= 1000L)
         {
-            LastTimeMonitor = millis();
+            LastTimeRefreshMonitor = millis();
 
             if (WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) {
                 Serial.println(F("**************************************\n"));
@@ -114,6 +118,45 @@ void ThisRTOS::vTask1(void *pvParameter) {
                 Serial.print(soilmoisture.value);
                 Serial.println(F("%"));
             }
+        }
+
+        if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1000L) {
+            LastTimeRefreshLCD = millis();
+
+            auto updateLCD = [](int state) {
+                lcd.clear();
+
+                switch(state) {
+                    case 0:
+                        lcd.print("Temp: ", 0, 0);
+                        lcd.print(dhtprog.temperature, 0, 1);
+                        lcd.print("°C", 0, 5);
+                        lcd.print("Hum: ", 1, 0);
+                        lcd.print(dhtprog.humidity, 1, 1);
+                        lcd.print("%", 1, 5);
+                        break;
+
+                    case 1:
+                        lcd.print("Auto Watering: ", 0, 0);
+                        lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
+                        lcd.print("Watering State: ", 1, 0);
+                        lcd.print(wateringSys.WateringProcess ? "Watering" : "Standby", 1, 1);
+                        break;
+
+                    case 3:
+                        lcd.print("WiFi mode: ", 0, 0);
+                        lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
+                        break;
+                    
+                    default:
+                        lcd.print("Unknown state", 0, 0);
+                        break;
+                }
+            };
+
+            static int lcdState = 0;
+            updateLCD(lcdState);
+            lcdState = (lcdState + 1) % 3;
         }
 
         // Delay the task for 100 miliseconds to control the task execution frequency

@@ -127,20 +127,26 @@ void ThisRTOS::vTask1(void *pvParameter) {
 
                 if (state < 5) {
                     lcd.print("Temp: ", 0, 0);
-                    lcd.print(dhtprog.temperature, 0, 1);
+                    lcd.print(dhtprog.temperature, 0, 2);
                     lcd.print("°C", 0, 5);
+                    lcd.print("Hum: ", 1, 0);
+                    lcd.print(dhtprog.humidity, 1, 2);
+                    lcd.print("%", 1, 5);
                 }
 
                 if (state > 5 && state < 7) {
                     lcd.print("Auto Watering: ", 0, 0);
-                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
+                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 2);
                     lcd.print("Watering State: ", 1, 0);
-                    lcd.print(wateringSys.WateringProcess ? "Watering" : "Standby", 1, 1);
+                    lcd.print(wateringSys.WateringProcess ? "Watering" : "Standby", 1, 2);
                 }
 
                 if (state > 7 && state < 9) {
+                    String statusWiFiSta = WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected";
                     lcd.print("WiFi mode: ", 0, 0);
-                    lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
+                    lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 2);
+                    lcd.print("Status: ", 0, 0);
+                    lcd.print(WiFi.getMode() == WIFI_STA ? statusWiFiSta : "Unknown", 0, 2);
                 }
             };
 

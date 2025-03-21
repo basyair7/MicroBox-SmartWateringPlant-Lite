@@ -57,7 +57,7 @@ LEDBoard led_running, led_warning; //!< Led indikator program
 LCDdisplay lcd; //!< LCD utility module
 DHTProgram dhtprog(PIN_DHT, DHT22); //!< DHT sensor program
 SoilMoisture soilmoisture; //!< Soil Moisture sensor management module
-RelayController relayController; //!< Relay management module
+// RelayController relayController; //!< Relay management module
 
 // Initializes System Program
 MyEEPROM myeeprom_prog;  //!< EEPROM utility module
@@ -89,35 +89,35 @@ void ThisRTOS::vTask1(void *pvParameter) {
         // Run dht sensor and update readings
         dhtprog.running();
 
-        static unsigned long LastTimeRefreshMonitor = 0;
+        // static unsigned long LastTimeRefreshMonitor = 0;
         static unsigned long LastTimeRefreshLCD = 0;
-        if ((unsigned long) (millis() - LastTimeRefreshMonitor) >= 1000L)
-        {
-            LastTimeRefreshMonitor = millis();
+        // if ((unsigned long) (millis() - LastTimeRefreshMonitor) >= 1000L)
+        // {
+        //     LastTimeRefreshMonitor = millis();
 
-            if (WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) {
-                Serial.println(F("**************************************\n"));
-                Serial.print(F("WiFi mode : "));
-                Serial.println(WiFi.getMode() == WIFI_STA ? "WIFI STA" : "WIFI AP");
+        //     if (WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) {
+        //         Serial.println(F("**************************************\n"));
+        //         Serial.print(F("WiFi mode : "));
+        //         Serial.println(WiFi.getMode() == WIFI_STA ? "WIFI STA" : "WIFI AP");
 
-                // Print DHT sensor readings
-                Serial.println(F("**************************************\n"));
-                Serial.println(F("DHT Sensor :"));
-                Serial.print(F("Temperature : "));
-                Serial.print(dhtprog.temperature);
-                Serial.print(F("°C"));
-                Serial.print(F("Humidity : "));
-                Serial.print(dhtprog.humidity);
-                Serial.println(F("%"));
+        //         // Print DHT sensor readings
+        //         Serial.println(F("**************************************\n"));
+        //         Serial.println(F("DHT Sensor :"));
+        //         Serial.print(F("Temperature : "));
+        //         Serial.print(dhtprog.temperature);
+        //         Serial.println(F("°C"));
+        //         Serial.print(F("Humidity : "));
+        //         Serial.print(dhtprog.humidity);
+        //         Serial.println(F("%"));
 
-                // Print SoilMoisture sensor readings
-                Serial.println(F("**************************************\n"));
-                Serial.println(F("Soil Moisture Sensor :"));
-                Serial.print(F("Data : "));
-                Serial.print(soilmoisture.value);
-                Serial.println(F("%"));
-            }
-        }
+        //         // Print SoilMoisture sensor readings
+        //         Serial.println(F("**************************************\n"));
+        //         Serial.println(F("Soil Moisture Sensor :"));
+        //         Serial.print(F("Data : "));
+        //         Serial.print(soilmoisture.value);
+        //         Serial.println(F("%"));
+        //     }
+        // }
 
         if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1000L) {
             LastTimeRefreshLCD = millis();
@@ -174,6 +174,12 @@ void ThisRTOS::vTask2(void *pvParameter) {
 
     // Read WiFi state and initialize
     bool wifi_state = myeeprom_prog.read(ADDR_EEPROM_WIFI_MODE);
+    // Read Auto Change WiFi
+    bool _autoChangeState;
+    lfsprog.readConfigState(AUTOCHANGE, &_autoChangeState);
+    
+    Serial.print(F("Auto Change WiFi MODE: "));
+    Serial.println(_autoChangeState ? "Enable" : "Disable");
 
     // Initialize WiFi program
     ProgramWiFi.setup(
@@ -209,12 +215,6 @@ void ThisRTOS::vTask2(void *pvParameter) {
 void ThisRTOS::vTask3(void *pvParameter) {
     (void) pvParameter;
 
-    // Initialize hardware components
-    led_running.begin(LED_RUNNING);
-    led_warning.begin(LED_WARNING);
-    relayController.begin();
-    bootbtn.begin();
-
     while (true) {
         // Run the system reboot logic if necessary
         RebootSys::run(&__lastTimeReboot__, RebootState);
@@ -222,6 +222,9 @@ void ThisRTOS::vTask3(void *pvParameter) {
         // Execute automatic state change logic
         bootbtn.ChangeWiFiMode();
         AutoChangeState::run();
+
+        // Execute process queue for RelayController
+        RelayController::PROCESSQUEUE();
 
         // Delay the task for 100 miliseconds to control the task execution frequency
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -245,9 +248,14 @@ void MicroBox_Main::setup(unsigned long baud) {
     // Initialize LittleFS Program
     lfsprog.setupLFS();
 
-    // Initialize LCD Module
+    // Initialize hardware components
     lcd.init();
-
+    RelayController::BEGIN();
+    led_running.begin(LED_RUNNING);
+    led_warning.begin(LED_WARNING);
+    bootbtn.begin();
+    
+    
     // Create FreeRTOS task
     // ThisRTOS *rtos = new ThisRTOS;
     // Create Task and Running vTask 1
@@ -258,7 +266,7 @@ void MicroBox_Main::setup(unsigned long baud) {
     // Create Task and Running vTask 1
     xTaskCreateUniversal([](void *param) {
         static_cast<ThisRTOS*>(param)->vTask2(param);
-    }, "Task 2", 4096, NULL, 1, NULL, PRO_CPU_NUM);
+    }, "Task 2", 4096, NULL, 1, NULL, APP_CPU_NUM);
 
     // Create Task and Running vTask 1
     xTaskCreateUniversal([](void *param) {

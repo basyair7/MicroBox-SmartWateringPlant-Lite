@@ -31,7 +31,7 @@
 extern LEDBoard led_running, led_warning;
 extern DHTProgram dhtprog;
 extern SoilMoisture soilmoisture;
-extern RelayController relayController;
+// extern RelayController relayController;
 
 extern LFSMemory lfsprog;
 extern WateringSys wateringSys;

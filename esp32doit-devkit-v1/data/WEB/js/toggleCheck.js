@@ -1,57 +1,68 @@
 class toggleCheck {
     constructor() {
-        this._xhr = new XMLHttpRequest();
+        if (!toggleCheck.instance) {
+            this._xhr = new XMLHttpRequest();
+            toggleCheck.instance = this;
+        }
+        return toggleCheck.instance;
     }
-    handlerError(xhr) {
-        xhr.onreadystatechange = async() => {
+
+    static handleError(xhr) {
+        xhr.onload = () => {
             if (xhr.status === 400) {
                 Swal.fire({
                     title: "Information",
-                    text: "Auto Watering is Enable",
+                    text: "Auto Watering is Enabled",
                     icon: "info",
                     confirmButtonColor: "#00b30c",
                     confirmButtonText: "OK"
                 });
+            } else if (xhr.status !== 200) {
+                console.error("Request Error:", xhr.statusText);
             }
         };
+
+        xhr.onerror = () => console.error("XHR request failed.");
     }
 
     static autoWateringCheckbox(element) {
-        var thisClass = new toggleCheck();
-        let xhr = thisClass._xhr;
-        let uri = (state) => { return "/auto-watering?state=" + state; };
+        let instance = new toggleCheck();
+        let xhr = instance._xhr;
 
-        if (element.checked) {
-            xhr.open("GET", uri(1), true);
-            Swal.fire({
-                title: "Auto Watering : Enable",
-                icon: "info"
-            });
+        if (xhr.readyState !== 0 && xhr.readyState !== 4) {
+            xhr.abort();
         }
-        else {
-            xhr.open("GET", uri(0), true);
-            Swal.fire({
-                title: "Auto Watering : Disable",
-                icon: "info"
-            });
-        }
+
+        let state = element.checked ? 1 : 0;
+        let uri = `/auto-watering?state=${state}`;
+
+        xhr.open("GET", uri, true);
+        toggleCheck.handleError(xhr);
         xhr.send();
+
+        Swal.fire({
+            title: `Auto Watering: ${state ? "Enabled" : "Disabled"}`,
+            icon: "info",
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 1500
+        });
     }
 
-    static async toggleCheckbox(element) {
-        var thisClass = new toggleCheck();
-        let xhr = thisClass._xhr;
-        let uri = (id, state) => { return "/check?pinout=" + id + "&state=" + state; };
+    static toggleCheckbox(element) {
+        let instance = new toggleCheck();
+        let xhr = instance._xhr;
 
-        if (element.checked) {
-            xhr.open("GET", uri(element.id, 1), true);
-            thisClass.handlerError(xhr);
+        if (xhr.readyState !== 0 && xhr.readyState !== 4) {
+            xhr.abort();
         }
-        else {
-            xhr.open("GET", uri(element.id, 0), true);
-            thisClass.handlerError(xhr);
-        }
+
+        let state = element.checked ? 1 : 0;
+        let uri = `/check?pinout=${element.id}&state=${state}`;
+
+        xhr.open("GET", uri, true);
+        toggleCheck.handleError(xhr);
         xhr.send();
     }
-
 }

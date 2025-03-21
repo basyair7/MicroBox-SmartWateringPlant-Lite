@@ -1,124 +1,129 @@
 class DataServer {
     constructor() {
-        this.XHR = new XMLHttpRequest();
-        this.ws = null;
+        if (!DataServer.instance) {
+            this.XHR = new XMLHttpRequest();
+            this.ws = null;
+            this.updateTimeout = null; // Prevent multiple timers
+            DataServer.instance = this;
+        }
+        return DataServer.instance;
     }
 
-    static update(timeout) {
-        const __dataServer = new DataServer();
-        let xhr = __dataServer.XHR;
+    static update(timeout = 5000) {
+        const instance = new DataServer();
+        let xhr = instance.XHR;
+
+        if (xhr.readyState !== 0 && xhr.readyState !== 4) {
+            xhr.abort();
+        }
 
         try {
-            xhr.abort();
             xhr.open("GET", "/data-server", true);
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        let response = JSON.parse(xhr.responseText);
-                        // let heap_memory = response.heap_memory;
-                        let data_server = response.data_server;
-                        let data_relay = response.data_relay;
 
-                        // Reload the page if free heap memory is critically low
-                        // if (heap_memory?.free_heap && heap_memory.free_heap <= 20.00) {
-                        //     window.location.reload();
-                        // }
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    let response = JSON.parse(xhr.responseText);
+                    let data_server = response.data_server;
+                    let data_relay = response.data_relay;
 
-                        // Update DOM elements only if they exist
-                        const updateElement = (id, value) => {
-                            const elem = document.getElementById(id);
-                            if (elem) elem.innerHTML = value || "N/A";
-                        };
+                    const updateElement = (id, value) => {
+                        const elem = document.getElementById(id);
+                        if (elem && elem.innerHTML !== value) elem.innerHTML = value || "N/A";
+                    };
 
-                        // updateElement("server-free_heap", heap_memory?.free_heap);
-                        // updateElement("server-total_heap", heap_memory?.total_heap);
-                        // updateElement("server-date", data_server?.date);
-                        // updateElement("server-time", data_server?.time);
-                        updateElement("server-temp", data_server?.dht?.temp);
-                        updateElement("server-hum", data_server?.dht?.hum);
-                        updateElement("server-soillvl", data_server?.soil_moisture);
-                        updateElement(
-                            "server-WateringState",
-                            data_server?.WateringState ? "Watering" : "Standby"
-                        );
-                        // updateElement("server-ScheduleWatering", data_server?.ScheduleWatering);
+                    updateElement("server-temp", `${data_server?.dht?.temp}°C`);
+                    updateElement("server-hum", `${data_server?.dht?.hum}%`);
+                    updateElement("server-soillvl", `${data_server?.soil_moisture}%`);
+                    updateElement(
+                        "server-WateringState",
+                        data_server?.watering_state ? "Watering" : "Standby"
+                    );
 
-                        // Update relay statuses
-                        for (let key in data_relay) {
-                            let element = document.getElementById(data_relay[key].id);
-                            if (element) {
-                                element.checked = data_relay[key].status;
-                            }
+                    for (let key in data_relay) {
+                        let element = document.getElementById(data_relay[key].id);
+                        if (element) {
+                            element.checked = data_relay[key].status;
                         }
-                    } else {
-                        console.error("Error fetching data:", xhr.statusText);
                     }
+                } else {
+                    console.error("Error fetching data:", xhr.statusText);
                 }
             };
+
+            xhr.onerror = () => console.error("XHR request failed.");
+
             xhr.send();
         } catch (error) {
             console.error("XHR error:", error);
         }
 
-        // Safe timeout to prevent overlapping
-        setTimeout(() => DataServer.update(timeout), timeout);
+        // Cegah multiple timeout dengan clearTimeout
+        clearTimeout(instance.updateTimeout);
+        instance.updateTimeout = setTimeout(() => DataServer.update(timeout), timeout);
     }
 
     static listen() {
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        const instance = new DataServer();
+
+        // Hindari banyak WebSocket
+        if (instance.ws && instance.ws.readyState === WebSocket.OPEN) {
+            console.warn("WebSocket already connected.");
             return;
         }
 
-        this.ws = new WebSocket(`ws://${window.location.host}/ws`);
-        this.ws.onopen = () => {
-            this.ws.send(JSON.stringify({ event: "data_server" }));
+        instance.ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+        instance.ws.onopen = () => {
+            console.log("WebSocket Connected!");
+            instance.ws.send(JSON.stringify({ event: "data_server" }));
         };
-        this.ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            let heap_memory = data.heap_memory;
-                
-            if (data?.free_heap && data?.free_heap <= 20.00) {
-                window.location.reload();
-            }
 
-            if (data.event === "data_server") {
-                let data_server = data.data_server;
-                
-                const updateElement = (id, value) => {
-                    const elem = document.getElementById(id);
-                    if (elem) elem.innerHTML = value || "N/A";
-                };
+        instance.ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.event === "data_server") {
+                    let data_server = data.data_server;
 
-                // updateElement("server-free_heap", heap_memory?.free_heap);
-                // updateElement("server-total_heap", heap_memory?.total_heap);
-                // updateElement("server-date", data_server?.date);
-                // updateElement("server-time", data_server?.time);
-                updateElement("server-temp", data_server?.dht?.temp);
-                updateElement("server-hum", data_server?.dht?.hum);
-                updateElement("server-soillvl", data_server?.soil_moisture);
-                updateElement(
-                    "server-WateringState",
-                    data_server?.WateringState ? "Watering" : "Standby"
-                );
-                // updateElement("server-ScheduleWatering", data_server?.ScheduleWatering);
+                    const updateElement = (id, value) => {
+                        const elem = document.getElementById(id);
+                        if (elem && elem.innerHTML !== value) elem.innerHTML = value || "N/A";
+                    };
 
-                let data_relay = data.data_relay;
-                for (let key in data_relay) {
-                    let element = document.getElementById(data_relay[key].id);
-                    if (element) {
-                        element.checked = data_relay[key].status;
+                    updateElement("server-temp", `${data_server?.dht?.temp}°C`);
+                    updateElement("server-hum", `${data_server?.dht?.hum}%`);
+                    updateElement("server-soillvl", `${data_server?.soil_moisture}%`);
+                    updateElement(
+                        "server-WateringState",
+                        data_server?.watering_state ? "Watering" : "Standby"
+                    );
+
+                    let data_relay = data.data_relay;
+                    for (let key in data_relay) {
+                        let element = document.getElementById(data_relay[key].id);
+                        if (element) {
+                            element.checked = data_relay[key].status;
+                        }
                     }
                 }
+            } catch (error) {
+                console.error("WebSocket data parsing error:", error);
             }
         };
 
-        this.ws.onclose = () => {
+        instance.ws.onclose = () => {
             console.warn("WebSocket closed, reconnecting...");
-            setTimeout(() => DataServer.listen(), 3000);
+            setTimeout(() => DataServer.listen(), 5000);
         };
-        this.ws.onerror = (error) => {
+
+        instance.ws.onerror = (error) => {
             console.error("WebSocket error:", error);
-            this.ws.close();
+            instance.ws.close();
         };
     }
 }
+
+// Mulai otomatis saat halaman dimuat
+document.addEventListener("DOMContentLoaded", () => {
+    DataServer.update(1500);
+    DataServer.listen();
+});

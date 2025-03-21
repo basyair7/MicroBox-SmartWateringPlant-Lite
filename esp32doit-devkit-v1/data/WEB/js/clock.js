@@ -1,36 +1,50 @@
 class Clock {
     constructor() {
-        this.rtclock = new Date();
+        this.updateClock();
+        this.start();
     }
-    
-    static run() {
-        const thisClass = new Clock();
 
-        // date
-        let day = thisClass.rtclock.getDate(); // Get the day of the month (1-31)
-        let month = thisClass.rtclock.getMonth() + 1; // Get the month (0-11), so adding 1
-        let year = thisClass.rtclock.getFullYear();
+    /**
+     * @brief Updates the date and time display in the DOM.
+     */
+    updateClock() {
+        const now = new Date();
 
-        // time
-        let hours = thisClass.rtclock.getHours();
-        let minute = thisClass.rtclock.getMinutes();
-        let seconds = thisClass.rtclock.getSeconds();
+        // Get current date
+        let day = now.getDate();
+        let month = now.getMonth() + 1;
+        let year = now.getFullYear();
 
-        // Add AM or PM System
-        let AM_PM = (hours < 12) ? "AM" : "PM";
+        // Get current time
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        let seconds = now.getSeconds();
 
-        // convert the hours component to 12-hour format
-        hours = (hours > 12) ? hours - 12 : (hours === 0 ? 12 : hours);  // Handle 12 AM as 12, and 0 hour as 12 in PM
+        // Determine AM or PM
+        let AM_PM = hours < 12 ? "AM" : "PM";
 
-        // pad the hours, minute, and seconds with leading zero
-        hours = ("0" + hours).slice(-2);
-        minute = ("0" + minute).slice(-2);
-        seconds = ("0" + seconds).slice(-2);
+        // Convert to 12-hour format
+        hours = hours % 12 || 12;  // Converts 0 to 12 for 12 AM
 
-        document.getElementById("time").innerHTML = `${hours}:${minute}:${seconds} ${AM_PM}`;
+        // Pad numbers with leading zeros
+        hours = String(hours).padStart(2, "0");
+        minutes = String(minutes).padStart(2, "0");
+        seconds = String(seconds).padStart(2, "0");
+
+        // Update the DOM elements with the formatted time and date
+        document.getElementById("time").innerHTML = `${hours}:${minutes}:${seconds} ${AM_PM}`;
         document.getElementById("date").innerHTML = `${month}/${day}/${year}`;
-        
-        // Use setInterval instead of setTimeout for continuous updates
-        setInterval(Clock.run, 1000); // Update every 1000ms (1 second)
+    }
+
+    /**
+     * @brief Starts the clock and updates the time every second.
+     */
+    start() {
+        if (!Clock.instance) {
+            Clock.instance = setInterval(() => this.updateClock(), 1000);
+        }
     }
 }
+
+// Run the clock only once after the DOM is fully loaded
+document.addEventListener("DOMContentLoaded", () => new Clock());

@@ -6,20 +6,20 @@
     <meta name="author" content="basyair7">
 
     <link rel="stylesheet" href="/css/index.css">
-    <link rel="stylesheet" href="../css/index.css">
+    <!-- <link rel="stylesheet" href="../css/index.css"> -->
 
     <script src="/js/sweetalert.min.js"></script>
-    <script src="../js/sweetalert.min.js"></script>
+    <!-- <script src="../js/sweetalert.min.js"></script> -->
     <script src="/js/data_server.js"></script>
-    <script src="../js/data_server.js"></script>
+    <!-- <script src="../js/data_server.js"></script> -->
     <script src="/js/toggleCheck.js"></script>
-    <script src="../js/toggleCheck.js"></script>
+    <!-- <script src="../js/toggleCheck.js"></script> -->
     <script src="/js/clock.js"></script>
-    <script src="../js/clock.js"></script>
+    <!-- <script src="../js/clock.js"></script> -->
 
     <title>MicroBox Smart Watering Plant - v%VERSION_PROJECT%</title>
 </head>
-<body onload="Clock.run();">
+<body>
     <main class="container">
         <h2>MicroBox Smart Watering Plant</h2>
         <section class="table-container">
@@ -50,12 +50,12 @@
                     <tbody>
                         <tr>
                             <td>Temperature</td>
-                            <td><span id="server-temp">Loading...</span> °C</td>
+                            <td><span id="server-temp">Loading...</span></td>
                         </tr>
 
                         <tr>
                             <td>Humidity</td>
-                            <td><span id="server-hum">Loading...</span> %</td>
+                            <td><span id="server-hum">Loading...</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -69,7 +69,7 @@
                         <td>%VAR1%</td>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" onchange="toggleCheck.autoWateringCheckbox(this)" name="%VARID1%" id="%VARID1%" %CHECKED1%>
+                                <input type="checkbox" onchange="toggleCheck.autoWateringCheckbox(this)" id="%VARID1%" %CHECKED1%>
                                 <span class="slider"></span>
                             </label>
                         </td>
@@ -79,7 +79,7 @@
                         <td>%VAR2%</td>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" onchange="toggleCheck.toggleCheckbox(this)" name="%VARID2%" id="%VARID2%" %CHECKED2%>
+                                <input type="checkbox" onchange="toggleCheck.toggleCheckbox(this)" id="%VARID2%" %CHECKED2%>
                                 <span class="slider"></span>
                             </label>
                         </td>
@@ -89,7 +89,7 @@
                         <td>%VAR3%</td>
                         <td>
                             <label class="switch">
-                                <input type="checkbox" onchange="toggleCheck.toggleCheckbox(this)" name="%VAR3%" id="%VAR3%" %CHECKED3%>
+                                <input type="checkbox" onchange="toggleCheck.toggleCheckbox(this)" id="%VARID3%" %CHECKED3%>
                                 <span class="slider"></span>
                             </label>
                         </td>
@@ -104,14 +104,5 @@
             </p>
         </footer>
     </main>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // Update data-server
-            DataServer.update(1500);
-            // Initialize DataServer class and listen for update
-            DataServer.listen();
-        });
-    </script>
 </body>
 </html>

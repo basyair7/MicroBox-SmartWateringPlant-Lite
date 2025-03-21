@@ -34,7 +34,7 @@
 inline void WateringSys::startWatering() {
     this->_isWatering = true;
     for (const auto &item : RELAY_PINS)
-        relayController.write_without_save(item, true, 1000);
+        RelayController::WRITE(item, true, 1000);
 
     if (!this->hasStarted && this->hasCompleted) {
         Serial.println(F("Automatic watering is started."));
@@ -52,7 +52,7 @@ inline void WateringSys::startWatering() {
 inline void WateringSys::stopWatering() {
     this->_isWatering = false;
     for (const auto &item : RELAY_PINS)
-        relayController.write_without_save(item, false, 1000); // Turn off relays
+        RelayController::WRITE(item, false, 1000); // Turn off relays
 
     if (!this->hasCompleted && this->hasStarted) {
         Serial.println(F("Automatic watering is completed."));
@@ -96,7 +96,7 @@ bool WateringSys::wateringProcess() const {
     int _countRelayOn = 0;
     // read relay state on or off
     for (const auto &pins : RELAY_PINS) {
-        if (relayController.relay_state_str_int(digitalRead(pins)))
+        if (RelayController::RELAY_STATE_STR_INT(digitalRead(pins)))
             _countRelayOn++;
     }
 

@@ -51,7 +51,7 @@ void WebServerClass::index(AsyncWebServerRequest *req) {
 
     const String tags_html[] = {
         this->__VERSION_PROJECT__,
-        "auto-watering", "auto", this->stateChecked(wateringSys.AutoWateringState),
+        "Auto Watering", "auto", this->stateChecked(wateringSys.AutoWateringState),
         listVar[0], String(listPin[0]), this->RelayChecked(listPin[0]),
         listVar[1], String(listPin[1]), this->RelayChecked(listPin[1])
     };

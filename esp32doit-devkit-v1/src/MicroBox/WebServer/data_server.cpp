@@ -40,7 +40,7 @@ void WebServerClass::GetDataServer(DynamicJsonDocument &doc) {
 
 // WebServer Program
 void WebServerClass::DataWebServer(AsyncWebServerRequest *req) {
-    DynamicJsonDocument doc(500);
+    DynamicJsonDocument doc(1024);
     String jsonBuffer = "";
     int codeRes = 200;
 
@@ -54,7 +54,12 @@ void WebServerClass::DataWebServer(AsyncWebServerRequest *req) {
 
 // WebSocket program
 void WebServerClass::handleDataServeWS(AsyncWebSocketClient *client) {
-    DynamicJsonDocument res(500);
+    if (this->ws.count() > 5) {
+        Serial.println("Too many WebSocket clients, rejecting new request.");
+        return;
+    }
+    
+    DynamicJsonDocument res(1024);
     String jsonRes = "";
 
     res["event"] = "data_server";

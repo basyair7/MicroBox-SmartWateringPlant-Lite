@@ -32,27 +32,28 @@ void WebServerClass::index(AsyncWebServerRequest *req) {
 
     // get list data relay
     std::vector<String>listVar;
-    std::vector<int>listId, listPin;
+    std::vector<int>listPin;
+    // std::vector<int>listId;
 
     for (const auto &relay : RELAY_PINS) {
         RelayController::READ(relay);
         listPin.push_back(RelayController::PIN_IO_RELAY);
         listVar.push_back(RelayController::LABEL_RELAY);
-        listId.push_back(RelayController::ID_RELAY);
+        // listId.push_back(RelayController::ID_RELAY);
     }
 
-    const char *placeholders[] = {
+    const String placeholders[] = {
         "%VERSION_PROJECT%",
         "%VAR1%", "%VARID1%", "%CHECKED1%",
         "%VAR2%", "%VARID2%", "%CHECKED2%",
         "%VAR3%", "%VARID3%", "%CHECKED3%"
     };
 
-    const char *tags_html[] = {
-        (this->__VERSION_PROJECT__).c_str(),
-        "Auto Watering", "auto", this->stateChecked(wateringSys.AutoWateringState).c_str(),
-        (listVar[0]).c_str(), String(listPin[0]).c_str(), this->RelayChecked(listPin[0]).c_str(),
-        listVar[1].c_str(), String(listPin[1]).c_str(), this->RelayChecked(listPin[1]).c_str()
+    const String tags_html[] = {
+        this->__VERSION_PROJECT__,
+        "auto-watering", "auto", this->stateChecked(wateringSys.AutoWateringState),
+        listVar[0], String(listPin[0]), this->RelayChecked(listPin[0]),
+        listVar[1], String(listPin[1]), this->RelayChecked(listPin[1])
     };
 
     // Replace page
@@ -60,5 +61,5 @@ void WebServerClass::index(AsyncWebServerRequest *req) {
         page.replace(placeholders[item], tags_html[item]);
     }
 
-    req->send(200, TEXTHTML, page);
+    req->send_P(200, TEXTHTML, page.c_str());
 }

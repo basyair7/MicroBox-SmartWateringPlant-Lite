@@ -39,7 +39,8 @@ void WebServerClass::queryDataRelayStr(StaticJsonDocument<500> &doc) {
         JsonObject relay = doc.createNestedObject(String(VAR_SWITCH) + String(item));
         RelayController::READ(item);
 
-        relay["id"] = RelayController::ID_RELAY;
+        // relay["id"] = RelayController::ID_RELAY;
+        relay["id"] = RelayController::PIN_IO_RELAY;
         relay["status"] = RelayController::RELAY_STATE_STR_INT(
             digitalRead(RelayController::PIN_IO_RELAY)
         );

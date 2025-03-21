@@ -34,7 +34,7 @@
 // Define pinout relay
 #define RELAY1 26
 #define RELAY2 27
-#define VAR_SWITCH "RELAY_"
+#define VAR_SWITCH "relay"
 
 #define WATERING_LVL_MAX 80 //< Watering Level Maximum for Soil Moisture
 #define WATERING_LVL_MIN 30 //< Watering Level Minimum for Soil Moisture

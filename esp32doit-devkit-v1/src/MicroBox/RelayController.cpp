@@ -36,13 +36,15 @@ String RelayController::LABEL_RELAY;
  * @param _delay
  */
 void RelayController::begin(bool _optocouple, uint32_t _delay) {
+    StaticJsonDocument<150> doc;
+    String jsonBuf;
     this->optocouple = _optocouple;
     if (!_optocouple) {
         this->ON  = 0x1;
         this->OFF = 0x0;
     }
 
-    Serial.println(F("\nInitialize Relay Pins :"));
+    Serial.println(F("\nInitialize Relay Pins :\n"));
     for (const auto &item : RELAY_PINS) {
         lfsprog.parseVarRelay(
             String(VAR_SWITCH) + String(item),
@@ -57,11 +59,17 @@ void RelayController::begin(bool _optocouple, uint32_t _delay) {
             this->label_relay.c_str());
             continue;
         }
+        
+        JsonObject relayData = doc.createNestedObject(String(VAR_SWITCH) + String(item));
+        relayData["pin"] = this->pins_io_relay;
+        relayData["status"] = RELAY_STATE_STR_BOOL(this->relay_state);
+        relayData["label"] = this->label_relay;
+        relayData["id"] = this->id_relay;
 
-        Serial.printf("%s (%d): (%d) (%s)\n\n",
-            this->label_relay.c_str(), this->id_relay,
-            this->pins_io_relay, RELAY_STATE_STR_BOOL(this->relay_state)
-        );
+        serializeJson(doc, jsonBuf);
+        Serial.printf("%s\n\n", jsonBuf.c_str());
+        jsonBuf = "";
+        doc.clear();
 
         pinMode(this->pins_io_relay, OUTPUT);
         digitalWrite(this->pins_io_relay, this->relay_state ? this->ON : this-> OFF);
@@ -139,13 +147,13 @@ void RelayController::write_without_save(const String &relay_varName, const bool
 
 void RelayController::write_without_save(const uint8_t &pin_relay, const bool &state, uint32_t _delay)
 {
-    this->write(String(VAR_SWITCH) + String(pin_relay), state, _delay);
+    this->write_without_save(String(VAR_SWITCH) + String(pin_relay), state, _delay);
 }
 
 void RelayController::executeAction(const RelayAction &action) {
     digitalWrite(action.pin_relay, action.state ? this->ON : this->OFF);
     if (action.saveState) {
-        lfsprog.changeConfigState(String(VAR_SWITCH) + String(action.pin_relay), action.state);
+        lfsprog.changeStateRelay(String(VAR_SWITCH) + String(action.pin_relay), action.state);
     }
     Serial.println(F("\nExecute Relay Action"));
     this->showAction(
@@ -158,11 +166,13 @@ void RelayController::executeAction(const RelayAction &action) {
 }
 
 void RelayController::processQueue() {
-    if (!this->actionQueue.empty()) {
+    while (!this->actionQueue.empty()) {
         RelayAction action = this->actionQueue.front();
         if (millis() >= action.nextActionTime) {
             this->actionQueue.pop();
             this->executeAction(action);
+        } else {
+            break;
         }
     }
 }

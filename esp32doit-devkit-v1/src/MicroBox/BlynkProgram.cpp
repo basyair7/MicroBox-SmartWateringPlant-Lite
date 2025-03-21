@@ -77,7 +77,7 @@ BLYNK_WRITE(V3) {
     }
 
     for (const auto &pin : RELAY_PINS) {
-        relayController.write_without_save(
+        RelayController::WRITE(
             pin, 
             param.asInt() == 1 ? false : true,
             1000

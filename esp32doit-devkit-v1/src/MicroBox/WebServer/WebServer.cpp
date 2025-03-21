@@ -23,7 +23,7 @@
 
 void WebServerClass::ServerInit() {
     // Initialize LittleFS
-    lfsprog.setupLFS();
+    // lfsprog.setupLFS();
 
     // Initialize mDNS with the hostname esp32-delay
     if (!MDNS.begin("esp32-delay")) {

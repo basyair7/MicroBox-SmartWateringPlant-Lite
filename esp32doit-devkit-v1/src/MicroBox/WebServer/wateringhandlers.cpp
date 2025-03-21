@@ -54,7 +54,7 @@ void WebServerClass::ManualWatering(AsyncWebServerRequest *req) {
         bool state = req->getParam("state")->value().toInt();
         if (!wateringSys.AutoWateringState) {
             for (const auto &relay : RELAY_PINS) {
-                this->updateRelayState(String(VAR_SWITCH) + String(relay), state);
+                this->updateRelayState(relay, state);
             }
             message = "OK";
         }

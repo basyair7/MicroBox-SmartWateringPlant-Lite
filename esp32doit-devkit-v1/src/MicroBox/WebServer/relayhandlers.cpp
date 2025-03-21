@@ -22,14 +22,14 @@
 #include "MicroBox/software/WebServer"
 
 String WebServerClass::RelayChecked(uint8_t pinRelay) {
-    if (relayController.optocouple)
+    if (RelayController::OPTOCOUPLE)
         return digitalRead(pinRelay) ? "" : "checked";
     else
         return digitalRead(pinRelay) ? "checked" : "";
 }
 
-void WebServerClass::updateRelayState(String pinRelay, bool state) {
-    relayController.write(pinRelay, state, 1000);
+void WebServerClass::updateRelayState(int pinRelay, bool state) {
+    RelayController::WRITE(pinRelay, state, 1000);
 }
 
 void WebServerClass::queryDataRelayStr(StaticJsonDocument<500> &doc) {
@@ -37,16 +37,17 @@ void WebServerClass::queryDataRelayStr(StaticJsonDocument<500> &doc) {
     doc["auto"]["status"] = wateringSys.AutoWateringState;
     for (const auto &item : RELAY_PINS) {
         JsonObject relay = doc.createNestedObject(String(VAR_SWITCH) + String(item));
-        relayController.read(item);
+        RelayController::READ(item);
 
-        relay["id"] = relayController.pins_io_relay;
-        relay["status"] = relayController.relay_state_str_int(
-            digitalRead(relayController.pins_io_relay));
+        relay["id"] = RelayController::ID_RELAY;
+        relay["status"] = RelayController::RELAY_STATE_STR_INT(
+            digitalRead(RelayController::PIN_IO_RELAY)
+        );
     }
 }
 
 void WebServerClass::queryDataRelay(AsyncWebServerRequest *req) {
-    String res = "";
+    String jsonres = "";
     uint16_t statusCode = 200;
     StaticJsonDocument<500> jsonDoc;
 
@@ -55,16 +56,16 @@ void WebServerClass::queryDataRelay(AsyncWebServerRequest *req) {
     JsonObject relayObj = jsonDoc.createNestedObject("data_relay");
     for (const auto &item : RELAY_PINS) {
         JsonObject data_relay = relayObj.createNestedObject(String(VAR_SWITCH) + String(item));
-        relayController.read(item);
-        data_relay["pin"]    = relayController.pins_io_relay;
-        data_relay["status"] = RELAY_STATE_STR_BOOL(relayController.relay_state);
-        data_relay["id"]     = relayController.id_relay;
-        data_relay["name"]   = relayController.label_relay;
+        RelayController::READ(item);
+        data_relay["pin"]    = RelayController::PIN_IO_RELAY;
+        data_relay["status"] = RELAY_STATE_STR_BOOL(RelayController::RELAY_STATE);
+        data_relay["id"]     = RelayController::ID_RELAY;
+        data_relay["name"]   = RelayController::LABEL_RELAY;
     }
 
-    serializeJson(jsonDoc, res);
+    serializeJson(jsonDoc, jsonres);
     jsonDoc.clear();
-    req->send_P(statusCode, APPJSON, res.c_str());
+    req->send_P(statusCode, APPJSON, jsonres.c_str());
 }
 
 void WebServerClass::postRelay(AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total)
@@ -73,9 +74,9 @@ void WebServerClass::postRelay(AsyncWebServerRequest *req, uint8_t *data, size_t
     Serial.printf("\nReceived data\t: %s\n", body.c_str());
 
     // process data JSON
-    StaticJsonDocument<500> doc, jsonData;
-    String res = "", handleErrorMsg = "";
-    int statusCode = 0; bool errorState;
+    DynamicJsonDocument doc(500), jsonData(500);
+    String jsonres = "", handleErrorMsg = "";
+    int statusCode = 200; bool errorState;
     
     // check data body
     this->handleError_deserializeJson(
@@ -90,19 +91,20 @@ void WebServerClass::postRelay(AsyncWebServerRequest *req, uint8_t *data, size_t
         doc["status"] = statusCode;
         doc["msg"] = handleErrorMsg;
 
-        serializeJson(doc, res);
+        serializeJson(doc, jsonres);
     }
     else {
         // check auto watering state
         if (!wateringSys.AutoWateringState) {
-            for (size_t i = 0; i < size_t(RELAY_PINS)/size_t(RELAY_PINS[0]); i++)
+            for (size_t i = 0; i < sizeof(RELAY_PINS)/sizeof(RELAY_PINS[0]); i++)
             {
-                if (doc.containsKey(String(VAR_SWITCH) + String(RELAY_PINS[i]))) 
+                String varName = String(VAR_SWITCH) + String(RELAY_PINS[i]);
+                if (doc.containsKey(varName)) 
                 {
-                    bool relayState = doc[String(VAR_SWITCH) + String(RELAY_PINS[i])];
-                    this->updateRelayState(String(VAR_SWITCH) + String(RELAY_PINS[i]), relayState);
+                    bool relayState = doc[varName];
+                    this->updateRelayState(RELAY_PINS[i], relayState);
 
-                    jsonData[String(VAR_SWITCH) + String(RELAY_PINS[i])] = relayState;
+                    jsonData[varName] = relayState;
                 }
             }
         }
@@ -122,8 +124,8 @@ void WebServerClass::postRelay(AsyncWebServerRequest *req, uint8_t *data, size_t
         doc["data_relay"] = jsonData;
     }
 
-    serializeJson(doc, res);
-    req->send_P(statusCode, APPJSON, res.c_str());
+    serializeJson(doc, jsonres);
+    req->send_P(statusCode, APPJSON, jsonres.c_str());
 }
 
 void WebServerClass::readRelayState(AsyncWebServerRequest *req) {
@@ -155,9 +157,10 @@ void WebServerClass::checkRelayState(AsyncWebServerRequest *req) {
         // check auto watering state
         if (!wateringSys.AutoWateringState) {
             for (const auto &item : RELAY_PINS) {
+                String varName = String(VAR_SWITCH) + String(item);
                 if (item == _pinOut.toInt()) {
-                    this->updateRelayState(String(VAR_SWITCH) + String(item), relayState);
-                    data[String(VAR_SWITCH) + String(item)] = relayState;
+                    this->updateRelayState(item, relayState);
+                    data[varName] = relayState;
                     res = "OK";
                     statusCode = 200;
                     _querycount++;

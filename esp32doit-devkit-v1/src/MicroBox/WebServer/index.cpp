@@ -35,10 +35,10 @@ void WebServerClass::index(AsyncWebServerRequest *req) {
     std::vector<int>listId, listPin;
 
     for (const auto &relay : RELAY_PINS) {
-        relayController.read(String(VAR_SWITCH) + String(relay));
-        listPin.push_back(relayController.pins_io_relay);
-        listVar.push_back(relayController.label_relay);
-        listId.push_back(relayController.id_relay);
+        RelayController::READ(relay);
+        listPin.push_back(RelayController::PIN_IO_RELAY);
+        listVar.push_back(RelayController::LABEL_RELAY);
+        listId.push_back(RelayController::ID_RELAY);
     }
 
     const char *placeholders[] = {

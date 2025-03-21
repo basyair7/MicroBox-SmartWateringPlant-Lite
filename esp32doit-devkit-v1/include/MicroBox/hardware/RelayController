@@ -137,4 +137,8 @@ class RelayController {
         {
             instance().write_without_save(relay_varName, state, _delay);
         }
+
+        static void PROCESSQUEUE() {
+            instance().processQueue();
+        }
 };

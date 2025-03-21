@@ -174,7 +174,7 @@ class WebServerClass : protected Info {
 
     private:
         String RelayChecked(uint8_t pinRelay);
-        void updateRelayState(String pinRelay, bool state);
+        void updateRelayState(int pinRelay, bool state);
 
         void readRelayState(AsyncWebServerRequest *req);
         void queryDataRelayStr(StaticJsonDocument<500> &doc);

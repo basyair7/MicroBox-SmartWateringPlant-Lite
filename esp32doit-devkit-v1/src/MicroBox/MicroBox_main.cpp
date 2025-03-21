@@ -52,10 +52,10 @@
 
 // Initialize modules and global variables
 // Initializes Sensor Program
-BootButton bootbtn(BOOTBUTTON, INPUT); //!< Boot button utility
+BootButton bootbtn = BootButton(BOOTBUTTON, INPUT); //!< Boot button utility
 LEDBoard led_running, led_warning; //!< Led indikator program
-LCDdisplay lcd; //!< LCD utility module
-DHTProgram dhtprog(PIN_DHT, DHT22); //!< DHT sensor program
+LCDdisplay lcd = LCDdisplay(); //!< LCD utility module
+DHTProgram dhtprog = DHTProgram(PIN_DHT, DHT22); //!< DHT sensor program
 SoilMoisture soilmoisture; //!< Soil Moisture sensor management module
 // RelayController relayController; //!< Relay management module
 
@@ -119,40 +119,47 @@ void ThisRTOS::vTask1(void *pvParameter) {
         //     }
         // }
 
-        if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1000L) {
+        if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1500L) {
             LastTimeRefreshLCD = millis();
 
             auto updateLCD = [](int state) {
-                lcd.clear();
-
-                if (state < 5) {
+                if (state <= 5) {
+                    lcd.clear();
                     lcd.print("Temp: ", 0, 0);
-                    lcd.print(dhtprog.temperature, 0, 2);
-                    lcd.print("°C", 0, 5);
-                    lcd.print("Hum: ", 1, 0);
-                    lcd.print(dhtprog.humidity, 1, 2);
-                    lcd.print("%", 1, 5);
+                    lcd.print(String(dhtprog.temperature) + "*C");
+                    lcd.print("Hum: ", 0, 1);
+                    lcd.print(String(dhtprog.humidity) + "%");
                 }
 
-                if (state > 5 && state < 7) {
+                if (state >= 5 && state <= 10) {
+                    lcd.clear();
                     lcd.print("Auto Watering: ", 0, 0);
-                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 2);
-                    lcd.print("Watering State: ", 1, 0);
-                    lcd.print(wateringSys.WateringProcess ? "Watering" : "Standby", 1, 2);
+                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
+                }
+                
+                if (state >= 10 && state <= 15) {
+                    lcd.clear();
+                    lcd.print("Watering State: ", 0, 0);
+                    lcd.print(wateringSys.WateringProcess ? "Watering" : "Standby", 0, 1);
                 }
 
-                if (state > 7 && state < 9) {
-                    String statusWiFiSta = WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected";
+                if (state >= 15 && state <= 20) {
+                    lcd.clear();
                     lcd.print("WiFi mode: ", 0, 0);
-                    lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 2);
+                    lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
+                }
+
+                if (state >= 20 && state <= 25) {
+                    lcd.clear();
+                    String statusWiFiSta = WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected";
                     lcd.print("Status: ", 0, 0);
-                    lcd.print(WiFi.getMode() == WIFI_STA ? statusWiFiSta : "Unknown", 0, 2);
+                    lcd.print(WiFi.getMode() == WIFI_STA ? statusWiFiSta : "Unknown", 0, 1);
                 }
             };
 
             static int lcdState = 0;
             updateLCD(lcdState);
-            lcdState = (lcdState + 1) % 10;
+            lcdState = (lcdState + 1) % 25;
         }
 
         // Delay the task for 100 miliseconds to control the task execution frequency
@@ -225,6 +232,8 @@ void ThisRTOS::vTask3(void *pvParameter) {
 
         // Execute process queue for RelayController
         RelayController::PROCESSQUEUE();
+
+        wateringSys.run();
 
         // Delay the task for 100 miliseconds to control the task execution frequency
         vTaskDelay(pdMS_TO_TICKS(100));

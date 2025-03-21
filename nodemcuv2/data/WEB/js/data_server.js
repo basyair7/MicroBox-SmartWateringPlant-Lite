@@ -122,3 +122,10 @@ class DataServer {
         };
     }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    // update data-server
+    DataServer.update(1500);
+    // initialize DataServer class and listen for updates
+    DataServer.listen();
+});

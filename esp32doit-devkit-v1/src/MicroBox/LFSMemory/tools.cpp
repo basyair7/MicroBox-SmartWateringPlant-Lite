@@ -32,10 +32,9 @@ bool _writeConfigState = disable;
  *  @return String
  */
 String LFSMemory::readconfig(const String path) {
-    if (_writeConfigState) {
-        Serial.print(F("readconfig is busy, "));
-        Serial.println(F("please check writeconfig method..."));
-        return "null";
+    while (_writeConfigState) {
+        Serial.print(F("readconfig is busy, retrying...\n"));
+        delay(10);
     }
 
     _readConfigState = enable;
@@ -49,6 +48,7 @@ String LFSMemory::readconfig(const String path) {
         fileBuffer[_fileSize] = '\0';
         _file.close();
         _val = fileBuffer.get();
+        delayMicroseconds(50);
     }
     else {
         Serial.printf("Failed to open file %s for reading\n", path.c_str());
@@ -64,28 +64,57 @@ String LFSMemory::readconfig(const String path) {
  * @param path
  * @param valJson
  */
+// void LFSMemory::writeconfig(const String path, String valJson) {
+//     while (_readConfigState) {
+//         Serial.print(F("writeconfig is busy, retrying...\n"));
+//         delay(10);
+//     }
+
+//     _writeConfigState = enable;
+//     this->removefileconfig(path);
+
+//     File _file = openfile(path, LFS_WRITE);
+//     if (_file) {
+//         _file.write((const uint8_t *)valJson.c_str(), valJson.length());
+//         delayMicroseconds(50);
+//         _file.close();
+//     }
+//     else {
+//         Serial.printf("Failed to create a new file %s\n", path.c_str());
+//     }
+
+//     _writeConfigState = disable;
+// }
+
 void LFSMemory::writeconfig(const String path, String valJson) {
-    if (_readConfigState) {
-        Serial.print(F("writeconfig is busy, "));
-        Serial.println(F("please check readconfig method..."));
-        return;
+    while (_readConfigState) {
+        Serial.print(F("writeconfig is busy, retrying...\n"));
+        delay(10);
     }
 
     _writeConfigState = enable;
-    this->removefileconfig(path);
 
-    File _file = openfile(path, LFS_READ);
-    if (_file) {
-        _file.write((const uint8_t *)valJson.c_str(), valJson.length());
-        delayMicroseconds(50);
-        _file.close();
-    }
-    else {
-        Serial.printf("Failed to create a new file %s\n", path.c_str());
+    // Serial.printf("Writing to %s: %s\n", path.c_str(), valJson.c_str());
+    if (LFS.exists(path)) {
+        // Serial.printf("Removing old file: %s\n", path.c_str());
+        LFS.remove(path);
     }
 
+    File _file = openfile(path, LFS_WRITE);
+    if (!_file) {
+        Serial.printf("Failed to open file %s for writing!\n", path.c_str());
+        _writeConfigState = disable;
+        return;
+    }
+
+    _file.write((const uint8_t *)valJson.c_str(), valJson.length());
+    _file.flush();
+    _file.close();
+    
+    // Serial.println("File written successfully.");
     _writeConfigState = disable;
 }
+
 
 bool LFSMemory::removefileconfig(const String path) {
     bool x = true;

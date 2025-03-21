@@ -76,9 +76,9 @@ void LFSMemory::changeStateRelay(String varName, bool status) {
  * @param id int pointer
  * @param name String pointer
  */
-void LFSMemory::parseVarRelay(const String &varName, uint8_t *pin, bool *state, int *id, String *name)
+void LFSMemory::parseVarRelay(const String &varName, uint8_t *pin, bool *status, int *id, String *name)
 {
-    DynamicJsonDocument doc(500);
+    DynamicJsonDocument doc(1024);
     File _file = openfile(this->file_config_relay, LFS_READ);
     if (!_file) {
         Serial.printf("Failed to open %s file for loading\n", this->file_config_relay.c_str());
@@ -89,6 +89,7 @@ void LFSMemory::parseVarRelay(const String &varName, uint8_t *pin, bool *state, 
     size_t _fileSize = _file.size();
     if (_fileSize == 0) {
         _file.close();
+        Serial.println(F("Config file empty, initializing with default values."));
         this->__initialize_data_relay__(doc);
         String __newConfig__ = "";
         serializeJson(doc, __newConfig__);
@@ -113,8 +114,8 @@ void LFSMemory::parseVarRelay(const String &varName, uint8_t *pin, bool *state, 
     JsonObject relay = doc[varName];
     if (pin != nullptr)
         *pin = relay["pin"];
-    if (state != nullptr)
-        *state = relay["state"];
+    if (status != nullptr)
+        *status = relay["status"];
     if (id != nullptr)
         *id = relay["id"];
     if (name != nullptr)

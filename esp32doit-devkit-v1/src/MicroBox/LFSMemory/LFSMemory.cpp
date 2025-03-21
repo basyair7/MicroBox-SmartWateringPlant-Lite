@@ -51,13 +51,14 @@ void LFSMemory::initializeOrUpdateWiFiConfig(const String &cfile, std::function<
     String __readConfig__ = this->readconfig(cfile), __newConfig__ = "";
     if (__readConfig__ == "null" || !lfsIsExists(cfile)) {
         // Initialize with default WiFi credentials if the config is missing or corrupted.
+        Serial.println(F("WiFi config file missing, creating new one."));
         data[SSID_STA] = WIFI_SSID_STA_DEFAULT;
         data[PASS_STA] = WIFI_PASS_STA_DEFAULT;
         data[SSID_AP]  = WIFI_SSID_AP_DEFAULT;
         data[PASS_AP]  = WIFI_PASS_AP_DEFAULT;
     }
     else {
-        DeserializationError error = deserializeJson(data, __newConfig__);
+        DeserializationError error = deserializeJson(data, __readConfig__);
         if (error) {
             this->handleError_deserializeJson(
                 "initializeOrUpdateWiFiConfig", // Function name for error tracking
@@ -84,15 +85,15 @@ void LFSMemory::initializeOrUpdateWiFiConfig(const String &cfile, std::function<
  */
 void LFSMemory::initializeOrUpdateVarRelay(const String &cfile, std::function<void (DynamicJsonDocument&)> updateFunc)
 {
-    DynamicJsonDocument doc(500);
-    String __readconf__ = this->readconfig(cfile), __newconf__ = "";
+    DynamicJsonDocument doc(1024);
+    String __readConfig__ = this->readconfig(cfile), __newConfig__ = "";
     
-    if (__readconf__ == "null" || !lfsIsExists(cfile)) {
-        // Initialize relay data with default values
+    if (__readConfig__ == "null" || !lfsIsExists(cfile)) {
+        Serial.println(F("Relay config file missing, creating new one."));
         this->__initialize_data_relay__(doc);
     }
     else {
-        DeserializationError error = deserializeJson(doc, __newconf__);
+        DeserializationError error = deserializeJson(doc, __readConfig__);
         if (error) {
             this->handleError_deserializeJson(
                 "initializeOrUpdateVarRelay", // Function name for error tracking
@@ -106,8 +107,8 @@ void LFSMemory::initializeOrUpdateVarRelay(const String &cfile, std::function<vo
     updateFunc(doc);
 
     // Serialize updated data and write it back to the file
-    serializeJson(doc, __newconf__);
-    this->writeconfig(cfile, __newconf__);
+    serializeJson(doc, __newConfig__);
+    this->writeconfig(cfile, __newConfig__);
 }
 
 /**
@@ -120,15 +121,16 @@ void LFSMemory::initializeOrUpdateVarRelay(const String &cfile, std::function<vo
 void LFSMemory::initializeOrUpdateState(const String &cfile, std::function<void (StaticJsonDocument<200>&)> updateFunc)
 {
     StaticJsonDocument<200> doc;
-    String __readconfig__ = this->readconfig(cfile), __newconfig__ = "";
+    String __readConfig__ = this->readconfig(cfile), __newConfig__ = "";
     
-    if (__readconfig__ == "null" || !lfsIsExists(cfile)) {
+    if (__readConfig__ == "null" || !lfsIsExists(cfile)) {
         // Initialize with default state values if the config is missing or corrupted
+        Serial.println(F("State config file missing, creating new one."));
         doc[AUTOWATERING] = false;
         doc[AUTOCHANGE]   = false;
     }
     else {
-        DeserializationError error = deserializeJson(doc, __newconfig__);
+        DeserializationError error = deserializeJson(doc, __readConfig__);
         if (error) {
             this->handleError_deserializeJson(
                 "initializeOrUpdateState", // Function name for error tracking
@@ -142,8 +144,8 @@ void LFSMemory::initializeOrUpdateState(const String &cfile, std::function<void 
     updateFunc(doc);
 
     // Serialize updated data and write it back to the file
-    serializeJson(doc, __newconfig__);
-    this->writeconfig(cfile, __newconfig__);
+    serializeJson(doc, __newConfig__);
+    this->writeconfig(cfile, __newConfig__);
 }
 
 /**
@@ -215,24 +217,15 @@ void LFSMemory::reinitializeWiFiConfig(void) {
  * @brief REinitializes relay configuration with default settings.
  */
 void LFSMemory::reinitializeVarRelay(void) {
-    this->initializeOrUpdateVarRelay(
-        this->file_config_relay,
-        [&](DynamicJsonDocument &doc) {
-            unsigned int id = 0;
-            for (size_t i = 0; i < (sizeof(RELAY_PINS)/sizeof(RELAY_PINS[0])); i++) {
-                JsonObject data = doc.createNestedObject(
-                    String(VAR_SWITCH) + String(RELAY_PINS[i]));
-                data["id"] = id;
-                data["name"] = VALUE_DEFAULT[i];
-                data["pin"] = RELAY_PINS[i];
-                data["status"] = false;
+    DynamicJsonDocument doc(1024);
 
-                id++;
-            }
+    this->__initialize_data_relay__(doc);
 
-            Serial.println(F("Reinitialize Variable Relay : Done"));
-        }
-    );
+    Serial.println(F("Reinitialize Variable Relay : Writing new file"));
+
+    String __newConfig__;
+    serializeJson(doc, __newConfig__);
+    this->writeconfig(this->file_config_relay, __newConfig__);
 }
 
 /**

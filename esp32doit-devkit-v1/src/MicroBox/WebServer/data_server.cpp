@@ -28,8 +28,8 @@ void WebServerClass::GetDataServer(DynamicJsonDocument &doc) {
 
     JsonObject data = doc.createNestedObject("data_server");
 
-    data["dht"]["temp"] = dhtprog.temperature;
-    data["dht"]["hum"] = dhtprog.humidity;
+    data["dht"]["temp"] = String(dhtprog.temperature, 2);
+    data["dht"]["hum"] = String(dhtprog.humidity, 2);
     data["soil_moisture"] = soilmoisture.value;
     data["watering_state"] = wateringSys.WateringProcess;
 

@@ -59,9 +59,9 @@ extern "C" {
  * @brief Manages configurations and runtime states using LittleFS.
  */
 class LFSMemory {
-    const String file_config_wifi  = "/config/config_wifi.json";
-    const String file_config_relay = "/config/config_relay.json";
-    const String file_config_state = "/config/config_state.json";
+    const String file_config_wifi  = "/config/wifi.json";
+    const String file_config_relay = "/config/relay.json";
+    const String file_config_state = "/config/state.json";
 
     public:
         // Default WiFi configurations
@@ -120,14 +120,14 @@ class LFSMemory {
          * @brief Parse relay configuration details.
          * @param varName Name of the relay variable.
          * @param pin Pointer of store the pin value.
-         * @param state Pointer to store the state value.
+         * @param status Pointer to store the status value.
          * @param id Optional pointer to store the relay ID
          * @param name Optional pointer to store the relay name.
          */
         void parseVarRelay(
             const String &varName,
             uint8_t *pin,
-            bool *state,
+            bool *status,
             int *id = nullptr,
             String *name = nullptr
         );
@@ -216,14 +216,19 @@ class LFSMemory {
 
         void createDirIfNeeded(const String &pathName) {
             if (!LFS.exists(pathName)) {
+                Serial.printf("Directory %s does not exist, creating...\n", pathName.c_str());
                 if (LFS.mkdir(pathName)) {
-                    Serial.println(F("Directory created"));
-                }
-                else {
-                    Serial.println(F("Failed to create directory"));
+                    Serial.printf("Directory %s created successfully.\n", pathName.c_str());
+                } else {
+                    Serial.printf("Failed to create directory %s. Formatting LittleFS...\n", pathName.c_str());
+                    LFS.format();
+                    if (!LFS.mkdir(pathName)) {
+                        Serial.printf("Still failed to create directory %s after format.\n", pathName.c_str());
+                    }
                 }
             }
         }
+
 
         /**
          * @brief List files in a directory.

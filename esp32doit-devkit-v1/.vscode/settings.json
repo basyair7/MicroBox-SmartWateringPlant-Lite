@@ -12,6 +12,7 @@
         "SoilMoisture": "cpp",
         "WateringSys": "cpp",
         "display": "cpp",
+        "ButtonManager": "cpp",
         "WebServer": "cpp",
         "EraseEEPROM": "cpp",
         "ProgramWiFi": "cpp",

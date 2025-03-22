@@ -39,7 +39,7 @@
 
 // Include System Headers
 #include "MicroBox/software/BlynkProgram.h"
-#include "MicroBox/software/Button.h"
+#include "MicroBox/software/ButtonManager"
 #include "MicroBox/software/MyEEPROM"
 #include "MicroBox/software/LFSMemory"
 #include "MicroBox/software/SysHandlers"
@@ -224,8 +224,8 @@ void ThisRTOS::vTask3(void *pvParameter) {
     (void) pvParameter;
     
     wateringSys.begin();
-    ButtonInit();
-    lcd.backlight(backlight_state);
+    ButtonManager.init();
+    lcd.backlight(ButtonManager.backlightState);
 
     while (true) {
         // Run the system reboot logic if necessary
@@ -235,7 +235,7 @@ void ThisRTOS::vTask3(void *pvParameter) {
         bootbtn.ChangeWiFiMode();
         AutoChangeState::run();
 
-        ButtonRunning();
+        ButtonManager.update();
 
         // Execute process queue for RelayController
         RelayController::PROCESSQUEUE();
@@ -270,7 +270,6 @@ void MicroBox_Main::setup(unsigned long baud) {
     led_running.begin(LED_RUNNING);
     led_warning.begin(LED_WARNING);
     bootbtn.begin();
-    
     
     // Create FreeRTOS task
     // ThisRTOS *rtos = new ThisRTOS;

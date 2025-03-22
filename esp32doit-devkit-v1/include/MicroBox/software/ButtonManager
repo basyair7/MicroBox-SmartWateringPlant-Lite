@@ -1,0 +1,89 @@
+/**
+ *  @file ButtonManager
+ *  @version 1.0.0
+ *  @author basyair7
+ *  @date 2025
+ * 
+ *  @copyright
+ *  Copyright (C) 2025, basyair7
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+*/
+
+#pragma once
+
+#include <Arduino.h>
+#include <vector>
+#include <pushbutton.h>
+#include "MyEEPROM"
+#include "variable"
+
+/**
+ * @class ButtonManager
+ * @brief Manages button inputs and controls relay, auto-watering, and LCD backlight states.
+ */
+class ButtonManagerClass {
+    MyEEPROM eeprom_obj;    ///< EEPROM object for storing backlight state.
+    PushButtonDigital btnRelay1, btnRelay2, btnAutoWatering, btnBacklight; ///< Button objects.
+    bool relayState1, relayState2, autoWateringState; ///< Button objects.
+    bool lastRelay1, lastRelay2, lastAutoWatering, lastBacklight; ///< Previous states for edge detection.
+
+    public: bool backlightState;
+
+    private:
+        /**
+         * @brief Toggles the state of a relay when the corresponding button is pressed.
+         * @param btn Reference to the button object.
+         * @param state Reference to the relay state variable.
+         * @param relayIndex Index of the relay in the RELAY_PINS array.
+         */
+        void toggleRelay(PushButtonDigital &btn, bool &state, int relayIndex);
+
+         /**
+         * @brief Toggles the auto-watering system state when the corresponding button is pressed.
+         */
+        void toggleAutoWatering();
+
+        /**
+         * @brief Toggles the LCD backlight state when the corresponding button is pressed.
+         */
+        void toggleBacklight();
+    
+    public:
+        /**
+         * @brief Constructor initializes button objects with their respective pins and input mode.
+         */
+        ButtonManagerClass()
+            :   btnRelay1(BTN_RELAY_1, INPUT),
+                btnRelay2(BTN_RELAY_2, INPUT),
+                btnAutoWatering(BTN_AUTOWATERING, INPUT),
+                btnBacklight(BTN_BACKLIGHT, INPUT) 
+        {
+            // TODO ("Not yet implemented")
+        }
+
+        /**
+         * @brief Initializes buttons and retrieves stored states from EEPROM.
+         */
+        void init();
+
+        /**
+         * @brief Periodically updates button states and triggers appropriate actions.
+         */
+        void update();
+};
+
+#if !defined(NO_GLOBAL_INSTANCES) && !defined (NO_GLOBAL_ButtonManager)
+extern ButtonManagerClass ButtonManager;
+#endif

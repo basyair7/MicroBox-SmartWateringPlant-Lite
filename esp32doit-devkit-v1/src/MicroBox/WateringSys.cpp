@@ -61,6 +61,10 @@ inline void WateringSys::stopWatering() {
     }
 }
 
+void WateringSys::begin() {
+    lfsprog.readConfigState(AUTOWATERING, &this->AutoWateringState);
+}
+
 /**
  * @brief Main execution loop for the watering system
  * @details

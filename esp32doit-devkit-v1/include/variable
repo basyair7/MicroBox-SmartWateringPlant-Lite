@@ -25,11 +25,15 @@
 
 // PIN I/O COMPONENTS
 // Don't use GPIO22 (I2C SCL) and GPIO21 (I2C SDA) 
-#define LED_RUNNING BUILTIN_LED ///< Pin for Built-in LED indicator pin
-#define LED_WARNING 4
-#define BOOTBUTTON 0           ///< Pin for the boot button
-#define PIN_DHT    14          ///< Pin for the DHT module
-#define PIN_SMS    35          ///< Pin for the Soil Moisture Sensor
+#define LED_RUNNING         BUILTIN_LED ///< Pin for Built-in LED indicator pin
+#define LED_WARNING         4
+#define BOOTBUTTON          0           ///< Pin for the boot button
+#define BTN_RELAY_1         12          ///< Pin for the switcher relay 1
+#define BTN_RELAY_2         13          ///< Pin for the switcher relay 2
+#define BTN_AUTOWATERING    18          ///< Pin for the Auto Watering (enable or disable) 
+#define BTN_BACKLIGHT       25          ///< Pin for the backlight (enable or disable) 
+#define PIN_DHT             14          ///< Pin for the DHT module
+#define PIN_SMS             35          ///< Pin for the Soil Moisture Sensor
 
 // Define pinout relay
 #define RELAY1 26
@@ -49,4 +53,5 @@ inline const String VALUE_DEFAULT[2] {
 
 // EEPROM address definitions
 // Don't replace these addresses as they are cirtical for EEPROM operations
-#define ADDR_EEPROM_WIFI_MODE   0x04 ///< EEPROM address for storing Wi-Fi mode
+#define ADDR_EEPROM_WIFI_MODE     0x04 ///< EEPROM address for storing Wi-Fi mode
+#define ADDR_EEPROM_BACKLIGHT_LCD 0x08

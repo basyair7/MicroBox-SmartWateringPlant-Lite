@@ -28,11 +28,12 @@
  * @brief Toggles the state of a relay when the corresponding button is pressed.
  * @param btn Reference to the button object.
  * @param state Reference to the relay state variable.
+ * @param lastState Reference to the last state variable for edge detection.
  * @param relayIndex Index of the relay in the RELAY_PINS array.
  */
-void ButtonManagerClass::toggleRelay(PushButtonDigital &btn, bool &state, int relayIndex) {
+void ButtonManagerClass::toggleRelay(PushButtonDigital &btn, bool &state, bool &lastState, int relayIndex) {
     bool currentState = btn.digitalReadPushButton();
-    if (currentState != this->lastRelay1) {
+    if (currentState != lastState) {
         if (!currentState) {
             state = !state;
             RelayController::WRITE(
@@ -42,6 +43,7 @@ void ButtonManagerClass::toggleRelay(PushButtonDigital &btn, bool &state, int re
             );
         }
     }
+    lastState = currentState;
 }
 
 /**
@@ -98,8 +100,8 @@ void ButtonManagerClass::init() {
  * @brief Periodically updates button states and triggers appropriate actions.
  */
 void ButtonManagerClass::update() {
-    this->toggleRelay(btnRelay1, relayState1, 0);
-    this->toggleRelay(btnRelay2, relayState2, 1);
+    this->toggleRelay(btnRelay1, relayState1, lastRelay1, 0);
+    this->toggleRelay(btnRelay2, relayState2, lastRelay2, 1);
     this->toggleAutoWatering();
     this->toggleBacklight();
 }

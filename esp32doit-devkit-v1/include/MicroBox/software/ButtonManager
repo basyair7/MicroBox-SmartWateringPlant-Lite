@@ -46,9 +46,10 @@ class ButtonManagerClass {
          * @brief Toggles the state of a relay when the corresponding button is pressed.
          * @param btn Reference to the button object.
          * @param state Reference to the relay state variable.
+         * @param lastState Reference to the last state variable for edge detection.
          * @param relayIndex Index of the relay in the RELAY_PINS array.
          */
-        void toggleRelay(PushButtonDigital &btn, bool &state, int relayIndex);
+        void toggleRelay(PushButtonDigital &btn, bool &state, bool &lastState, int relayIndex);
 
          /**
          * @brief Toggles the auto-watering system state when the corresponding button is pressed.

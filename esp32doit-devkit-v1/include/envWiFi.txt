@@ -2,5 +2,5 @@
 
 #define WIFI_SSID_STA_DEFAULT	""
 #define WIFI_PASS_STA_DEFAULT	""
-#define WIFI_SSID_AP_DEFAULT	""
-#define WIFI_PASS_AP_DEFAULT	""
+#define WIFI_SSID_AP_DEFAULT	"SmartWatering V1"
+#define WIFI_PASS_AP_DEFAULT	"Admin#1234"

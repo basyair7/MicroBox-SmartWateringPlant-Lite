@@ -194,8 +194,8 @@ void ThisRTOS::vTask2(void *pvParameter) {
 
     // Initialize WiFi program
     ProgramWiFi.setup(
-        WIFI_SSID_STA_DEFAULT, WIFI_PASS_STA_DEFAULT,
-        WIFI_SSID_AP_DEFAULT, WIFI_PASS_AP_DEFAULT
+        lfsprog.__SSID_STA__, lfsprog.__PASS_STA__,
+        lfsprog.__SSID_AP__, lfsprog.__PASS_AP__
     );
     ProgramWiFi.initWiFi(wifi_state);
 

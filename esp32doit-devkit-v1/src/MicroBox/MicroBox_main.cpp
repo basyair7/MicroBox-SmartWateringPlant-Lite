@@ -90,6 +90,9 @@ void ThisRTOS::vTask1(void *pvParameter) {
         // Run dht sensor and update readings
         dhtprog.running();
 
+        bool watering_process = wateringSys.WateringProcess;
+        watering_process ? led_running.on() : led_running.off();
+
         // static unsigned long LastTimeRefreshMonitor = 0;
         static unsigned long LastTimeRefreshLCD = 0;
         // if ((unsigned long) (millis() - LastTimeRefreshMonitor) >= 1000L)
@@ -123,7 +126,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
         if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1500L) {
             LastTimeRefreshLCD = millis();
 
-            auto updateLCD = [](int state) {
+            auto updateLCD = [](int state, bool watering_process) {
                 if (state <= 5) {
                     lcd.clear();
                     lcd.print("Temp: ", 0, 0);
@@ -141,7 +144,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
                 if (state >= 10 && state <= 15) {
                     lcd.clear();
                     lcd.print("Watering State: ", 0, 0);
-                    lcd.print(wateringSys.WateringProcess ? "Watering" : "Standby", 0, 1);
+                    lcd.print(watering_process ? "Watering" : "Standby", 0, 1);
                 }
 
                 if (state >= 15 && state <= 20) {
@@ -159,7 +162,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
             };
 
             static int lcdState = 0;
-            updateLCD(lcdState);
+            updateLCD(lcdState, watering_process);
             lcdState = (lcdState + 1) % 25;
         }
 

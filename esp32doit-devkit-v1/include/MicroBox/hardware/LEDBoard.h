@@ -69,15 +69,15 @@ class LEDBoard {
         /**
          * @brief LED on function
          */
-        static void ON(uint8_t pin_led = LED_BUILTIN) {
-            instance().on(pin_led);
+        static void ON() {
+            instance().on();
         }
 
         /**
          * @brief LED off function
          */
-        static void OFF(uint8_t pin_led = LED_BUILTIN) {
-            instance().off(pin_led);
+        static void OFF() {
+            instance().off();
         }
 
     public:
@@ -105,15 +105,15 @@ class LEDBoard {
          *  @brief LED on function
          */
 
-        void on(uint8_t led_pin = LED_BUILTIN) {
-            digitalWrite(led_pin, LEDON);
+        void on() {
+            digitalWrite(this->LED_PIN_OUT, LEDON);
         }
 
         /**
          * @brief Led off function
          */
-        void off(uint8_t led_pin = LED_BUILTIN) {
-            digitalWrite(led_pin, LEDOFF);
+        void off() {
+            digitalWrite(this->LED_PIN_OUT, LEDOFF);
         }
 
     private:

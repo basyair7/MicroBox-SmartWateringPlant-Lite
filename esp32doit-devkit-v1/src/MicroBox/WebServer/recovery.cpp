@@ -54,7 +54,7 @@ void WebServerClass::RecoveryPage(AsyncWebServerRequest *req) {
         
         "%SSID_AP%", 
         "%PASS_AP%",
-        "%SSID_STA", 
+        "%SSID_STA%", 
         "%PASS_STA%",
         "%AUTO_CHANGE_WIFI%",
         

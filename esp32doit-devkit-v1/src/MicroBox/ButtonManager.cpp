@@ -100,8 +100,11 @@ void ButtonManagerClass::init() {
  * @brief Periodically updates button states and triggers appropriate actions.
  */
 void ButtonManagerClass::update() {
-    this->toggleRelay(btnRelay1, relayState1, lastRelay1, 0);
-    this->toggleRelay(btnRelay2, relayState2, lastRelay2, 1);
+    if (!this->autoWateringState) {
+        this->toggleRelay(btnRelay1, relayState1, lastRelay1, 0);
+        this->toggleRelay(btnRelay2, relayState2, lastRelay2, 1);
+    }
+    
     this->toggleAutoWatering();
     this->toggleBacklight();
 }

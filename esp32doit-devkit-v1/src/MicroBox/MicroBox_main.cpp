@@ -139,7 +139,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
                     lcd.clear();
                     lcd.print("Soil Moisture", 0, 0);
                     lcd.print("Value: ", 0, 1);
-                    lcd.print(soilmoisture.value);
+                    lcd.print(String(soilmoisture.value) + "%");
                 }
                 
                 if (state >= 10 && state <= 15) {

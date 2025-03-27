@@ -30,7 +30,6 @@ class SoilMoisture {
     bool _CHECK_BEGIN = false;
 
     public:
-        static int VALUE;
         int value;
 
     public:
@@ -57,20 +56,5 @@ class SoilMoisture {
             else {
                 this->value = raw_result;
             }
-        }
-
-    public:
-        static SoilMoisture &instance() {
-            static SoilMoisture instance;
-            return instance;
-        }
-
-        static void BEGIN(const uint8_t pinIn) {
-            instance().begin(pinIn);    
-        }
-
-        static void GETDATA(bool mapping = true, uint32_t map_min = 0, uint32_t map_max = 4095)
-        {
-            instance().getData(mapping, map_min, map_max);
         }
 };

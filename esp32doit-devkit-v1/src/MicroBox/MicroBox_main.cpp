@@ -137,23 +137,30 @@ void ThisRTOS::vTask1(void *pvParameter) {
 
                 if (state >= 5 && state <= 10) {
                     lcd.clear();
-                    lcd.print("Auto Watering: ", 0, 0);
-                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
+                    lcd.print("Soil Moisture", 0, 0);
+                    lcd.print("Value: ", 0, 1);
+                    lcd.print(soilmoisture.value);
                 }
                 
                 if (state >= 10 && state <= 15) {
+                    lcd.clear();
+                    lcd.print("Auto Watering: ", 0, 0);
+                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
+                }
+
+                if (state >= 15 && state <= 20) {
                     lcd.clear();
                     lcd.print("Watering State: ", 0, 0);
                     lcd.print(watering_process ? "Watering" : "Standby", 0, 1);
                 }
 
-                if (state >= 15 && state <= 20) {
+                if (state >= 20 && state <= 25) {
                     lcd.clear();
                     lcd.print("WiFi mode: ", 0, 0);
                     lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
                 }
 
-                if (state >= 20 && state <= 25) {
+                if (state >= 25 && state <= 30) {
                     lcd.clear();
                     String statusWiFiSta = WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected";
                     lcd.print("Status: ", 0, 0);
@@ -163,7 +170,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
 
             static int lcdState = 0;
             updateLCD(lcdState, watering_process);
-            lcdState = (lcdState + 1) % 25;
+            lcdState = (lcdState + 1) % 30;
         }
 
         // Delay the task for 100 miliseconds to control the task execution frequency

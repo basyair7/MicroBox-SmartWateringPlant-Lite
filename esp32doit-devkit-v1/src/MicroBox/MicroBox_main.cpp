@@ -289,7 +289,7 @@ void MicroBox_Main::setup(unsigned long baud) {
     // Create Task and Running vTask 1
     xTaskCreateUniversal([](void *param) {
         static_cast<ThisRTOS*>(param)->vTask3(param);
-    }, "Task 3", 4096, NULL, 1, NULL, PRO_CPU_NUM);
+    }, "Task 3", 4096, NULL, 1, NULL, APP_CPU_NUM);
 
     // delete rtos;
 }

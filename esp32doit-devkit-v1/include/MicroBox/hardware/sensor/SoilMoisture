@@ -49,7 +49,14 @@ class SoilMoisture {
             }
 
             int raw_result = analogRead(this->_pinIN);
-            this->value = mapping ? map(raw_result, map_min, map_max, 0, 100) : raw_result;
+            
+            if (mapping) {
+                this->value = map(raw_result, map_min, map_max, 0, 100);
+                this->value = constrain(this->value, 0, 100);
+            }
+            else {
+                this->value = raw_result;
+            }
         }
 
     public:

@@ -85,7 +85,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
 
     while (true) {
         // Run soil moisture sensor and update readings
-        soilmoisture.getData();
+        soilmoisture.getData(true, 4095, 2500);
 
         // Run dht sensor and update readings
         dhtprog.running();

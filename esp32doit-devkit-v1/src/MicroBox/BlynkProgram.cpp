@@ -81,7 +81,7 @@ BLYNK_WRITE(V3) {
     for (const auto &pin : RELAY_PINS) {
         RelayController::WRITE(
             pin, 
-            param.asInt() == 1 ? false : true,
+            param.asInt() == 1 ? true : false,
             1000
         );
     }

@@ -75,15 +75,15 @@ BLYNK_WRITE(V3) {
     if (wateringSys.AutoWateringState) {
         Blynk.virtualWrite(V2, wateringSys.AutoWateringState);
         Blynk.virtualWrite(V3, wateringSys.WateringProcess);
-        return;
     }
-
-    for (const auto &pin : RELAY_PINS) {
-        RelayController::WRITE(
-            pin, 
-            param.asInt() == 1 ? true : false,
-            1000
-        );
+    else {
+        for (const auto &pin : RELAY_PINS) {
+            RelayController::WRITE(
+                pin, 
+                param.asInt() == 1 ? true : false,
+                1000
+            );
+        }
     }
 }
 

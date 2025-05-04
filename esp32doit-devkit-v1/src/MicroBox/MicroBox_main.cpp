@@ -210,7 +210,8 @@ void ThisRTOS::vTask2(void *pvParameter) {
     BlynkSetup();
 
     // Initialize WebServer Program
-    WebServer.ServerInit();
+    if (WiFi.getMode() == WIFI_AP)
+        WebServer.ServerInit();
 
     while (true) {
         // Run the Blynk update function to keep the Blynk application responsive

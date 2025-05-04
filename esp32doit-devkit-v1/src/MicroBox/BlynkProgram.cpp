@@ -74,7 +74,7 @@ BLYNK_WRITE(V4) {
 BLYNK_WRITE(V3) {
     if (wateringSys.AutoWateringState) {
         Blynk.virtualWrite(V2, wateringSys.AutoWateringState);
-        Blynk.virtualWrite(V3, 0);
+        Blynk.virtualWrite(V3, wateringSys.WateringProcess);
         return;
     }
 

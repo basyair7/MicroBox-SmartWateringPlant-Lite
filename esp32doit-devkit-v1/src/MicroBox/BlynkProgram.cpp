@@ -72,20 +72,18 @@ BLYNK_WRITE(V4) {
  * @param V3 Virtual pin for manual watering control.
  */
 BLYNK_WRITE(V3) {
-    if (param.asInt() == 1) {
-        if (wateringSys.AutoWateringState) {
-            Blynk.virtualWrite(V2, wateringSys.AutoWateringState);
-            Blynk.virtualWrite(V3, 0);
-            return;
-        }
-    
-        for (const auto &pin : RELAY_PINS) {
-            RelayController::WRITE(
-                pin, 
-                param.asInt() == 1 ? false : true,
-                1000
-            );
-        }
+    if (wateringSys.AutoWateringState) {
+        Blynk.virtualWrite(V2, wateringSys.AutoWateringState);
+        Blynk.virtualWrite(V3, 0);
+        return;
+    }
+
+    for (const auto &pin : RELAY_PINS) {
+        RelayController::WRITE(
+            pin, 
+            param.asInt() == 1 ? false : true,
+            1000
+        );
     }
 }
 
@@ -95,12 +93,10 @@ BLYNK_WRITE(V3) {
  * @param V2 Virtual pin for auto-watering configuration.
  */
 BLYNK_WRITE(V2) {
-    if (param.asInt() == 1) {
-        lfsprog.changeConfigState(
-            AUTOWATERING,
-            param.asInt() == 1 ? true : false
-        );
-    }
+    lfsprog.changeConfigState(
+        AUTOWATERING,
+        param.asInt() == 1 ? true : false
+    );
 }
 
 /**

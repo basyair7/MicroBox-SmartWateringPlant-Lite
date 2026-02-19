@@ -25,13 +25,13 @@
 
 #include <Arduino.h>
 
-#define NAMEPROJECT     "MicroBOX (SmartFeeder)"
+#define NAMEPROJECT     "MicroBOX (SmartWatering)"
 #define CODENAME        "MicroBox"
 
-#define VERSIONPROJECT 	"1.0.0"
-#define HWVERSION 		"1.0.0"
-#define SWVERSION 		"1.0.0"
-#define BUILDDATE 		"2/27/2025"
+#define VERSIONPROJECT 	"1.0"
+#define HWVERSION 		"1.0.1"
+#define SWVERSION 		"1.0.1"
+#define BUILDDATE 		"2/19/2026"
 #define REGION			"INDONESIA"
 
 class Info {

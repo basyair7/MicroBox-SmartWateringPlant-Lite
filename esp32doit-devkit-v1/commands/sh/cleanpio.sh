@@ -1,6 +1,6 @@
 #!/bin/bash
-# Load the board.sh script to set the BOARDTYPE variable
+# BOARDTYPE 変数を定義するために、board.sh スクリプトを実行してください。
 source ./commands/sh/board.sh
 
-# Use the BOARDTYPE variable to run the pio clean command
+# BOARDTYPE 変数を用いて、pio コマンドを実行します。
 pio run -e "$BOARDTYPE" -t clean

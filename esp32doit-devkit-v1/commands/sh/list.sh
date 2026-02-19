@@ -1,4 +1,4 @@
 #!/bin/bash
 
-# List available PIO devices
+# 利用可能な pio デバイスを一覧表示します。
 pio device list

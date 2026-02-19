@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Function to open a file in a text editor
+# このスクリプトは、指定されたファイルを編集するための関数を定義します。
 edit_file() {
     if [ -n "$1" ]; then
-        # Gunakan editor default jika tersedia
+        # 利用可能なテキストエディタを確認し、優先順位に従ってファイルを開きます。
         if command -v nano &> /dev/null; then
             nano "$1"
         elif command -v vim &> /dev/null; then

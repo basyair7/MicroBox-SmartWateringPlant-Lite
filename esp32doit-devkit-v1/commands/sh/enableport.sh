@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Function to grant read/write access to a USB port
+# このスクリプトは、指定されたUSBポートへのアクセス権を付与するための関数を定義します。
 enable_board() {
     if [ -n "$1" ]; then
         sudo chmod a+rw "$1"

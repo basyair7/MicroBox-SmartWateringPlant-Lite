@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Function to start PIO device monitor
+# pio デバイスモニターを開始する関数。
 monitor_device() {
     if [ -n "$1" ]; then
         pio device monitor --port "$1"
@@ -9,5 +9,5 @@ monitor_device() {
     fi
 }
 
-# exxample:
+# example:
 # monitor_device "/dev/ttyUSB0"

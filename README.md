@@ -1,20 +1,20 @@
 # MicroBOX Smart Watering Plants Lite
-Automatic Watering Plant IoT with Blynk App Lite Version
 
-## Version
-- VERSION PROJECT : 1.0
+Automatic Watering Plant IoT with Blynk App (Lite Version)
 
-## Board Type
-### Board Type 1
-- Board           : nodemcuv2 (NodeMCU)
-- Type            : ESP8266
-- Framework       : arduino
-- HW VERSION	  : 1.0.0
-- SW VERSION	  : 1.0.1
+![PlatformIO](https://img.shields.io/badge/PlatformIO-ESP8266%20%7C%20ESP32-orange)
+![License](https://img.shields.io/badge/License-GPLv3-blue)
 
-### Board Type 2
-- Board           : esp32doit-devkit-v1 (ESP32)
-- Type            : ESP32
-- Framework       : arduino
-- HW VERSION	  : 1.0.0
-- SW VERSION	  : 1.0.0
+---
+
+## 🌐 Language / 言語
+
+- 🇺🇸 English → [README_EN.md](README_EN.md)
+- 🇯🇵 日本語 → [README_JP.md](README_JP.md)
+
+---
+
+## Overview
+
+MicroBOX is an IoT-based automatic plant watering system 
+built with ESP8266 / ESP32 and integrated with the Blynk App.

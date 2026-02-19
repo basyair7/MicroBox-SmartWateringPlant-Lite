@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Load the board.sh script to set the BOARDTYPE variable
+# BOARDTYPE 変数を定義するために、board.sh スクリプトを実行してください。
 source ./commands/sh/board.sh
 
-# Function to upload firmware and filesystem
+# ファームウェアとファイルシステムを書き込む関数。
 upload_all() {
     if [ -n "$1" ]; then
         pio run -e "$BOARDTYPE" -t upload --upload-port "$1"

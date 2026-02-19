@@ -1,8 +1,8 @@
 # buildfs.ps1
-# Ensure the board.ps1 script is in the same directory or provide the full path
+# board.ps1 スクリプトが同じディレクトリにあることを確認するか、フルパスを指定してください
 
-# Load the board.ps1 script to set the BOARDTYPE variable
+# BOARDTYPE 変数を設定するために、board.ps1 スクリプトを読み込んでください
 . .\commands\ps1\board.ps1
 
-# Use the BOARDTYPE variable to run the pio command
+# BOARDTYPE 変数を用いて、pio コマンドを実行します
 Invoke-Expression "pio run -e $BOARDTYPE -t buildfs"

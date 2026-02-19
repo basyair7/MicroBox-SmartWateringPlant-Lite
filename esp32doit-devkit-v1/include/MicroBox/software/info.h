@@ -25,7 +25,7 @@
 
 #include <Arduino.h>
 
-#define NAMEPROJECT     "MicroBOX (SmartFeeder)"
+#define NAMEPROJECT     "MicroBOX (SmartWatering)"
 #define CODENAME        "MicroBox"
 
 #define VERSIONPROJECT 	"1.0"

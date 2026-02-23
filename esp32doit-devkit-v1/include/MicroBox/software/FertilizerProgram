@@ -1,12 +1,8 @@
 /**
- *  @file BlynkProgram.h
+ *  @file ButtonManager
  *  @version 1.0.1
- *  
- *  @author
- *  basyair7
- *  
- *  @date
- *  2026
+ *  @author basyair7
+ *  @date 2026
  * 
  *  @copyright
  *  Copyright (C) 2026, basyair7
@@ -23,21 +19,4 @@
  * 
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <https://www.gnu.org/licenses/>
- */
-
-#pragma once
-
-#include <Arduino.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void BlynkSetup();
-void BlynkRun();
-
-#ifdef __cplusplus
-}
-#endif
-
-extern bool switch_state;
+*/

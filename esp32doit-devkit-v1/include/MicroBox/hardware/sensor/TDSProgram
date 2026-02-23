@@ -1,0 +1,187 @@
+/**
+ *  @file TDSProgram
+ *  @version 1.0.1
+ *  @author basyair7
+ *  @date 2026
+ * 
+ *  @copyright
+ *  Copyright (C) 2026, basyair7
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include <Arduino.h>
+
+class TDSSensor {
+    // センサー読み取り値「あたい」を平均化「へいきんか」するためのデフォルトのサンプル数。
+    static const int DEFAULT_SCOUNT = 10;
+    
+    uint8_t _pin;            //< TDSセンサーが接続「せつぞく」されているGPIOピン番号。
+    float _vref;             //< ADCの基準電圧「きじゅんでんあつ」。センサーの出力電圧「しゅつりょくでんあつ」を正確「せいかく」に算出「さんしゅつ」するために使用されます。
+    uint16_t _adcResolution; //< ADCの分解能「ぶんかいのう」。通常「つうじょう」は10ビット（1023）または12ビット（4095）ですが、使用するマイクロコントローラーによって異「こと」なります。
+    uint8_t _scount;         //< センサー読み取り値を平均化「へいきんか」するためのサンプル数。デフォルトは10ですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。
+
+    int _analogBuffer[DEFAULT_SCOUNT];     //< センサーからのアナログ読み取り値を格納「かくのう」するためのバッファ。平均化「へいきんか」処理「しょり」のために複数「ふくすう」のサンプルを保存「ほぞん」します。
+    int _analogBufferTemp[DEFAULT_SCOUNT]; //< 平均化「へいきんか」処理「しょり」のための一時的「いちじてき」なバッファ。センサーからの読み取り値をコピーして、中央値「ちゅうおうち」を計算「けいさん」するために使用されます。
+    int _analogBufferIndex = 0;            //< センサーからのアナログ読み取り値を格納「かくのう」するためのバッファの現在「げんざい」のインデックス。新しい読み取り値が追加「ついか」されるたびに更新「こうしん」されます。
+    int _copyIndex = 0;                    //< 平均化「へいきんか」処理「しょり」のための一時的「いちじてき」なバッファのインデックス。センサーからの読み取り値をコピーして、中央値「ちゅうおうち」を計算「けいさん」するために使用されます。
+
+    float _averageVoltage = 0.0; //< センサーからのアナログ読み取り値の平均電圧「へいきんでんあつ」。センサーからの複数「ふくすう」の読み取り値を平均化「へいきんか」して算出「さんしゅつ」されます。
+    float _tdsValue = 0.0;       //< センサーからのアナログ読み取り値を基に計算「けいさん」されたTDS値。センサーの出力電圧「しゅつりょくでんあつ」をTDS値に変換「へんかん」するための数式「すうしき」を使用して算出「さんしゅつ」されます。
+    float _temperature = 25.0;   //< 温度補償「おんどほきょう」のための現在「げんざい」の温度。TDS値を温度補償「おんどほきょう」するために使用されます。デフォルトは25°Cですが、必要「ひつよう」に応「おう」じて更新「こうしん」できます。
+    float _ppm = 0.0;            //< センサーからのアナログ読み取り値を基に計算「けいさん」されたPPM値。TDS値をPPM値に変換「へんかん」するための数式「すうしき」を使用して算出「さんしゅつ」されます。
+
+    unsigned long _analogSampleTimepoint = 0; //< センサーからのアナログ読み取り値をサンプリング「さんぷりんぐ」するためのタイムポイント。一定「いってい」の時間間隔「じかんかんかく」でセンサーからの読み取り値をサンプリング「さんぷりんぐ」するために使用されます。
+    unsigned long _computeTimepoint = 0;      //< TDS値とPPM値を計算「けいさん」するためのタイムポイント。一定「いってい」の時間間隔「じかんかんかく」でTDS値とPPM値を計算「けいさん」するために使用されます。
+
+    /**
+     * @brief 配列「はいれつ」から中央値「ちゅうおうち」を計算「けいさん」するためのプライベートメソッド。
+     * @param bArray 中央値「ちゅうおうち」を計算「けいさん」するための整数「せいすう」の配列。
+     * @param iFilterLen 配列「はいれつ」の長さ「ながさ」。中央値「ちゅうおうち」を計算「けいさん」するために必要「ひつよう」な要素「ようそ」の数。
+     * @return 配列「はいれつ」から計算「けいさん」された中央値「ちゅうおうち」。配列「はいれつ」の要素「ようそ」が奇数「きすう」の場合は中央の値「あたい」を返し、偶数「ぐうすう」の場合は中央の2つの値「あたい」の平均「へいきん」を返します。
+     */
+    int getMedianNum(int bArray[], int iFilterLen) {
+        int bTab[iFilterLen];
+        for (int i = 0; i < iFilterLen; i++) {
+            bTab[i] = bArray[i];
+        }
+        
+        int i, j, bTemp;
+        for (j = 0; j < iFilterLen - 1; j++) {
+            for (i = 0; i < iFilterLen - j - 1; i++) {
+                if (bTab[i] > bTab[i + 1]) {
+                    bTemp = bTab[i];
+                    bTab[i] = bTab[i + 1];
+                    bTab[i + 1] = bTemp;
+                }
+            }
+        }
+
+        if ((iFilterLen & 1) > 0) {
+            return bTab[(iFilterLen - 1) / 2];
+        } else {
+            return ((bTab[iFilterLen / 2] + bTab[iFilterLen / 2 - 1]) / 2);
+        }
+
+        return bTemp;
+    }
+
+    public:
+        /**
+         * @brief TDSセンサーのコンストラクタ。センサーのGPIOピン番号、ADCの基準電圧、ADCの分解能、および平均化「へいきんか」するためのサンプル数を指定して、TDSセンサーオブジェクトを初期化「しょきか」します。
+         * @param pin TDSセンサーが接続「せつぞく」されているGPIOピン番号。センサーからのアナログ読み取り値を取得「しゅとく」するために使用されます。
+         * @param vref ADCの基準電圧「きじゅんでんあつ」。センサーの出力電圧「しゅつりょくでんあつ」を正確「せいかく」に算出「さんしゅつ」するために使用されます。デフォルトは3.3Vですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。
+         * @param adcResolution ADCの分解能「ぶんかいのう」。通常「つうじょう」は10ビット（1023）または12ビット（4095）ですが、使用するマイクロコントローラーによって異「こと」なります。デフォルトは12ビット（4095）ですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。
+         * @param scount センサー読み取り値を平均化「へいきんか」するためのサンプル数。デフォルトは10ですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。サンプル数が多いほど平均化「へいきんか」の精度「せいど」が向上「こうじょう」しますが、計算「けいさん」に時間がかかる可能性「かのうせい」があります。
+         */
+        TDSSensor(
+            int pin, 
+            float vref = 3.3, 
+            int adcResolution = 4095, 
+            int scount = DEFAULT_SCOUNT)
+        : _pin(pin), _vref(vref), _adcResolution(adcResolution), _scount(scount <= DEFAULT_SCOUNT ? scount : DEFAULT_SCOUNT) {}
+
+        /**
+         * @brief TDSセンサーの初期化「しょきか」メソッド。センサーが接続「せつぞく」されているGPIOピンを入力「にゅうりょく」として設定「せってい」し、アナログ読み取り値のサンプリング「さんぷりんぐ」とTDS値およびPPM値の計算「けいさん」のタイムポイントを現在「げんざい」の時間に初期化「しょきか」します。
+         */
+        void begin() {
+            pinMode(this->_pin, INPUT);
+            this->_analogSampleTimepoint = millis();
+            this->_computeTimepoint = millis();
+        }
+
+        /** 
+         * @brief 現在のTDS値を返すメソッド。センサーからのアナログ読み取り値を基に計算「けいさん」されたTDS値を返します。TDS値は、センサーの出力電圧「しゅつりょくでんあつ」をTDS値に変換「へんかん」するための数式「すうしき」を使用して算出「さんしゅつ」されます。
+         * @return 現在のTDS値。センサーからのアナログ読み取り値を基に計算「けいさん」されたTDS値を返します。TDS値は、センサーの出力電圧「しゅつりょくでんあつ」をTDS値に変換「へんかん」するための数式「すうしき」を使用して算出「さんしゅつ」されます。
+         */
+        float getTDSValue() const {
+            return this->_tdsValue;
+        }
+
+        /** 
+         * @brief 現在の温度を設定「せってい」するメソッド。TDS値を温度補償「おんどほきょう」するために使用される温度を設定「せってい」します。
+         * @param temperature 設定「せってい」する温度。TDS値を温度補償「おんどほきょう」するために使用されます。デフォルトは25°Cですが、必要「ひつよう」に応「おう」じて更新「こうしん」できます。 
+         * 
+         */
+        void setTemperature(float temperature) {
+            this->_temperature = temperature;
+        }
+        
+        /**
+         * @brief センサーからのアナログ読み取り値をサンプリング「さんぷりんぐ」し、TDS値とPPM値を計算「けいさん」するためのメソッド。
+         * 一定「いってい」の時間間隔「じかんかんかく」でセンサーからの読み取り値をサンプリング「さんぷりんぐ」し、TDS値とPPM値を計算「けいさん」します。
+         * サンプリング「さんぷりんぐ」と計算「けいさん」のタイミングは、アナログ読み取り値のサンプリング「さんぷりんぐ」と
+         * TDS値およびPPM値の計算「けいさん」のタイムポイントに基づいて制御「せいぎょ」されます。
+         */
+        void update() {
+            if (millis() - this->_analogSampleTimepoint > 40U) {
+                this->_analogSampleTimepoint = millis();
+                this->_analogBuffer[this->_analogBufferIndex] = analogRead(this->_pin);
+                this->_analogBufferIndex++;
+
+                if (this->_analogBufferIndex == this->_scount) {
+                    this->_analogBufferIndex = 0;
+                }
+            }
+
+            if (millis() - this->_computeTimepoint > 800U) {
+                this->_computeTimepoint = millis();
+
+                for (this->_copyIndex = 0; this->_copyIndex < this->_scount; this->_copyIndex++) {
+                    this->_analogBufferTemp[this->_copyIndex] = this->_analogBuffer[this->_copyIndex];
+                }
+
+                this->_averageVoltage = this->getMedianNum(this->_analogBufferTemp, this->_scount) * (this->_vref / this->_adcResolution);
+                
+                float compensationCoefficient = 1.0f + 0.02f * (this->_temperature - 25.0f);
+                float compensationVoltage = this->_averageVoltage / compensationCoefficient;
+
+                this->_tdsValue = (133.42f * compensationVoltage * compensationVoltage * compensationVoltage
+                                    - 255.86f * compensationVoltage * compensationVoltage
+                                    + 857.39f * compensationVoltage) * 0.5f;
+                
+                this->_ppm = this->_tdsValue;
+            }
+        }
+
+        /*
+        void update() {
+            if (millis() - this->_analogSampleTimepoint > 40U) {
+                this->_analogSampleTimepoint = millis();
+                this->_analogBuffer[this->_analogBufferIndex] = analogRead(this->_pin);
+                this->_analogBufferIndex++;
+                // this->_analogBuffer[this->_analogBufferIndex++] = analogRead(this->_pin);
+                if (this->_analogBufferIndex >= this->_scount) {
+                    this->_analogBufferIndex = 0;
+                }
+
+                if (millis() - this->_computeTimepoint > 800U) {
+                    this->_computeTimepoint = millis();
+                    for (int i = 0; i < this->_scount; i++) {
+                        this->_analogBufferTemp[i] = this->_analogBuffer[i];
+                    }
+                    this->_averageVoltage = this->getMedianNum(this->_analogBufferTemp, this->_scount) * (this->_vref / this->_adcResolution);
+                    this->_tdsValue = (133.42f * pow(this->_averageVoltage, 3) - 255.86f * pow(this->_averageVoltage, 2) + 857.39f * this->_averageVoltage) * 0.5f;
+                    this->_ppm = this->_tdsValue * (1.0f + 0.02f * (this->_temperature - 25.0f));}
+            }
+        }
+        **/
+
+        /** @brief 現在のPPM値を返すメソッド。 */
+        float getPPMValue() const {
+            return this->_ppm;
+        } 
+};

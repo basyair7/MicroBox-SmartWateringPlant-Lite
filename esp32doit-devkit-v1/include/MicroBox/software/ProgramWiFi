@@ -58,8 +58,8 @@ class ProgramWiFiClass {
         }
 
         /**
-         * @brief initialize wifi function
-         * @param state Mode_AP = `false` or Mode_STA = `true`
+         * @brief WiFiを初期化（しょきか）する関数。モードは引数（ひきすう）で指定（してい）します。
+         * @param state `true`の場合はWiFiステーションモード（WIFI_STA）を、`false`の場合はアクセスポイントモード（WIFI_AP）を初期化します。
          */
         void initWiFi(bool state) {
             Serial.print("\nMode WiFi: ");

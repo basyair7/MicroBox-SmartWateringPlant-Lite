@@ -1,0 +1,78 @@
+/**
+ *  @file WaterTemp
+ *  @version 1.0.1
+ *  @author basyair7
+ *  @date 2026
+ * 
+ *  @copyright
+ *  Copyright (C) 2026, basyair7
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+
+#include <Arduino.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+class WaterTempSensor {
+    OneWire _oneWire; //< DS18B20通信用「つうしんよう」OneWireインスタンス
+    DallasTemperature _sensors; //< DS18B20センサー管理用「かんりよう」DallasTemperatureインスタンス
+    uint8_t _pin; //< DS18B20センサーに接続「せつぞく」されたGPIOピン番号
+
+    float _temperature = 0.0; //< 最新の温度値「おんどち」を格納「かくのう」する変数
+    unsigned long _lastReadTime = 0; //< 最後のセンサー読み取り時間を格納する変数   
+    uint16_t _readInterval; //< センサー読み取り間隔「かんかく」を格納する変数（ミリ秒単位「たんい」）
+
+    public:
+        /**
+         * @brief 指定「してい」されたパラメータでWaterTempSensorを初期化「しょきか」するコンストラクタ。
+         * @param pin DS18B20センサーに接続「せつぞく」されたGPIOピン番号。
+         * @param readInterval センサー読み取り間隔「かんかく」をミリ秒単位「たんい」で指定。デフォルトは2000ミリ秒（2秒）。
+         * この値は、センサーからの最新の温度値を取得「しゅとく」するための更新頻度「こうしんひんど」を制御「せいぎょ」するために使用されます。
+         */
+        WaterTempSensor(uint8_t pin, uint16_t readInterval = 2000)
+            : _oneWire(pin), _sensors(&_oneWire), _pin(pin), _readInterval(readInterval) {}
+
+        /**
+         * @brief DS18B20センサーの初期化「しょきか」を行うメソッド。センサー通信「つうしん」の開始「かいし」と解像度「かいぞうど」の設定を行います。
+          * このメソッドは、センサーからの温度値を正確「せいかく」に取得「しゅとく」するために、プログラムのセットアップ段階「だんかい」で一度呼び出す必要があります。
+         */
+        void begin() {
+            this->_sensors.begin();
+            this->_sensors.setResolution(12);
+            this->_lastReadTime = millis();
+        }
+
+        /**
+         * @brief DS18B20センサーから最新の温度値を取得「しゅとく」するための更新「こうしん」を行うメソッド。
+         * このメソッドは、指定「してい」された読み取り間隔「かんかく」に基づいて「もとづいて」、センサーからの温度値「おんどち」を定期的「ていきてき」に更新「こうしん」します。センサーからの最新の温度値は、getTemperature()メソッドを呼び出すことで取得「しゅとく」できます。
+         */
+        void update() {
+            if (millis() - this->_lastReadTime >= this->_readInterval) {
+                this->_lastReadTime = millis();
+                this->_sensors.requestTemperatures();
+                this->_temperature = this->_sensors.getTempCByIndex(0);
+            }
+        }
+
+        /**
+         * @brief 最新の温度値「おんどち」を取得「しゅとく」するためのメソッド。
+         * @return 最新の温度値を摂氏「せっし」で返します。センサーからの最新の温度値は、update()メソッドを呼び出すことで定期的「ていきてき」に更新「こうしん」されます。
+         */
+        float getTemperature() const {
+            return this->_temperature;
+        }
+};

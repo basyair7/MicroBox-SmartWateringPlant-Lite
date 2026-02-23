@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.dbclient-js": "javascript",
         "fstream": "cpp",
         "variable": "cpp",
         "vector": "cpp",
@@ -71,6 +72,8 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "tdsprogram": "cpp",
+        "watertemp": "cpp"
     }
 }

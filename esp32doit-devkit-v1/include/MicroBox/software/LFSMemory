@@ -1,14 +1,16 @@
 /**
  *  @file LFSMemory
- *  @version 1.0.0
- *  @brief Class for managing LittleFS-based configuration and state handling.
- *  This class provides interfaces for reading, writing, and managing configuration 
- *  files and runtime states in an embedded system using LittleFS.
- *  @date 2025
+ *  @version 1.0.1
+ *  @brief LittleFS ベースの設定および状態管理（じょうたいかんり）を行うクラス。
+ *  本クラスは、LittleFSを使用した組み込みシステッムにおいて、設定ファイルおよび
+ *  実行時状態（じっこうじじょうたい）の読み込み・書き込み・管理を行うための
+ *  インターフェースを提供（ていきょう）します。
+ * 
+ *  @date 2026
  *  @author basyair7
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -56,7 +58,7 @@ extern "C" {
 
 /**
  * @class LFSMemory
- * @brief Manages configurations and runtime states using LittleFS.
+ * @brief LitteFSを使用して、設定および実行時状態（じっこうじじょうたい）を管理します。
  */
 class LFSMemory {
     const String file_config_wifi  = "/config/wifi.json";
@@ -64,65 +66,70 @@ class LFSMemory {
     const String file_config_state = "/config/state.json";
 
     public:
-        // Default WiFi configurations
+        // WiFi設定変数
         String __SSID_STA__  = WIFI_SSID_STA_DEFAULT;
         String __PASS_STA__  = WIFI_PASS_STA_DEFAULT;
         String __SSID_AP__   = WIFI_SSID_AP_DEFAULT;
         String __PASS_AP__   = WIFI_PASS_AP_DEFAULT;
 
-        // Program state variable
+        // 実行時状態を保持する変数
         bool __WATERING_MODE_STATE__ = false;
         bool __AUTO_CHANGE_MODE__    = false;
     
     public:
         /**
-         * @brief initialize the littleFS system and program configurations.
+         * @brief LittleFSを初期化し、必要なディレクトリを作成します。
          */
         void setupLFS(void);
 
         /**
-         * @brief Reinitialize program state variables from storage.
+         * @brief ストレージからプログラムの状態変数（じょうたいへんすう）を再初期化（さいしょきか）します
          */
         void reinitializeState(void);
 
         /**
-         * @brief Reinitialize WiFi configuration from storage.
+         * @brief ストレージからWiFi設定を再初期化（さいしょきか）します。
+         *  WiFi設定は、STAモードとAPモードの両方を含みます。
          */
         void reinitializeWiFiConfig(void);
 
         /**
-         * @brief REinitialize relay configurations from storage.
+         * @brief ストレージからリレー変数を再初期化（さいしょきか）します。
+          リレー変数には、リレーのピン番号、状態、および関連する設定が含まれます。
          */
         void reinitializeVarRelay(void);
 
         /**
-         * @brief Modify a relay variable's value.
-         * @param varName Name of the variable to change.
-         * @param value New value of the variable.
+         * @brief リレー変数の値（あたい）を変更します。
+         * @param varName 名前のリレー変数。
+         * @param value 新しい値のリレー変数。
          */
         void changeVarRelay(String varName, String value);
 
         /**
-         * @brief Modify the pin associated with a relay.
-         * @param varName Name of the relay variable.
-         * @param pin New pin value.
+         * @brief リレーのピン番号を変更します。
+         * @param varName 名前のリレー変数。
+         * @param pin 新しいピン番号。
+         * @note この関数は、リレーのピン番号を変更するためのものであり、リレーの状態やその他の設定は変更しません。
+          変更後は、関連するプログラムロジックが新しいピン番号を使用するように更新される必要があります。
          */
         void changePinRelay(String varName, uint8_t pin);
 
         /**
-         * @brief Modify the state of a relay.
-         * @param varName Name of the relay variable.
-         * @param state New state value.
+         * @brief リレーの状態を変更します。
+          例えば、リレーをオンまたはオフにするために使用されます。
+         * @param varName 名前のリレー変数。
+         * @param state 新しい状態値（じょうたいち）。
          */
         void changeStateRelay(String varName, bool state);
 
         /**
-         * @brief Parse relay configuration details.
-         * @param varName Name of the relay variable.
-         * @param pin Pointer of store the pin value.
-         * @param status Pointer to store the status value.
-         * @param id Optional pointer to store the relay ID
-         * @param name Optional pointer to store the relay name.
+         * @brief リレー設定の詳細（しょうさい）を解析（かいせき）します。
+         * @param varName 名前のリレー変数。
+         * @param pin ピン番号を格納するポインタ。
+         * @param status 状態値を格納するポインタ。
+         * @param id オプションでリレーIDを格納するポインタ。
+         * @param name オプションでリレー名を格納するポインタ。
          */
         void parseVarRelay(
             const String &varName,
@@ -133,36 +140,46 @@ class LFSMemory {
         );
 
         /**
-         * @brief Change STA WiFi credentials.
-         * @param new_ssid New SSID for STA mode.
-         * @param new_pass New Password for STA mode.
+         * @brief STA Wi-Fiの認証情報（にんしょうじょうほう）を変更してください。
+          例えば、Wi-FiネットワークのSSIDやパスワードを更新するために使用されます。
+         * @param new_ssid STAモード用の新しい SSID。
+         * @param new_pass STAモード用の新しいパスワード。
          */
         void changeConfigWiFi_STA(String new_ssid, String new_pass);
 
         /**
-         * @brief Change AP WiFi credentials.
-         * @param new_ssid New SSID for AP mode.
-         * @param new_pass New Password
+         * @brief AP Wi-Fiの認証情報（にんしょうじょうほう）を変更してください。
+          例えば、APモードのSSIDやパスワードを更新するために使用されます。
+         * @param new_ssid APモード用の新しい SSID。
+          例えば、"MyDeviceAP"などの新しいSSIDを指定できます。
+         * @param new_pass APモード用の新しいパスワード。
+          例えば、"password123"などの新しいパスワードを指定できます。
          */
         void changeConfigWiFi_AP(String new_ssid, String new_pass);
 
         /**
-         * @brief Update a program state configuration.
-         * @param stateConfig Name of the state variable.
-         * @param value New value for the state variable.
+         * @brief プログラムの状態構成（じょうたいこうせい）を更新する。
+         * @param stateConfig 状態変数の名前。
+         * @param value 状態変数の新しい値（あたい）。
          */
         void changeConfigState(String stateConfig, bool value);
 
         /**
-         * @brief Read a program state configuration.
-         * @param stateConfig Name of the state variable.
-         * @param value Pointer to store the state value.
+         * @brief ストレージからプログラムの状態変数を読み取ります。
+          例えば、"AUTO_WATERING"や"AUTO_CHANGE"などの状態変数を読み取るために使用されます。
+         * @param stateConfig 状態変数の名前。
+         * @param value 状態変数の値を格納するためのポインタ。
+         * @note この関数は、指定された状態変数の値をストレージから読み取ります。
+          例えば、"AUTO_WATERING"という状態変数を読み取る場合、ストレージに保存された値を読み取り、その値をvalueポインタに格納します。
          */
         void readConfigState(String stateConfig, bool *value);
 
         /**
-         * @brief Update relay data using a JSON document.
-         * @param doc JSON document containing relay data.
+         * @brief ストレージからWiFi設定を読み取ります。
+          例えば、STAモードのSSIDやパスワード、APモードのSSIDやパスワードなどのWiFi設定を読み取るために使用されます。
+         * @param doc WiFi設定を格納するためのJSONドキュメント。
+         * @note この関数は、ストレージからWiFi設定を読み取り、指定されたJSONドキュメントに格納します。
+          例えば、STAモードのSSIDやパスワードを読み取る場合、ストレージに保存されたWiFi設定を読み取り、その情報をdocに格納します。
          */
         void __initialize_data_relay__(DynamicJsonDocument &doc);
 
@@ -190,9 +207,13 @@ class LFSMemory {
         void listFiles(void);
 
         /**
-         * @brief Retrieve file information from a directory.
-         * @param path Directory path.
-         * @return List of file names and sizes.
+         * @brief 指定されたディレクトリ内のファイル名とサイズのリストを取得します。
+          例えば、"/config"ディレクトリ内のファイル名とサイズを取得するために使用されます。
+         * @param path ディレクトリのパス。
+          例えば、"/config"などのディレクトリパスを指定できます。
+          この関数は、指定されたディレクトリ内のファイルを列挙し、各ファイルの名前とサイズを文字列形式でリストに追加します。
+         * @return ファイル名とサイズのリスト。
+          例えば、["wifi.json - 256", "relay.json - 128"]などの形式でファイル名とサイズを含むリストが返されます。
          */
         std::vector<String> queryDirLFS(const String path) {
             std::vector<String> files;
@@ -231,8 +252,11 @@ class LFSMemory {
 
 
         /**
-         * @brief List files in a directory.
-         * @param path Directory path.
+         * @brief 指定されたディレクトリ内のファイル名とサイズのリストを取得します。
+          例えば、"/config"ディレクトリ内のファイル名とサイズを取得するために使用されます。
+         * @param path ディレクトリのパス。
+          例えば、"/config"などのディレクトリパスを指定できます。
+          この関数は、指定されたディレクトリ内のファイルを列挙し、各ファイルの名前とサイズを文字列形式でリストに追加します。
          */
         void PrintList(const String &path) {
             Serial.print(F("List Directory "));
@@ -245,9 +269,13 @@ class LFSMemory {
         }
 
         /**
-         * @brief Handle JSON deserialization errors.
-         * @param program Name of the program encoutering the error.
-         * @param msg Error message.
+         * @brief JSONのデシリアライズに失敗した場合のエラーハンドリング関数。
+          例えば、JSONドキュメントの形式が正しくない場合や、必要なフィールドが欠落している場合などに呼び出されます。
+         * @param program プログラムの名前やコンテキストを示す文字列。
+          例えば、"WiFiConfig"や"StateConfig"など、どのプログラムや設定に関連するエラーかを示す文字列を指定できます。
+         * @param msg エラーメッセージの内容を示す文字列。
+          例えば、"Invalid JSON format"や"Missing required field 'SSID'"など、具体的なエラーの内容を示す文字列を指定できます。
+          この関数は、JSONのデシリアライズに失敗した場合に、プログラム名とエラーメッセージをシリアルモニタに出力することで、デバッグや問題の特定に役立ちます。
          */
         void handleError_deserializeJson(const String &program, const String &msg)
         {

@@ -1,11 +1,11 @@
 /**
  *  @file ButtonManager
- *  @version 1.0.0
+ *  @version 1.0.1
  *  @author basyair7
- *  @date 2025
+ *  @date 2026
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,40 +30,61 @@
 #include "variable"
 
 /**
- * @class ButtonManager
- * @brief Manages button inputs and controls relay, auto-watering, and LCD backlight states.
+ * @class ButtonManagerClass
+ * @brief ボタン入力を管理し、リレー、自動散水（じどうさんすい）、および LCD バックライトの状態（じょうたい）を制御（せいぎょ）します。
  */
 class ButtonManagerClass {
-    MyEEPROM eeprom_obj;    ///< EEPROM object for storing backlight state.
-    PushButtonDigital btnRelay1, btnRelay2, btnAutoWatering, btnBacklight; ///< Button objects.
-    bool relayState1, relayState2, autoWateringState; ///< Button objects.
-    bool lastRelay1, lastRelay2, lastAutoWatering, lastBacklight; ///< Previous states for edge detection.
+    MyEEPROM eeprom_obj;    ///< バックライトの状態を保存（ほぞん）するためのEEPROMオブジェクト。
+    PushButtonDigital btnRelay1, btnRelay2, btnAutoWatering, btnBacklight; ///< リレーと機能のボタンオブジェクト。
+    bool relayState1, relayState2, autoWateringState; ///< リレーと自動散水の現在の状態。
+    bool lastRelay1, lastRelay2, lastAutoWatering, lastBacklight; ///< エッジ検出のための前回の状態。
 
     public: bool backlightState;
 
     private:
         /**
-         * @brief Toggles the state of a relay when the corresponding button is pressed.
-         * @param btn Reference to the button object.
-         * @param state Reference to the relay state variable.
-         * @param lastState Reference to the last state variable for edge detection.
-         * @param relayIndex Index of the relay in the RELAY_PINS array.
+         * @brief リレーの状態を切り替えます。
+          例えば、リレーをオンまたはオフにするために使用されます。
+           この関数は、ボタンの状態を監視し、状態が変化したときにリレーの状態を切り替えます。
+         * @param btn 参照するPushButtonDigitalオブジェクト。
+          例えば、btnRelay1やbtnRelay2などのリレーに対応するボタンオブジェクトを渡します。
+           この関数は、指定されたボタンの状態を監視し、状態が変化したときにリレーの状態を切り替えます。
+          例えば、ボタンが押されたときにリレーをオンにし、再度押されたときにオフにするなどの動作を実装できます。
+         * @param state 参照するリレーの状態変数。
+          例えば、relayState1やrelayState2などのリレーの状態を表す変数を渡します。
+           この関数は、指定されたリレーの状態を切り替えるために使用されます。
+          例えば、リレーが現在オンの場合はオフにし、オフの場合はオンにするなどの動作を実装できます。
+         * @param lastState 参照するリレーの前回の状態変数。
+          例えば、lastRelay1やlastRelay2などのリレーの前回の状態を表す変数を渡します。
+           この関数は、エッジ検出のために使用されます。
+          例えば、ボタンが押されたときにリレーの状態が変化したことを検出するために、現在の状態と前回の状態を比較するなどの動作を実装できます。
+         * @param relayIndex リレーのインデックスを指定します。
+          例えば、0や1などのリレーのインデックスを渡します。
+           この関数は、指定されたリレーの状態を切り替えるために使用されます。
+          例えば、relayIndexが0の場合はリレー1を切り替え、1の場合はリレー2を切り替えるなどの動作を実装できます。
          */
         void toggleRelay(PushButtonDigital &btn, bool &state, bool &lastState, int relayIndex);
 
          /**
-         * @brief Toggles the auto-watering system state when the corresponding button is pressed.
+         * @brief 自動散水の状態を切り替えます。
+          例えば、自動散水を有効または無効にするために使用されます。
+           この関数は、ボタンの状態を監視し、状態が変化したときに自動散水の状態を切り替えます。
          */
         void toggleAutoWatering();
 
         /**
-         * @brief Toggles the LCD backlight state when the corresponding button is pressed.
+         * @brief LCDバックライトの状態を切り替えます。
+          例えば、バックライトをオンまたはオフにするために使用されます。
+           この関数は、ボタンの状態を監視し、状態が変化したときにLCDバックライトの状態を切り替えます。
          */
         void toggleBacklight();
     
     public:
         /**
-         * @brief Constructor initializes button objects with their respective pins and input mode.
+         * @brief ボタンマネージャークラスのコンストラクタ。
+          ここでは、各ボタンオブジェクトを初期化します。
+           例えば、btnRelay1はBTN_RELAY_1ピンに接続されたリレー1のボタンを表し、INPUTモードで初期化されます。
+          他のボタンも同様に、対応するピンとINPUTモードで初期化されます。
          */
         ButtonManagerClass()
             :   btnRelay1(BTN_RELAY_1, INPUT),
@@ -75,12 +96,17 @@ class ButtonManagerClass {
         }
 
         /**
-         * @brief Initializes buttons and retrieves stored states from EEPROM.
+         * @brief ボタンマネージャーを初期化します。
+          ここでは、必要に応じて初期化コードを実装します。
+           例えば、EEPROMからバックライトの状態を読み込んでbacklightState変数に設定するなどの初期化処理を実装できます。
          */
         void init();
 
         /**
-         * @brief Periodically updates button states and triggers appropriate actions.
+         * @brief ボタンの状態を監視し、リレー、自動散水、およびLCDバックライトの状態を制御します。
+          ここでは、各ボタンの状態を監視し、状態が変化したときに対応する機能を切り替えるコードを実装します。
+           例えば、btnRelay1の状態が変化したときにtoggleRelay関数を呼び出してリレー1の状態を切り替えるなどの動作を実装できます。
+          他のボタンも同様に、対応する機能を切り替えるコードを実装できます。
          */
         void update();
 };

@@ -1,11 +1,11 @@
 /**
  *  @file DHTProgram
- *  @version 1.0.0
+ *  @version 1.0.1
  *  @author basyair7
- *  @date 2025
+ *  @date 2026
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,25 +29,25 @@
 
 /**
  * @class DHTProgram
- * @brief Class to manage DHT sensor operations, including initialization and data retrieval.
+ * @brief DHTセンサーの操作（そうさ）を管理するクラスです。初期的化（しょきてきか）およびデータ取得（しゅとく）を含（ふく）みます。
  */
 class DHTProgram {
-    DHT_Unified dht_obj;                ///< DHT sensor object
-    sensor_t sensor_t_obj;              ///< Sensor metadata object
-    sensors_event_t sensor_event_t_obj; ///< Sensor event object
-    uint32_t _delay;                    ///< Delay between sensor readings (milliseconds)
-    unsigned long __Last_Time;          ///< Timestamp of last sensor read
-    bool __check_begin;                 ///< Flag to check if sensor has been initialized
+    DHT_Unified dht_obj;                ///< DHTセンサーオブジェクト。
+    sensor_t sensor_t_obj;              ///< センサー情報オブジェクト。
+    sensors_event_t sensor_event_t_obj; ///< センサーイベントオブジェクト。
+    uint32_t _delay;                    ///< センサー読み取りの遅延時間（ミリ秒）。
+    unsigned long __Last_Time;          ///< 最後のセンサー読み取り時間を追跡するための変数。
+    bool __check_begin;                 ///< begin()が呼び出されたかどうかを確認するフラグ。
 
     public:
-        float temperature = 0.0; ///< Last recorded temperature value
-        float humidity = 0.0;    ///< Last recorded humidity value
+        float temperature = 0.0; ///< 最後に記録（きろく）された温度値（おんどち）。
+        float humidity = 0.0;    ///< 最後に記録された湿度値（しつどち）。
 
     public:
         /**
-         * @brief Constructor to initialize the DHT sensor object.
-         * @param pin GPIO pin where the DHT sensor is connected.
-         * @param type Type of DHT sensor (e.g., DHT11, DHT22).
+         * @brief DHTセンサーオブジェクトを初期化するコンストラクタです。
+         * @param pin DHTセンサーが接続されているGPIOピン番号。
+         * @param type DHTセンサーのタイプ（例：DHT11、DHT22など）。
          */
         DHTProgram(uint8_t pin, uint8_t type) : dht_obj(pin, type)
         {
@@ -55,8 +55,8 @@ class DHTProgram {
         }
 
         /**
-         * @brief Initialize device.
-         * @param Delay Time interval between sensor readings (default 1000ms)
+         * @brief DHTセンサーを初期化し、センサー情報を表示します。
+         * @param Delay センサー読み取りの遅延時間（ミリ秒）。デフォルトは1000msです。
          */
         void begin(uint32_t Delay = 1000UL) {
             if (Delay < 1000UL) {
@@ -74,8 +74,8 @@ class DHTProgram {
         }
 
         /**
-         * @brief Reads sensor data and updates temperature and humidity values.
-         * @details Ensure the sensor has been initialized before reading values.
+         * @brief DHTセンサーから温度と湿度の値を定期的に更新します。
+         * @details この関数は、指定された遅延時間が経過するたびにセンサーからデータを読み取ります。温度と湿度の値は、それぞれtemperatureとhumidityメンバー変数に保存されます。
          */
         void running() {
             if (!this->__check_begin) {
@@ -86,11 +86,11 @@ class DHTProgram {
             if ((unsigned long) (millis() - this->__Last_Time) >= (long unsigned int) this->_delay)
             {
                 this->__Last_Time = millis();
-                // Retrieve temperature
+                // 温度を取得（しゅとく）します。
                 this->dht_obj.temperature().getEvent(&this->sensor_event_t_obj);
                 this->temperature = (isnan(this->sensor_event_t_obj.temperature)) ? -1 : this->sensor_event_t_obj.temperature;
 
-                // Retrieve humidity
+                // 湿度を取得します。
                 this->dht_obj.humidity().getEvent(&this->sensor_event_t_obj);
                 this->humidity = (isnan(this->sensor_event_t_obj.relative_humidity)) ? -1 : this->sensor_event_t_obj.relative_humidity;
             }
@@ -98,14 +98,14 @@ class DHTProgram {
 
     private:
         /**
-         * @brief Displays sensor information on the Serial Monitor.
-         * @details Prints details for both temperature and humidity sensors.
+         * @brief DHTセンサーの詳細情報をシリアルモニタに表示します。
+         * @details この関数は、温度センサーと湿度センサーの両方の情報を表示します。センサーの種類、ドライバーバージョン、ユニークID、最大値、最小値、および解像度が含まれます。
          */
         void information() {
             Serial.println(F("DHTxx Unified Sensor Example"));
             Serial.println(F("------------------------------------"));
             
-            // Temperature sensor details
+            // 温度センサーの詳細
             this->dht_obj.temperature().getSensor(&this->sensor_t_obj);
             Serial.println(F("Temperature Sensor"));
             Serial.print  (F("Sensor Type\t: ")); Serial.println(this->sensor_t_obj.name);
@@ -116,7 +116,7 @@ class DHTProgram {
             Serial.print  (F("Resolution\t: "));  Serial.print(this->sensor_t_obj.resolution); Serial.println(F(" °C"));
             Serial.println(F("------------------------------------"));
 
-            // Humidity sensor details
+            // 湿度センサーの詳細
             this->dht_obj.humidity().getSensor(&this->sensor_t_obj);
             Serial.println(F("Humidity Sensor"));
             Serial.print  (F("Sensor Type\t: ")); Serial.println(this->sensor_t_obj.name);

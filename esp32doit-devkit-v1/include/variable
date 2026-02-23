@@ -33,12 +33,14 @@
 #define BTN_AUTOWATERING    18          ///< Pin for the Auto Watering (enable or disable) 
 #define BTN_BACKLIGHT       25          ///< Pin for the backlight (enable or disable) 
 #define PIN_DHT             14          ///< Pin for the DHT module
+#define PIN_TDS             34          ///< Pin for the TDS sensor
 #define PIN_SMS             35          ///< Pin for the Soil Moisture Sensor
 
 // Define pinout relay
-#define RELAY1 26
-#define RELAY2 27
-#define VAR_SWITCH "relay"
+#define RELAY1           26
+#define RELAY2           27
+#define RELAY_FERTILIZER 32
+#define VAR_SWITCH       "relay"
 
 #define WATERING_LVL_MAX 80 //< Watering Level Maximum for Soil Moisture
 #define WATERING_LVL_MIN 30 //< Watering Level Minimum for Soil Moisture

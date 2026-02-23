@@ -1,15 +1,16 @@
 /**
  *  @file MyEEPROM
- *  @version 1.0.0
- *  @brief A wrapper class for EEPROM operations, compatible with ESP and AVR platforms.
- *  @details This class provides template-based methods for reading, writing and saving specific
- *           program state using the EEPROM memory.
+ *  @version 1.0.1
+ *  @brief ESPとAVR両対応（りょうたいおう）のEEPROM操作用（そうさよう）ラッパークラス。
+ *  @details 
+ *  このクラスは、ESP32、ESP8266、およびAVRベースのマイクロコントローラーで
+ *  EEPROMを操作するための統一されたインターフェースを提供します。
  * 
- *  @date 2025
+ *  @date 2026
  *  @author basyair7
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -31,25 +32,26 @@
 class MyEEPROM {
     public:
         /**
-         * @brief Initialize EEPROM for use. Required for ESP platforms.
-         * @param size The size for the EEPROM to initialize (ESP only).
-         * @return `true` if the operation succeeded (ESP32) or assumed success (ESP8266/AVR).
+         * @brief EEPROM を使用できるように初期化（しょきか）します。ESPプラットフォームで必要です。
+         * @param size EEPROM のサイズ（バイト単位）。ESP32 では 512、ESP8266 では 512 または 1024 を推奨します。
+         * @return EEPROM の初期化に成功した場合は `true`、失敗した場合は `false` を返します。
          */
         bool initialize(int size = 512) {
             #if defined(ESP32)
-                // For ESP32, EEPROM.begin(size) returns a bool
+                // ESP32では、EEPROM.begin(size)は成功（せいこう）または失敗（しっぱい）を示（しめ）すブール値（ち）を返します。
                 return EEPROM.begin(size);
             #elif defined(ESP8266)
-                // For ESP8266, EEPROM.begin(size) returns void
-                EEPROM.begin(size); return true; // Assume success as no error handling is available
+                // ESP8266では、EEPROM.begin(size)は値（あたい）を返しません（ボイド型です）。
+                EEPROM.begin(size); return true; // エラーチェックができないため、成功前提（せいこうぜんてい）とします。
             #else
-                // For AVR platforms, no initialization is required
+                // AVRプラットフォームでは、初期化（しょきか）は不要です。
                 return true;
             #endif
         }
 
         /**
-         * @brief END the EEPROM session (ESP platforms only).
+         * @brief EEPROM を終了（しゅうりょう）します。ESPプラットフォームで必要です。
+         * @return EEPROM の終了に成功した場合は `true`、失敗した場合は `false` を返します。
          */
         bool cleanup() const {
             #if defined(ESP32)
@@ -63,11 +65,11 @@ class MyEEPROM {
 
     public:
         /**
-         * @brief Read a value for type T from EEPROM.
-         * @tparam T The type of the value to read.
-         * @param address The EEPROM address to read from.
-         * @param val Reference to store the read value.
-         * @return A reference to the read value.
+         * @brief EEPROM から型 T の値（あたい）を読み取ります。
+         * @tparam T 読み取る値の型。
+         * @param address EEPROM のアドレス。
+         * @param val 読み取った値を格納（かくのう）する変数（へんすう）への参照（さんしょう）。
+         * @return 読み取りに成功（せいこう）した場合は参照（さんしょう）された変数を返し、失敗（しっぱい）した場合は未定義（みていぎ）の動作（どうさ）になります。
          */
         template <typename T>
         T &get(const int address, T &val) const {
@@ -75,20 +77,20 @@ class MyEEPROM {
         }
 
         /**
-         * @brief Read a single byte from EEPROM.
-         * @param address The EEPROM address to read from.
-         * @return The byte read from EEPROM.
+         * @brief EEPROM から 1 バイトを読み取ります。
+         * @param address EEPROM のアドレス。
+         * @return EEPROM から読み取ったバイト値。
          */
         uint8_t read(const int address) const {
             return EEPROM.read(address);
         }
 
         /**
-         * @brief Save a state to EEPROM.
-         * @tparam T The type of the state to save.
-         * @param address The EEPROM address to write to.
-         * @param state The state value to save.
-         * @return `true` if the operation succeeded, `false` otherwise.
+         * @brief EEPROM に型 T の値を書き込みます。
+         * @tparam T 書き込む値の型。
+         * @param address EEPROM のアドレス。
+         * @param state 書き込む値。
+         * @return 書き込みに成功（せいこう）した場合は `true`、失敗（しっぱい）した場合は `false` を返します。
          */
         template <typename T>
         bool save_state(const int address, const T &state) const {
@@ -101,10 +103,10 @@ class MyEEPROM {
         }
 
         /**
-         * @brief Save the Wi-Fi mode state to EEPROM.
-         * @tparam T The type of the state to save.
-         * @param state the Blynk mode state to save.
-         * @return `true` if the operation succeeded, `false` otherwise.
+         * @brief Blynk モードの状態（じょうたい）を EEPROM に保存（ほぞん）します。
+         * @tparam T 保存する状態の型（かた）。
+         * @param state 保存する状態。
+         * @return 保存に成功（せいこう）した場合は `true`、失敗（しっぱい）した場合は `false` を返します。
          */
         template <typename T>
         bool save_wifi_state(const T &state) const {

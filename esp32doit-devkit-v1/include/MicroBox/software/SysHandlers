@@ -1,7 +1,7 @@
 /**
  *  @file SysHandlers
- *  @version 1.0.0
- *  @date 2025
+ *  @version 1.0.1
+ *  @date 2026
  *  @author basyair7
  *  
  *  @copyright
@@ -64,13 +64,13 @@ class RebootSys {
 
 /**
  * @class AutoChangeState
- * @brief Monitors WiFi status and executes actions if the connection remains lost for a specified timeout duration.
+ * @brief WiFiの状態を監視（かんし）し、指定（してい）されたタイムアウト時間の間接続（せつぞく）がうしなわれたままの場合に処理（しょり）を実行します。
  */
 class AutoChangeState {
-    MyEEPROM eeprom; //!< Instance  of MyEEPROM for EEPROM operations
-    bool autoChangeEnable = false; //!< Flag indicating whether autChange is enable
-    unsigned long timeout = 0; //!< Timeout value in milliseconds
-    unsigned long startMillis = millis(); //!< Start time WiFi disconnected
+    MyEEPROM eeprom; //!< EEPROMインスタンス
+    bool autoChangeEnable = false; //!< AutoChange機能の有効/無効状態
+    unsigned long timeout = 0; //!< WiFi切断後のタイムアウト時間（ミリ秒単位）
+    unsigned long startMillis = millis(); //!< WiFi切断開始時間を記録する変数
 
     static AutoChangeState &instance() {
         static AutoChangeState instance;
@@ -97,29 +97,29 @@ class AutoChangeState {
 
     void changeState() {
         if (WiFi.status() == WL_CONNECTED) {
-            // Reset the timer only if Wi-Fi is reconnected
+            // WiFiが再接続（さいせつぞく）された場合のみ、タイマーをリセットします。
             startMillis = millis();
             // Serial.println(F("Wi-Fi connected. Timer reset."));
             led_warning.off();
         }
         else {
-            // If Wi-Fi is disconnected
+            // WiFiが切断（せつだい）された場合、タイマーを開始します。
             led_warning.run(true, 1000);
             unsigned long elapsed = millis() - startMillis;
 
             if (elapsed >= timeout) {
-                // Execute action after timeout
+                // タイムアウト時間が経過（けいか）した場合の処理をここに記述します。
                 Serial.println(F("Wi-Fi disconnected for 30 minutes. Saving state and resetting ESP."));
                 this->eeprom.save_wifi_state(false);
                 delay(1000);
-                ESP.restart(); // Perform restart
+                ESP.restart(); // 再起動を実行します。
             }
             else {
-                // Calculated remaining time and convert to minutes and seconds
+                // 残り時間を計算（けいさん）し、分と秒に変換（へんかん）します。
                 unsigned long remaining = this->timeout - elapsed;
-                remaining /= 1000; // Convert from milliseconds to seconds
-                unsigned long minutes = remaining / 60; // Calculate minutes
-                unsigned long seconds = remaining % 60; // Calculate seconds
+                remaining /= 1000; // ミリ秒から秒に変換します。
+                unsigned long minutes = remaining / 60; // 分を計算します。
+                unsigned long seconds = remaining % 60; // 秒を計算します。
 
                 this->PrintOutRemaining(minutes, seconds);
             }
@@ -132,10 +132,10 @@ class AutoChangeState {
             return;
         }
 
-        // Convert timeout to milliseconds
+        // タイムアウトをミリ秒に変換します。
         this->timeout = TIMEOUT * 60 * 1000;
 
-        // Update autoChangeEnable state every 5 seconds
+        // EEPROMからAutoChange機能（きのう）の有効（ゆうこう）/無効状態（むこうじょうたい）を定期的（ていきてき）に読み取ります。
         static unsigned long lastReadTime = 0;
         if ((millis() - lastReadTime) >= 5000) {
             lfsprog.readConfigState(
@@ -145,14 +145,14 @@ class AutoChangeState {
             lastReadTime = millis();
         }
 
-        // Proceed only if autoChange is enabled
+        // autoChangeEnableが有効な場合のみ、処理（しょり）を続行（ぞっこう）します。
         if (this->autoChangeEnable && WiFi.getMode() == WIFI_STA)
             this->changeState();
     }
 
     public:
         static void run(uint32_t TIMEOUT = 30) {
-            // Ensure the singleton instance runs the logic
+            // AutoChangeStateクラスのインスタンスを取得し、_runメソッドを呼び出します。
             instance()._run(TIMEOUT);
         }
 };

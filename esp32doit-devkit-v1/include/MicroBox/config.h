@@ -2,7 +2,7 @@
  *  @file config
  *  @version 1.0.1
  *  @brief This file contains the configuration settings and constants for the project.
- *  @date 2025
+ *  @date 2026
  *  @author basyair7
  * 
  *  @copyright

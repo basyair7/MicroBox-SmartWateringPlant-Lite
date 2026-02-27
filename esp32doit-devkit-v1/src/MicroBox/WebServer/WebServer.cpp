@@ -1,11 +1,14 @@
 /**
  *  @file WebServer.cpp
- *  @version 1.0.0
- *  @date 2025
+ *  @version 1.0.1
+ *  @date 2026
  *  @author basyair7
+ *  
+ *  @brief このファイルは、WebServerClassの実装を含む。Webサーバーの初期化、ルーティングの設定、および関連するハンドラー関数の実装を提供する。
+ *         Webサーバーは、HTTPリクエストを処理し、適切なレスポンスを返すための機能を提供する。これには、HTMLページの提供、APIエンドポイントの処理、およびWebSocket通信の管理が含まれる。
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -22,19 +25,19 @@
 #include "MicroBox/software/ProgramWiFi"
 
 void WebServerClass::ServerInit() {
-    // Initialize LittleFS
+    // LittleFSを初期化する。
     // lfsprog.setupLFS();
 
-    // Initialize mDNS with the hostname esp32-delay
+    // ローカルネットワーク探索のために、mDNSレスポンダを初期化する。
     if (!MDNS.begin("esp32-delay")) {
         Serial.println(F("Error starting mDNS"));
         return;
     }
 
-    // Initialize ElegantOTA for over-the-air update
+    // OTA (Over The Air) 更新のために、ElegantOTAを初期化する。
     ElegantOTA.begin(&this->serverAsync);
 
-    // setup WebSocket
+    // WebSocketをセットアップする。クライアントが接続したときのイベントハンドラーを指定する。
     this->ws.onEvent(std::bind(
         &WebServerClass::onEvent, this,
         std::placeholders::_1,
@@ -45,16 +48,16 @@ void WebServerClass::ServerInit() {
         std::placeholders::_6
     ));
 
-    // add Handler WebSocket on serverAsync
+    // serverAsyncにWebSocketハンドラを追加する。
     this->serverAsync.addHandler(&this->ws);
 
-    // Serve CSS and JavaScript file
+    // CSSおよびJavaScriptファイルの配信を実行する。
     this->run_css_js_webserver();
     
-    // Run Routes program
+    // ルーティングの設定を実行する。
     this->Routes();
 
-    // initializes AsyncWebServer
+    // Webサーバーを開始する。
     this->serverAsync.begin();
     Serial.println(F("HTTP Started..."));
     this->LocalIP = ProgramWiFi.LOCALIPServer;
@@ -65,12 +68,12 @@ void WebServerClass::ServerInit() {
 }
 
 void WebServerClass::UpdateOTAloop() {
-    // Handle OTA updates in the loop
+    // OTA更新のループを実行する。これにより、OTA更新が適切に処理されるようになる。
     ElegantOTA.loop();
 }
 
 void WebServerClass::run_css_js_webserver() {
-    // Define lists of CSS and JavaScript files to serve
+    // CSSファイルとJavaScriptファイルのリストを定義する。
     const std::vector<String> list_css_files = {
         "recovery.css", "index.css", 
         "config_wifi_ap.css", "config_wifi_sta.css"
@@ -82,14 +85,14 @@ void WebServerClass::run_css_js_webserver() {
         "toggleCheck.js"
     };
 
-    // Serve each CSS file
+    // 各CSSファイルを提供するための静的ルートを設定する。
     for (const auto fileName : list_css_files)
         this->serverAsync.serveStatic(
             ("/css/" + fileName).c_str(), LFS,
             (DIRCSS + fileName).c_str()
         );
     
-    // Serve each JavaScript file
+    // 各JavaScriptファイルを提供するための静的ルートを設定する。
     for (const auto fileName : list_js_files)
         this->serverAsync.serveStatic(
             ("/js/" + fileName).c_str(), LFS,
@@ -99,7 +102,9 @@ void WebServerClass::run_css_js_webserver() {
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_WebServer)
 /**
- * Create a global instance of WebServerClass
+ * @brief WebServerClassのグローバルインスタンスを定義する。これにより、他のファイルからWebServerオブジェクトを直接使用できるようになる。
+ * このインスタンスは、Webサーバーの初期化とルーティングの設定を行うために使用される。
+ * 注意: NO_GLOBAL_INSTANCESまたはNO_GLOBAL_WebServerが定義されている場合、このインスタンスは定義されないため、他のファイルからWebServerオブジェクトを使用することはできなくなる。
  */
 WebServerClass WebServer;
 #endif

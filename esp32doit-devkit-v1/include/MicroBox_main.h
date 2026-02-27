@@ -1,13 +1,13 @@
 /**
  *  @file MicroBox_main.h
- *  @version 1.0.0
- *  @brief Main header file for the ESP32 Arduino Framework.
- *  @details This file serves as the main entry point for the ESP32 program.
- *           Modifying ths file requires caution, as changes may impact the behavior of the entire program.
+ *  @version 1.0.1
+ *  @brief このファイルは、ESP32プログラムのメインエントリーポイントとして機能するクラスを定義します。
+ *  @details このクラスは、Arduinoのsetup()とloop()関数をラップし、EEPROMの消去機能も提供します。
+ * 
  *  @author basyair7
- *  @date 2025
+ *  @date 2026
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,41 +29,42 @@
 #include "EraseEEPROM"
 
 class MicroBox_Main {
-    /****** ADD NEW FUNCTION HERE ******/
+    /****** ADD NEW FUNCTION HERE / ここに新しい関数を追加する。 ******/
     // void __example__(void);
     
     /****** DON'T MODIFY THIS METHOD's FUNCTION (BE CAREFUL)! ******/
+    /****** このメソッドの機能を変更しないこと（注意）！******/
     protected:
         /**
-         * @brief User-defined setup function (private).
-         * @param baud Baud rate for serial communication.
+         * @brief システムをリブートする。
+         * @param baud シリアル通信のボーレート。
          */
         void setup(unsigned long baud);
 
         /**
-         * @brief User-defined loop function (private).
+         * @brief システムをリブートする。
          */
         void loop();
 };
 
 /**
  *  @class Main
- *  @brief Main class that serves as the entry point for the program.
- *  @details This class handles the main setup and loop functionality for the Arduino framework.
- *           It also provides as mechanism to erase EEPROM data.
+ *  @brief このクラスは、Arduinoフレームワークのメインセットアップとループ機能を処理します。
+ *  @details このクラスは、EEPROMの消去機能も提供し、必要に応じてEEPROMを消去してからセットアップを実行できます。
  */
 class Main : protected MicroBox_Main {
     /****** DON'T MODIFY THIS METHOD's FUNCTION (BE CAREFUL)! ******/
+    /****** このメソッドの機能を変更しないこと（注意）！******/
     bool _erase_eeprom_prog = false;
     
     /**
-     *  @brief Erase all data in the EEPROM.
-     *  @param baud Baud rate for serial communication.
+     *  @brief EEPROMを消去するための静的メソッド。
+     *  @param baud シリアル通信のボーレート。
      */
     static void EraseEEPROM(unsigned long baud) {
         Serial.begin(baud);
 
-        // Attempt to initialize the EEPROM
+        // EEPROMの初期化を試みる。
         if (!EraseEEPROM::BEGIN()) {
             Serial.println(F("Failed to initialize EEPROM!\nThe run() function cannot be executed."));
             return;
@@ -71,7 +72,7 @@ class Main : protected MicroBox_Main {
 
         Serial.println(F("EEPROM successfully initialized."));
 
-        // Erase all data in the EEPROM
+        // EEPROMの内容を消去する。
         Serial.println(F("Erasing EEPROM..."));
         EraseEEPROM::RUN();
         Serial.println(F("EEPROM successfully erased."));
@@ -79,8 +80,8 @@ class Main : protected MicroBox_Main {
 
     public:
         /**
-         *  @brief Gets the singleton instance of the Main class.
-         *  @return Reference to the singleton instance.
+         *  @brief Mainクラスのシングルトンインスタンスを取得する。
+         *  @return Main& シングルトンインスタンスへの参照。
          */
         static Main &instance() {
             static Main instance;
@@ -88,9 +89,9 @@ class Main : protected MicroBox_Main {
         }
 
         /**
-         *  @brief Initializes the program.
-         *  @param baud Baud rate for serial communication.
-         *  @param erase_eeprom Flag to erase EEPROM data (default: false)
+         *  @brief セットアップ関数。EEPROMの消去フラグに基づいて、EEPROMを消去してからセットアップを実行するかどうかを決定します。
+         *  @param baud シリアル通信のボーレート。
+         *  @param erase_eeprom EEPROMを消去するかどうかのフラグ（デフォルトはfalse）
          */
         static void SETUP(unsigned long baud, bool erase_eeprom = false)
         {
@@ -104,7 +105,7 @@ class Main : protected MicroBox_Main {
         }
 
         /**
-         * @brief Main loop function
+         * @brief ループ関数。EEPROM消去プログラムが実行されていない場合にのみ、通常のループ処理を実行します。
          */
         static void LOOP() {
             if (!instance()._erase_eeprom_prog)

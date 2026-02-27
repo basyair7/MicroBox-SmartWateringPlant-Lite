@@ -1,11 +1,14 @@
 /**
  *  @file LFSMemory.cpp
- *  @version 1.0.0
+ *  @version 1.0.1
  *  @author basyair7
- *  @date 2025
+ *  @date 2026
+ * 
+ *  @brief このファイルは、LFSMemoryクラスの実装を含み、LittleFSを使用してWiFi設定やシステム状態の管理を行う機能を提供する。
+ *  @details LFSMemoryクラスは、WiFiのSSIDやパスワードの保存、システム状態の管理など、LittleFSを活用した設定管理機能を提供します。
  *  
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,8 +27,8 @@
 #include "MicroBox/software/LFSMemory"
 
 /**
- * @brief List all file store in LittleFS, grouped by categories.
- * @details This function help in verifying stored files during setup.
+ * @brief セットップ時に検証のため、LittleFSに保存されているすべてのファイルを一覧表示する。
+ * @details LittleFSに保存されているファイルを一覧表示することで、設定ファイルの存在や内容を確認し、デバッグや検証に役立てることができます。
  */
 
 void LFSMemory::listFiles(void) {
@@ -39,18 +42,20 @@ void LFSMemory::listFiles(void) {
 }
 
 /**
- * @brief Initializes or update WiFi configuration settings stored in a given file.
- * @details If the file is missing or corrupted, default WiFi credentials will be used.
+ * @brief 指定されたファイルに保存された WiFi 設定を初期化または更新する。
+ * @details この関数は、指定されたファイルに保存された WiFi 設定を初期化または更新するための共通のロジックを提供します。
+ *          ファイルが存在しない場合や内容が破損している場合は、デフォルトの WiFi 設定で初期化されます。
+ *          更新は、提供されたラムダ関数を使用して行われます。
  * 
- * @param cfile Configuration file name containing WiFi settings.
- * @param updateFunc Lambda function to update configuration data in the file.
+ * @param cfile WiFi 設定を保存するファイルの名前。
+ * @param updateFunc WiFi 設定を更新するためのラムダ関数。StaticJsonDocument を引数に取り、必要な変更を加えることができます。
  */
 void LFSMemory::initializeOrUpdateWiFiConfig(const String &cfile, std::function<void (StaticJsonDocument<500>&)> updateFunc)
 {
     StaticJsonDocument<500> data;
     String __readConfig__ = this->readconfig(cfile), __newConfig__ = "";
     if (__readConfig__ == "null" || !lfsIsExists(cfile)) {
-        // Initialize with default WiFi credentials if the config is missing or corrupted.
+        // 設定ファイルが保存しない、または破損している場合、デフォルトの WiFi 認証情報で初期化する。
         Serial.println(F("WiFi config file missing, creating new one."));
         data[SSID_STA] = WIFI_SSID_STA_DEFAULT;
         data[PASS_STA] = WIFI_PASS_STA_DEFAULT;
@@ -61,27 +66,27 @@ void LFSMemory::initializeOrUpdateWiFiConfig(const String &cfile, std::function<
         DeserializationError error = deserializeJson(data, __readConfig__);
         if (error) {
             this->handleError_deserializeJson(
-                "initializeOrUpdateWiFiConfig", // Function name for error tracking
-                error.c_str() // Error message
+                "initializeOrUpdateWiFiConfig", // エラー追跡用関数名
+                error.c_str() // エラーメッセージ
             );
             return;
         }
     }
 
-    // Apply the changes using the provided lambda function
+    // 提供されたラムダ関数を使用して変更を適用する。
     updateFunc(data);
 
-    // Serialize updated data and write it back to the file
+    // 更新されたデータをシリアル化してファイルに書き込む。
     serializeJson(data, __newConfig__);
     this->writeconfig(cfile, __newConfig__);
 }
 
 /**
- * @brief Initializes or update relay configuration in the specified file.
- * @details If the is missing or corrupted, default relay settings will be used.
+ * @brief 指定されたファイルに保存されたリレー設定を初期化または更新する。
+ * @details この関数は、指定されたファイルに保存されたリレー設定を初期化または更新するための共通のロジックを提供します。
  * 
- * @param cfile Configuration file name containing relay settings.
- * @param updateFunc Lambda function to update configuration data in the file.
+ * @param cfile リレー設定を保存するファイルの名前。
+ * @param updateFunc リレー設定を更新するためのラムダ関数。DynamicJsonDocument を引数に取り、必要な変更を加えることができます。
  */
 void LFSMemory::initializeOrUpdateVarRelay(const String &cfile, std::function<void (DynamicJsonDocument&)> updateFunc)
 {
@@ -96,27 +101,27 @@ void LFSMemory::initializeOrUpdateVarRelay(const String &cfile, std::function<vo
         DeserializationError error = deserializeJson(doc, __readConfig__);
         if (error) {
             this->handleError_deserializeJson(
-                "initializeOrUpdateVarRelay", // Function name for error tracking
-                error.c_str() // Error message
+                "initializeOrUpdateVarRelay", // エラー追跡用関数名
+                error.c_str() // エラーメッセージ
             );
             return;
         }
     }
 
-    // Apply the change using the provided lambda function
+    // 提供されたラムダ関数を使用して変更を適用する。
     updateFunc(doc);
 
-    // Serialize updated data and write it back to the file
+    // 更新されたデータをシリアル化してファイルに書き込む。
     serializeJson(doc, __newConfig__);
     this->writeconfig(cfile, __newConfig__);
 }
 
 /**
- * @brief Initializes or updates system state settings in the specified configuration file.
- * @details Default state values are applied if the file is missing or corrupted.
+ * @brief 指定されたファイルに保存されたシステム状態設定を初期化または更新する。
+ * @details ファイルが存在しない、または破損している場合は、デフォルトの状態値が適用されます。
  * 
- * @param cfile Configuration file name containing state settings.
- * @param updateFunc Lambda function to update configuration data in the file.
+ * @param cfile システム状態設定を保存するファイルの名前。
+ * @param updateFunc ファイル内の設定データを更新するためのラムダ関数。
  */
 void LFSMemory::initializeOrUpdateState(const String &cfile, std::function<void (StaticJsonDocument<200>&)> updateFunc)
 {
@@ -124,7 +129,7 @@ void LFSMemory::initializeOrUpdateState(const String &cfile, std::function<void 
     String __readConfig__ = this->readconfig(cfile), __newConfig__ = "";
     
     if (__readConfig__ == "null" || !lfsIsExists(cfile)) {
-        // Initialize with default state values if the config is missing or corrupted
+        // 状態設定ファイルが存在しない、または破損している場合、デフォルトの状態値で初期化する。
         Serial.println(F("State config file missing, creating new one."));
         doc[AUTOWATERING] = false;
         doc[AUTOCHANGE]   = false;
@@ -133,23 +138,25 @@ void LFSMemory::initializeOrUpdateState(const String &cfile, std::function<void 
         DeserializationError error = deserializeJson(doc, __readConfig__);
         if (error) {
             this->handleError_deserializeJson(
-                "initializeOrUpdateState", // Function name for error tracking
-                error.c_str() // Error message
+                "initializeOrUpdateState", // エラー追跡用関数名
+                error.c_str() // エラーメッセージ
             );
             return;
         }
     }
 
-    // Apply the changes using the provided lambda function
+    // 提供されたラムダ関数を使用して変更を適用する。
     updateFunc(doc);
 
-    // Serialize updated data and write it back to the file
+    // 更新されたデータをシリアル化してファイルに書き込む。
     serializeJson(doc, __newConfig__);
     this->writeconfig(cfile, __newConfig__);
 }
 
 /**
- * @brief Initailizes WiFi configuration with values from the configuration file.
+ * @brief LittleFSに保存されたWiFi設定を使用して、WiFi関連の変数を初期化する。
+ * @details この関数は、LittleFSに保存されたWiFi設定を読み取り、WiFi関連の変数を初期化します。
+ *          設定ファイルが存在しない場合や内容が破損している場合は、デフォルトのWiFi設定で初期化されます。
  */
 void LFSMemory::initializeWiFiConfig(void) {
     this->initializeOrUpdateWiFiConfig(
@@ -164,25 +171,30 @@ void LFSMemory::initializeWiFiConfig(void) {
 }
 
 /**
- * @brief Initailizes relay configuration using the stored data.
+ * @brief LittleFSに保存されたリレー設定を使用して、リレー関連の変数を初期化する。
+ * @details この関数は、LittleFSに保存されたリレー設定を読み取り、リレー関連の変数を初期化します。
+ *          設定ファイルが存在しない場合や内容が破損している場合は、デフォルトのリレー設定で初期化されます。
  */
 void LFSMemory::initializeVarRelay(void) {
     this->initializeOrUpdateVarRelay(
         this->file_config_relay,
         [&](DynamicJsonDocument &data) {
-            // Placeholder for relay configuration updates
+            // リレー設定を初期化するためのコードをここに記述します。
+            // 例: this->__RELAY1_STATE__ = data["relay1"].as<bool>();
         }
     );
 }
 
 /**
- * @brief Initializes system state settings from the configuration file.
+ * @brief LittleFSに保存されたシステム状態設定を使用して、状態関連の変数を初期化する。
+ * @details この関数は、LittleFSに保存されたシステム状態設定を読み取り、状態関連の変数を初期化します。
+ *          設定ファイルが存在しない場合や内容が破損している場合は、デフォルトの状態値で初期化されます。
  */
 void LFSMemory::initializeState(void) {
     this->initializeOrUpdateState(
         this->file_config_state,
         [&](StaticJsonDocument<200> &data) {
-            // Extract system state values from the configuration
+            // 状態設定を初期化するためのコードをここに記述します。
             this->__WATERING_MODE_STATE__ = data[AUTOWATERING];
             this->__AUTO_CHANGE_MODE__    = data[AUTOCHANGE];
         }
@@ -190,19 +202,21 @@ void LFSMemory::initializeState(void) {
 }
 
 /**
- * @brief Reinitializes WiFi configuration with default values.
+ * @brief LittleFSに保存されたWiFi設定をデフォルトの値で再初期化する。
+ * @details この関数は、LittleFSに保存されたWiFi設定をデフォルトの値で再初期化します。これにより、WiFi設定がリセットされ、デフォルトのSSIDとパスワードが適用されます。
+ *          既存のWiFi設定ファイルが存在する場合は、上書きされます。
  */
 void LFSMemory::reinitializeWiFiConfig(void) {
     this->initializeOrUpdateWiFiConfig(
         this->file_config_wifi,
         [&](StaticJsonDocument<500> &data) {
-            // Reset to default WiFi credentials
+            // WiFi設定をデフォルト値にリセットする。
             this->__SSID_STA__  = WIFI_SSID_STA_DEFAULT;
             this->__SSID_AP__   = WIFI_SSID_AP_DEFAULT;
             this->__PASS_STA__  = WIFI_PASS_STA_DEFAULT;
             this->__PASS_AP__   = WIFI_PASS_AP_DEFAULT;
 
-            // Update configuration data
+            // デフォルト値をデータに設定する。
             data[SSID_STA] = this->__SSID_STA__;
             data[SSID_AP]  = this->__SSID_AP__;
             data[PASS_STA] = this->__PASS_STA__;
@@ -214,7 +228,9 @@ void LFSMemory::reinitializeWiFiConfig(void) {
 }
 
 /**
- * @brief REinitializes relay configuration with default settings.
+ * @brief LittleFSに保存されたリレー設定をデフォルトの値で再初期化する。
+ * @details この関数は、LittleFSに保存されたリレー設定をデフォルトの値で再初期化します。これにより、リレー設定がリセットされ、デフォルトのリレー状態が適用されます。
+ *          既存のリレー設定ファイルが存在する場合は、上書きされます。
  */
 void LFSMemory::reinitializeVarRelay(void) {
     DynamicJsonDocument doc(1024);
@@ -229,17 +245,19 @@ void LFSMemory::reinitializeVarRelay(void) {
 }
 
 /**
- * @brief Reinitializes system staste with default values.
+ * @brief LittleFSに保存されたシステム状態設定をデフォルトの値で再初期化する。
+ * @details この関数は、LittleFSに保存されたシステム状態設定をデフォルトの値で再初期化します。これにより、システム状態がリセットされ、デフォルトの状態値が適用されます。
+ *          既存の状態設定ファイルが存在する場合は、上書きされます。
  */
 void LFSMemory::reinitializeState(void) {
     this->initializeOrUpdateState(
         this->file_config_state,
         [&](StaticJsonDocument<200> &data) {
-            // Reset system state values
+            // 状態設定をデフォルト値にリセットする。
             this->__WATERING_MODE_STATE__ = false;
             this->__AUTO_CHANGE_MODE__    = false;
 
-            // Update configuration data
+            // デフォルト値をデータに設定する。
             data[AUTOWATERING] = this->__WATERING_MODE_STATE__;
             data[AUTOCHANGE]   = this->__AUTO_CHANGE_MODE__;
             Serial.println(F("Reinitialize State : Done"));
@@ -247,19 +265,27 @@ void LFSMemory::reinitializeState(void) {
     );
 }
 
+/**
+ * @brief LittleFSに保存されたWiFi設定を変更するための設定ハンドラを提供する。
+ * @details この関数は、WiFiステーションモードのSSIDとパスワードを変更するための設定ハンドラです。提供された新しいSSIDとパスワードを使用して、WiFi設定を更新します。
+ *          更新された設定は、LittleFSに保存されます。
+ */
 void LFSMemory::setupLFS(void) {
+    // LittleFSの初期化を試みる。失敗した場合は、エラーメッセージを表示して再試行する。
     while (!LFS.begin(true)) {
         Serial.println(F("Failed... Error 0x1"));
         Serial.println(F("Error initializing LittleFS, please try again..."));
         delay(150);
     }
     
+    // LittleFSの初期化に成功した場合、必要なディレクトリを作成し、設定ファイルを初期化して、保存されているファイルを一覧表示する。
     this->createDirIfNeeded("/config");
     this->initializeWiFiConfig();
     this->initializeVarRelay();
     this->initializeState();
     this->listFiles();
 
+    // LittleFSに保存されたWiFi設定をシリアルモニタに表示する。
     Serial.println(F("\nConfigurate WiFi client :"));
     Serial.print(F("SSID STA : "));
     Serial.println(this->__SSID_STA__);

@@ -32,6 +32,7 @@
 #define BTN_RELAY_2         13          ///< Pin for the switcher relay 2
 #define BTN_AUTOWATERING    18          ///< Pin for the Auto Watering (enable or disable) 
 #define BTN_BACKLIGHT       25          ///< Pin for the backlight (enable or disable) 
+#define PIN_DS18B20         33          ///< Pin for the DS18B20 temperature sensor
 #define PIN_DHT             14          ///< Pin for the DHT module
 #define PIN_TDS             34          ///< Pin for the TDS sensor
 #define PIN_SMS             35          ///< Pin for the Soil Moisture Sensor

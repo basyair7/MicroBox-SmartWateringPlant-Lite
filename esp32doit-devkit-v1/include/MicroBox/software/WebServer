@@ -39,101 +39,101 @@
 
 
 class WebServerClass : protected Info {
-    // Private member variable
-    const String DIRHTML = "/WEB/html/"; ///< Directory for HTML files
-    const String DIRCSS  = "/WEB/css/";  ///< Directory for CSS files
-    const String DIRJS   = "/WEB/js/";   ///< Directory for Javascript files
+    // プライベートメンバ変数
+    const String DIRHTML = "/WEB/html/"; ///< HTMLファイルを格納するディレクトリ
+    const String DIRCSS  = "/WEB/css/";  ///< CSSファイルを格納するディレクトリ
+    const String DIRJS   = "/WEB/js/";   ///< JSSファイルを格納するディレクトリ
 
-    File file;                  ///< File object for file operations
-    String LocalIP;             ///< Local IP address of the server
-    IPAddress clientIP;         ///<
-    int port;                   ///< Port number for the server
-    AsyncWebServer serverAsync; ///< Async Web Server instance
-    AsyncWebSocket ws;          ///< Async Web Socket instance
-    MyEEPROM myeeprom_obj;      ///< EEPROM handler object
+    File file;                  ///< ファイル操作用「そうさよう」のファイルオブジェクト
+    String LocalIP;             ///< サーバーのローカルIPアドレス
+    IPAddress clientIP;         ///< クライアントのIPアドレス
+    int port;                   ///< サーバーのポート番号
+    AsyncWebServer serverAsync; ///< 非同期「ひどうき」Webサーバーのインスタンス
+    AsyncWebSocket ws;          ///< 非同期 WebSokectのインスタンス
+    MyEEPROM myeeprom_obj;      ///< EEPROMハンドラオブジェクト
 
     public:
         /**
-         * @brief Constructor to initialize the web server with a specified port.
-         * @param port Port number the web server (default: 80).
+         * @brief 指定されたポートでWebサーバーを初期化するコンストラクタ
+         * @param port Webサーバーのポート番号（デフォルト：80）
          */
         WebServerClass(int port = 80) : serverAsync(port), ws("/ws") {
             this->port = port;
         }
 
         /**
-         * @brief Initialize the web server, mDNS, and ElegantOTA.
+         * @brief Webサーバ、mDNS、およびElegantOTAを初期化する。
          */
         void ServerInit(void);
 
         /**
-         * @brief Update loop for ElegantOTA
+         * @brief ElegantOTAの更新ループ
          */
         void UpdateOTAloop(void);
 
     private:
-        // Private methods for handling different web server functionalities
+        // Webサーバーの各種「かくしゅ」機能処理「きのうしょり」用プライベートメソッド
 
         /**
-         * @brief Serve CSS and JavaScript files.
+         * @brief CSSおよびJavaScriptファイルの提供「ていきょう」を行う。
          */
         void run_css_js_webserver(void);
 
         /**
-         * @brief Serve Routes
+         * @brief ルーティングを処理する。
          */
         void Routes(void);
         void RoutesSystem(void);
         void RoutesRelay(void);
 
         /**
-         * @brief Serve the recovery page.
-         * @param req Pointer to the web server request.
+         * @brief リカバリーページを配信する。
+         * @param req Webサーバーのリクエストへのポインタ。
          */
         void RecoveryPage(AsyncWebServerRequest *req);
 
         /**
-         * @brief Serve the index page.
-         * @param req Pointer to the web server request.
+         * @brief インデックスページを配信する。
+         * @param req Webサーバーのリクエストへのポインタ。
          */
         void index(AsyncWebServerRequest *req);
         void DataWebServer(AsyncWebServerRequest *req);
         void GetDataServer(DynamicJsonDocument &doc);
 
         /**
-         * @brief Enable Blynk functionality
-         * @param req Pointer to the web server request.
+         * @brief Blynkを有効にする。
+         * @param req Webサーバーのリクエストへのポインタ。
          */
         void EnableBlynk(AsyncWebServerRequest *req);
 
         /**
-         * @brief Reboot the system via web request.
-         * @param req Pointer to the web server request.
+         * @brief システムを再起動する。
+         * @param req Webサーバーのリクエストへのポインタ。
          */
         void RebootSys(AsyncWebServerRequest *req);
 
         /**
-         * @brief Reset the system via web request.
-         * @param req Pointer to the web server request.
+         * @brief システムをリセットする。
+         * @param req Webサーバーのリクエストへのポインタ。
          */
         void ResetSys(AsyncWebServerRequest *req);
 
         /**
-         * @brief UpdateAutoChangeWiFi
-         * @param req Pointer to the web server request.
+         * @brief WiFiの自動切り替え設定を更新する。
+         * @param req Webサーバーのリクエストへのポインタ。
          */
         void UpdateAutoChangeWiFi(AsyncWebServerRequest *req);
 
         /**
-         * @brief Handle 404 Not Found errors.
-         * @param req Pointer to the web server request.
+         * @brief WiFiの自動切り替え設定を取得する。
+         * @param req Webサーバーのリクエストへのポインタ。
          */
         void handleNotFound(AsyncWebServerRequest *req);
 
         /**
-         * @brief Read the content of a file into a String buffer.
-         * @param fileName Name of the file to read.
-         * @return Content of the file as a string.
+         * @brief 指定されたファイルの内容を文字列として読み取る。
+         * @param fileName 読み取るファイルの名前。
+         * @return ファイルの内容を文字列として返す。ファイルが存在しない場合は空の文字列を返す。
          */
         String file_buffer(String fileName);
 
@@ -145,7 +145,7 @@ class WebServerClass : protected Info {
             String *res = nullptr
         );
 
-    // handlers websocket
+    // WebSocket関連のプライベートメソッド
     private:
         void handleWebSocketMessage(void *args, uint8_t *data, size_t len);
         void onEvent(
@@ -160,7 +160,7 @@ class WebServerClass : protected Info {
         void handleToggleCheck(AsyncWebSocketClient *client, JsonDocument &doc);
 
     
-    // Config wifi
+    // WiFi設定関連のプライベートメソッド
     private:
         void WiFi_AP_Config_Main(AsyncWebServerRequest *req);
         void WiFi_STA_Config_Main(AsyncWebServerRequest *req);
@@ -186,7 +186,7 @@ class WebServerClass : protected Info {
             uint8_t *data, size_t len, size_t index, size_t total
         );
 
-        // handlers Watering State
+        // 水やり関連のプライベートメソッド
         void AutoWatering(AsyncWebServerRequest *req);
         void ManualWatering(AsyncWebServerRequest *req);
         String stateChecked(bool x) {
@@ -196,7 +196,11 @@ class WebServerClass : protected Info {
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_WebServer)
 /**
- * Global instance of WebServerClass.
+ * @brief グローバルなWebServerClassのインスタンス
+ * このインスタンスは、Webサーバー機能を使用するためにプログラム全体でアクセス可能です。
+ * このインスタンスを使用して、Webサーバーの初期化やルーティングの設定などを行うことができます。
+ * 例:  WebServer.ServerInit(); // Webサーバーの初期化
+ *      WebServer.UpdateOTAloop(); // OTA更新ループの呼び出し
  */
 extern WebServerClass WebServer;
 #endif

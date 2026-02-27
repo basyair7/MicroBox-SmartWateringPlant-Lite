@@ -1,11 +1,11 @@
 /**
  *  @file ButtonManager.cpp
- *  @version 1.0.0
+ *  @version 1.0.1
  *  @author basyair7
- *  @date 2025
+ *  @date 2026
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,11 +25,12 @@
 #include "MicroBox/externobj"
 
 /**
- * @brief Toggles the state of a relay when the corresponding button is pressed.
- * @param btn Reference to the button object.
- * @param state Reference to the relay state variable.
- * @param lastState Reference to the last state variable for edge detection.
- * @param relayIndex Index of the relay in the RELAY_PINS array.
+ * @brief 対応ボタン押下時に、リレー状態の切り替えを行う。
+ * @param btn ボタンを表すPushButtonDigitalオブジェクトの参照する参照型パラメータ。
+ * @param state リレーの現在の状態を表すbool型変数への参照。
+ * @param lastState 前回のボタン状態を表すbool型変数への参照。
+ * @param relayIndex リレーのインデックス（0または1）を指定する整数型パラメータ。
+ * 
  */
 void ButtonManagerClass::toggleRelay(PushButtonDigital &btn, bool &state, bool &lastState, int relayIndex) {
     bool currentState = btn.digitalReadPushButton();
@@ -47,7 +48,9 @@ void ButtonManagerClass::toggleRelay(PushButtonDigital &btn, bool &state, bool &
 }
 
 /**
- * @brief Toggles the auto-watering system state when the corresponding button is pressed.
+ * @brief 対応ボタン押下時に、自動給水の状態の切り替えを行う。
+ * @details 自動給水の状態は、LFSProgクラスのchangeConfigStateメソッドを使用して更新される。
+ * 
  */
 void ButtonManagerClass::toggleAutoWatering() {
     bool currentState = btnAutoWatering.digitalReadPushButton();
@@ -61,7 +64,9 @@ void ButtonManagerClass::toggleAutoWatering() {
 }
 
 /**
- * @brief Toggles the LCD backlight state when the corresponding button is pressed.
+ * @brief 対応ボタン押下時に、LCDバックライトの状態の切り替えを行う。
+ * @details LCDバックライトの状態は、EEPROMに保存され、切り替え後の状態はLCDに反映される。
+ * 
  */
 void ButtonManagerClass::toggleBacklight() {
     bool currentState = btnBacklight.digitalReadPushButton();
@@ -76,7 +81,8 @@ void ButtonManagerClass::toggleBacklight() {
 }
 
 /**
- * @brief Initializes buttons and retrieves stored states from EEPROM.
+ * @brief ButtonManagerClassの初期化を行う。各ボタンの初期化と、EEPROMからの状態の読み込みを行う。
+ * @details 各リレーの状態もEEPROMから読み込まれ、初期化される。
  */
 void ButtonManagerClass::init() {
     btnRelay1.init();
@@ -97,7 +103,9 @@ void ButtonManagerClass::init() {
 }
 
 /**
- * @brief Periodically updates button states and triggers appropriate actions.
+ * @brief ButtonManagerClassの状態を更新する。各ボタンの状態をチェックし、対応するアクションを実行する。
+ * @details 自動給水が有効な場合は、リレーの状態の切り替えは行われない。自動給水の状態の切り替えと、LCDバックライトの状態の切り替えもこのメソッド内で処理される。
+ * 
  */
 void ButtonManagerClass::update() {
     if (!this->autoWateringState) {
@@ -110,5 +118,9 @@ void ButtonManagerClass::update() {
 }
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined (NO_GLOBAL_ButtonManager)
+/**
+ * @brief ButtonManagerClassのグローバルインスタンスを定義する。これにより、他のファイルからButtonManagerオブジェクトを直接使用できるようになる。
+ * @details NO_GLOBAL_INSTANCESまたはNO_GLOBAL_ButtonManagerが定義されている場合、このグローバルインスタンスは定義されない。
+ */
 ButtonManagerClass ButtonManager;
 #endif

@@ -1,11 +1,11 @@
 /**
  *  @file BootButton.h
- *  @version 1.0.0
+ *  @version 1.0.1
  *  @author basyair7
- *  @date 2025
+ *  @date 2026
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,43 +28,65 @@
 #include "../software/MyEEPROM"
 
 class BootButton {
-    PushButtonDigital __bootBtn;
-    MyEEPROM __MyEEPROM;
+    PushButtonDigital __bootBtn; //< ブートボタンオブジェクト
+    MyEEPROM __MyEEPROM; //< EEPROM管理オブジェクト
+
+    // ボタン状態の管理変数
     bool __current_btn_state = false;
     bool __last_btn_state    = false;
     bool __btn_change        = false;
-    bool __wifi_state        = false;
+    bool __wifi_state        = false; //< WiFiモードの状態（STAモードかAPモードか）
 
     public:
+        /**
+         * @brief ブートボタンオブジェクトを初期化するコンストラクタです。
+         * @param pin ブートボタンが接続されているGPIOピン番号。
+         * @param mode ブートボタンの動作モード（例：INPUT_PULLUPなど）。
+         */
         BootButton(uint8_t pin, uint8_t mode) : __bootBtn(pin, mode)
         {
             /*TODO (Not yet implemented)*/
         }
 
+        /**
+         * @brief ブートボタンを初期化し、WiFiモードの状態をEEPROMから読み取ります。
+         * @details この関数は、ブートボタンの初期化を行い、EEPROMからWiFiモードの状態を読み取ります。
+         * WiFiモードは、STAモード（クライアントモード）とAPモード（アクセスポイントモード）を切り替えるために使用されます。
+         */
         void begin() {
-            this->__bootBtn.init();
-            this->__wifi_state = this->__MyEEPROM.read(ADDR_EEPROM_WIFI_MODE);
+            this->__bootBtn.init(); // ブートボタンの初期化
+            this->__wifi_state = this->__MyEEPROM.read(ADDR_EEPROM_WIFI_MODE); // EEPROMからWiFiモードの状態を読み取る
         }
 
+        /**
+         * @brief ブートボタンの状態を監視し、WiFiモードを切り替えます。
+         * @details この関数は、ブートボタンの状態を定期的に監視し、ボタンが押されたときにWiFiモードを切り替えます。
+         * 切り替え後のWiFiモードはEEPROMに保存され、システムは再起動されます。
+         */
         void ChangeWiFiMode() {
+            // ブートボタンの現在の状態を読み取る
             this->__current_btn_state = this->__bootBtn.digitalReadPushButton();
             if (this->__current_btn_state != this->__last_btn_state)
                 this->__btn_change = true;
 
+            // ボタン状態が変化した場合の処理
             if (this->__btn_change) {
                 if (!this->__current_btn_state) {
-                    this->__wifi_state = !this->__wifi_state;
-                    this->__MyEEPROM.save_wifi_state(this->__wifi_state);
+                    this->__wifi_state = !this->__wifi_state; // WiFiモードを切り替える
+                    this->__MyEEPROM.save_wifi_state(this->__wifi_state); // EEPROMに新しいWiFiモードの状態を保存
                     delay(50);
+                    // 切り替え後のWiFiモードをシリアルモニタに表示する。
                     Serial.print(F("WiFi Mode : "));
                     Serial.println(
                         this->__wifi_state ? F("MODE STA") : F("MODE AP")
                     );
                     delay(2000);
-                    ESP.restart();
+                    ESP.restart(); // システムを再起動して新しいWiFiモードを適用する
                 }
+                // ボタン状態の変化フラグをリセットする
                 this->__btn_change = false;
             }
+            // 最後のボタン状態を更新する
             this->__last_btn_state = this->__current_btn_state;
         }
 };

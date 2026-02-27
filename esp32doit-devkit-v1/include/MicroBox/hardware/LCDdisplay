@@ -1,15 +1,15 @@
 /**
  *  @file LCDdisplay
- *  @version 1.0.0
+ *  @version 1.0.1
  *  @author basyair7
- *  @date 2025
+ *  @date 2026
  * 
  *  @brief
- *  This header file defines the LCDdisplay class, which provides a wrapper around the
- *  LiquidCrystal_I2C library to facilitate LCD operations with I2C communication.
+ *  LCDdisplayクラスは、I2C通信を使用してLCDディスプレイを操作するためのクラスです。
+ *  LCDの初期化、テキストの表示、カーソル位置の設定、およびバックライトの制御などの機能を提供します。
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,44 +32,47 @@
 
 /**
  * @class LCDdisplay
- * @brief A class for handling LCD display operations with I2C communication.
+ * @brief LCDディスプレイを操作するためのクラスです。I2C通信を使用してLCDを制御します。
+ * @details このクラスは、LCDの初期化、テキストの表示、カーソル位置の設定、およびバックライトの制御などの機能を提供します。LCDの列数と行数は、コンストラクタで指定できます。
  */
 class LCDdisplay {
-    LiquidCrystal_I2C _lcd_obj; ///< Internal LCD object using I2C communication
+    LiquidCrystal_I2C _lcd_obj; ///< LiquidCrystal_I2Cオブジェクトを使用してLCDを制御します。
 
     public:
-        int cols = 16; ///< Number of columns in the LCD display
-        int rows = 2;  ///< Number of rows in the LCD display
+        int cols = 16; ///< LCDディスプレイの列数「れつすう」
+        int rows = 2;  ///< LCDディスプレイの行数「ぎょうすう」
 
         /**
-         * @brief Constructor of LCDdisplay.
-         * @param cols Number of columns (default: 16)
-         * @param rows Number of rows (default: 2) 
+         * @brief LCDディスプレイのコンストラクタです。LCDの列数と行数を指定して初期化します。
+         * @param cols LCDの列数（デフォルトは16列）。
+         * @param rows LCDの行数（デフォルトは2行）。 
          */
         LCDdisplay(int cols = 16, int rows = 2) : 
             cols(cols), rows(rows), _lcd_obj(0x27, cols, rows) {}
 
         /**
-         * @brief Initializes the LCD display.
-         * @details This function initializes the LCD, turns on the backlight,
-         *          and clears the screen.
+         * @brief LCDディスプレイを初期化します。LCDの初期化、バックライトのオン、および画面のクリアを行います。
+         * @details この関数は、LCDの初期化を行い、バックライトをオンにし、画面をクリアします。LCDが正しく動作するために、最初にこの関数を呼び出す必要があります。
+         *          LCDの列数と行数は、コンストラクタで指定された値に基づいて設定されます。
          */
         void init() {
-            this->_lcd_obj.init();
-            this->_lcd_obj.backlight();
-            this->_lcd_obj.clear();
+            this->_lcd_obj.init(); //< LCDの初期化
+            this->_lcd_obj.backlight(); //< LCDのバックライトをオンにする
+            this->_lcd_obj.clear(); //< LCDの画面をクリアする
         }
 
         /**
-         * @brief Clears the LCD display
+         * @brief LCDディスプレイの画面をクリアします。
+         * @details この関数は、LCDの画面をクリアして、すべてのテキストを消去します。画面を更新する前に、必要に応じてこの関数を呼び出すことができます。
          */
         void clear() {
             this->_lcd_obj.clear();
         }
 
         /**
-         * @brief Controls the LCD backlight.
-         * @param x if `true`, turn the backlight on; if `false` turns it off.
+         * @brief LCDディスプレイのバックライトをオンまたはオフにします。
+         * @details この関数は、LCDのバックライトを制御します。引数xがtrueの場合、バックライトをオンにし、falseの場合はオフにします。バックライトの状態を変更することで、LCDの視認性を向上させることができます。
+         * @param x バックライトの状態を指定するブール値。trueでオン、falseでオフになります。
          */
         void backlight(bool x) {
             if (x) this->_lcd_obj.backlight();
@@ -77,18 +80,20 @@ class LCDdisplay {
         }
 
         /**
-         * @brief Sets the cursor position on the LCD.
-         * @param col The column index (0-based)
-         * @param row The row index (0-based)
+         * @brief LCDディスプレイのカーソル位置を設定します。
+         * @details この関数は、LCDのカーソル位置を指定された列と行に設定します。列と行のインデックスは0から始まります。例えば、setCursor(0, 0)は左上の位置にカーソルを設定し、setCursor(15, 1)は右下の位置にカーソルを設定します。
+         * @param col 列「れつ」インデックス（0から始まります）。
+         * @param row 行「ぎょう」インデックス（0から始まります）。
          */
         void setCursor(const uint8_t col, const uint8_t row) {
             this->_lcd_obj.setCursor(col, row);
         }
 
         /**
-         * @brief Prints a value to the LCD at the current cursor position.
-         * @tparam T Type of the value to print.
-         * @param x The value to print.
+         * @brief LCDディスプレイに値を表示します。
+         * @details この関数は、LCDに指定された値を表示します。値の型はテンプレートパラメータTで指定され、任意の型の値を表示できます。LCDにテキストを表示するために、この関数を使用して値を渡すことができます。
+         * @tparam T 表示する値の型。
+         * @param x 表示する値。任意の型の値を指定できます。
          */
         template <typename T>
         void print(const T &x) {
@@ -96,11 +101,12 @@ class LCDdisplay {
         }
 
         /**
-         * @brief Prints a value to a specified position on the LCD.
-         * @tparam T Type of the value to print.
-         * @param x The value to print.
-         * @param col The column index (0-based) where the text will start.
-         * @param row The row index (0-based) where the text will start.
+         * @brief LCDディスプレイに値を表示し、カーソル位置を指定します。
+         * @details この関数は、LCDに指定された値を表示し、カーソル位置を指定します。値の型はテンプレートパラメータTで指定され、任意の型の値を表示できます。列と行のインデックスは0から始まります。例えば、print("Hello", 0, 0)は左上の位置に「Hello」を表示し、print("World", 15, 1)は右下の位置に「World」を表示します。
+         * @tparam T 表示する値の型。
+         * @param x 表示する値。任意の型の値を指定できます。
+         * @param col 列インデックス（0から始まります）。
+         * @param row 行インデックス（0から始まります）。
          */
         template <typename T>
         void print(const T &x, const uint8_t col, const uint8_t row)

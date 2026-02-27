@@ -1,14 +1,14 @@
 /**
  *  @file main.cpp
- *  @version 1.0.0
+ *  @version 1.0.1
  *  @brief Main program for the Arduino framework.
  *  @details This file contains the main entry of the ESP32 program.
  *           Be careful when modifying this file, as it may affect the entrie program's behavior.
  *  @author basyair7
- *  @date 2025
+ *  @date 2026
  *  
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

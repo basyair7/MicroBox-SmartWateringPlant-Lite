@@ -1,11 +1,11 @@
 /**
  *  @file EraseEEPROM
- *  @version 1.0.0
- *  @date 2025
+ *  @version 1.0.1
+ *  @date 2026
  *  @author basyair7
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,25 +28,25 @@
 
 /**
  * @class EraseEEPROM
- * @brief Singleton class for erasing the contents of EEPROM.
+ * @brief EEPROMの内容を消去するためのシングルトンクラス。
  * 
- * This class provides functionality to initialize and clear the EEPROM memory
- * across various platforms, including ESP32, ESP8266, and standard Arduino boards.
+ * このクラスは、EEPROMの内容をすべてゼロに書き換える機能を提供します。
+ * ESP32やESP8266などのプラットフォームで動作し、必要に応じてEEPROMのサイズを指定して初期化できます。
+ * シングルトンパターンを採用しており、インスタンスは1つだけ存在します。
  */
 class EraseEEPROM {
-    size_t ___eeprom_size;  ///< Size of the EEPROM to be initialized/cleared.
-    bool __check_begin;     ///< Flag to indicate successful initialization.
-    bool __process = false; ///< Flag to track if the erase operation has been completed.
+    size_t ___eeprom_size;  ///< EEPROMのサイズを格納する変数（ESP32/ESP8266用）。
+    bool __check_begin;     ///< EEPROMの初期化が成功したかどうかを示すフラグ。
+    bool __process = false; ///< EEPROM消去処理が完了したかどうかを示すフラグ。
 
     public:
         /**
-         * @brief Initialize the EEPROM for the given size.
-         * @details This function sets up the EEPROM based on the platform. For ESP32 and ESP8266,
-         *          explicit initialization with a size is required, while Arduino boards do not
-         *          require initialization.
+         * @brief EEPROMを指定されたサイズで初期化する。
+         * @details ESP32やESP8266では、EEPROMのサイズを指定して初期化する必要があります。
+         *          Arduinoボードでは、EEPROMのサイズは固定されているため、サイズの指定は無視されます。
          * 
-         * @param size The size of EEPROM to initialize (default: 512 bytes)
-         * @return bool `true` if initialization succeeded, `false` otherwise.
+         * @param size EEPROMのサイズ（バイト単位）。ESP32/ESP8266でのみ使用され、Arduinoでは無視されます。デフォルトは512バイト。
+         * @return 初期化が成功した場合は true、それ以外の場合は false を返す。
          */
         bool begin(size_t size = 512) {
             #if defined(ESP32)
@@ -57,7 +57,7 @@ class EraseEEPROM {
                 EEPROM.begin(this->__eeprom_size);
                 this->__check_begin = true;
             #else
-                // For Arduino, initialization is not required
+                // ArduinoボードではEEPROMのサイズは固定されているため、サイズの指定は無視される。
                 this->__eeprom_size = size;
                 this->__check_begin = true;
             #endif
@@ -66,30 +66,30 @@ class EraseEEPROM {
         }
 
         /**
-         * @brief Perform the EEPROM erase operation.
-         * @details This function writes zero to all EEPROM locations. For ESP32 and ESP8266,
-         * it requires calling `EEPROM.commit()` to finalize the operation. For Arduino boards,
-         * the data is directly written.
+         * @brief EEPROMの内容をすべて消去する。
+         * @details このメソッドは、EEPROMのすべてのバイトをゼロに書き換えます。
+         *          ESP32やESP8266では、EEPROMのサイズに基づいて消去処理が行われます。
+         *          Arduinoボードでは、EEPROMの全長を消去します。
          * 
-         * @return bool `true` if the erase operation succeeded, `false` otherwise.
+         * @return 消去処理が成功した場合は true、それ以外の場合は false を返す。
          */
         bool run() {
             if (!this->__check_begin) 
-                return false; // Ensure initailization was successful
+                return false; // EEPROMが初期化されていない場合は処理を行わない。
 
             if (this->__process) 
-                return true; // Prevent re-execution if already process
+                return true; // すでに消去処理が完了している場合は再度処理を行わない。
             
             #if defined(ESP32) || defined(ESP8266)
-                // For ESP platforms
+                // ESP32やESP8266では、指定されたサイズのEEPROMを消去する。
                 for (size_t i = 0; i < this->___eeprom_size; i++)
                     EEPROM.write(i, 0);
-                this->__process = EEPROM.commit(); // Commit changes to EEPROM
+                this->__process = EEPROM.commit(); // ESP32/ESP8266では、変更を保存するためにcommit()を呼び出す必要がある。
             #else
-                // For Arduino platforms
+                // Arduinoボードでは、EEPROMの全長を消去する。
                 for (size_t i = 0; i < EEPROM.length(); i++)
                     EEPROM.write(i, 0);
-                this->__process = true; // Mark process as completed
+                this->__process = true; // Arduinoではcommit()は不要なので、消去処理が完了したとみなす。
             #endif
 
             return this->__process;
@@ -97,8 +97,8 @@ class EraseEEPROM {
 
     public:
         /**
-         * @brief Get the singleton instance of the class.
-         * @return EraseEEPROM& Reference to the singleton instance.
+         * @brief EraseEEPROMクラスのシングルトンインスタンスを取得する。
+         * @return EraseEEPROM& シングルトンインスタンスへの参照。
          */
         static EraseEEPROM &instance() {
             static EraseEEPROM instance;
@@ -106,17 +106,17 @@ class EraseEEPROM {
         }
 
         /**
-         * @brief Initialize the EEPROM for the given size (static method).
-         * @param size The size of EEPROM to initialize (default: 512 bytes).
-         * @return bool `true` if initialization succeeded, `false` otherwise.
+         * @brief EEPROMを指定されたサイズで初期化する（静的メソッド）。
+         * @param size EEPROMのサイズ（バイト単位）。ESP32/ESP8266でのみ使用され、Arduinoでは無視されます。デフォルトは512バイト。
+         * @return bool 初期化が成功した場合は true、それ以外の場合は false を返す。
          */
         static bool BEGIN(size_t size = 512) {
             return instance().begin(size);
         }
 
         /**
-         * @brief Erase the entire EEPROM (static method).
-         * @return bool `true` if the erase operation succeeded, `false` otherwise.
+         * @brief EEPROMの内容をすべて消去する（静的メソッド）。
+         * @return bool 消去処理が成功した場合は true、それ以外の場合は false を返す。
          */
         static bool RUN() {
             return instance().run();

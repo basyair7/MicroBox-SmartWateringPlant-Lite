@@ -1,7 +1,8 @@
 /**
  *  @file config
  *  @version 1.0.1
- *  @brief This file contains the configuration settings and constants for the project.
+ *  @brief このファイルは、MicroBoxプロジェクトの設定定数および定義を含み、
+ *         ピン割り当て、EEPPROMアドレス、その他重要な設定を含む。
  *  @date 2026
  *  @author basyair7
  * 

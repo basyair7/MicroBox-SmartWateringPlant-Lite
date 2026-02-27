@@ -1,11 +1,11 @@
 /**
  *  @file WateringSys.cpp
- *  @version 1.0.0
- *  @date 2025
+ *  @version 1.0.1
+ *  @date 2026
  *  @author basyair7
  * 
  *  @copyright
- *  Copyright (C) 2024, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@
 #include "variable"
 
 /**
- * @brief Starts the watering process.
+ * @brief 散水処理を開始する。
  * @details
- * Activate all relays connected to the watering system and sets the system
- * state to indicate active watering. Outputs a log message to confirm operation.
+ * この関数は、散水プロセスを開始します。リレーをONにして散水を開始し、システムの状態を更新します。
+ * 散水が開始されたことをシリアルモニターに出力します。散水がすでに開始されている場合は、何も行いません。
  */
 inline void WateringSys::startWatering() {
     this->_isWatering = true;
@@ -44,10 +44,10 @@ inline void WateringSys::startWatering() {
 }
 
 /**
- * @brief Stops the watering process.
+ * @brief 散水処理を停止する。
  * @details
- * Deactivates all relays connected to the watering system and resets the system
- * state to indicate no active watering. Outputs a log message to confirm operation.
+ * 散水システムに接続されたすべてのリレーをオフにし、システム状態を非アクティブな状態にリセットします。
+ * 操作が完了したことをシリアルモニターに出力します。
  */
 inline void WateringSys::stopWatering() {
     this->_isWatering = false;
@@ -61,36 +61,40 @@ inline void WateringSys::stopWatering() {
     }
 }
 
+/**
+ * @brief WateringSysの初期化を行う。
+ * @details 
+ * この関数は、散水システムの初期化を行います。LittleFSから散水システムの設定を読み取り、散水システムの状態を初期化します。
+ */
 void WateringSys::begin() {
     lfsprog.readConfigState(AUTOWATERING, &this->AutoWateringState);
 }
 
 /**
- * @brief Main execution loop for the watering system
+ * @brief 散水処理を実行する。
  * @details
- * This method evaluates the conditions for starting or stopping watering:
- * - Checks if automatic watering is enabled.
- * - Monitors Soil Moisture levels
+ * この関数は、散水システムのメインループで呼び出されます。土壌水分センサーの値を監視し、設定された閾値に基づいて散水処理を開始または停止します。
+ * 散水処理は、一定の時間間隔で実行されます。
  */
 
 void WateringSys::run() {
-    // Ensure the function is executed only once every second
+    // 散水プロセスの実行は、一定の時間間隔で行われます。
     if (millis() - _LastMillis1 >= 5000) {
         _LastMillis1 = millis();
 
         WateringProcess = this->wateringProcess();
 
-        // check if automatic watering is enable
+        // 散水処理の実行は、土壌水分センサーの値に基づいて行われます。設定された閾値を超える場合は散水を停止し、閾値を下回る場合は散水を開始します。
         lfsprog.readConfigState(AUTOWATERING, &this->AutoWateringState);
         if (!this->AutoWateringState) return;
 
-        // Retrieve current SoilMoisture
+        // 土壌水分センサーの値を監視し、設定された閾値に基づいて散水処理を開始または停止します。
         if (soilmoisture.value > WATERING_LVL_MAX) {
             this->stopWatering();
-            return; // Exit after stopping watering
+            return; // 土壌水分値が上限しきい値以上の場合、散水を停止する。
         }
         else if (soilmoisture.value < WATERING_LVL_MIN) {
-            if (this->_isWatering) return; // Watering already active
+            if (this->_isWatering) return; // すでに散水中の場合は、何もせずに終了する。
             this->startWatering();
         }
     }
@@ -98,7 +102,7 @@ void WateringSys::run() {
 
 bool WateringSys::wateringProcess() const {
     int _countRelayOn = 0;
-    // read relay state on or off
+    // 散水プロセスの状態を判断するために、すべてのリレーの状態を確認します。リレーがONになっている数をカウントし、その数に基づいて散水プロセスの状態を返します。
     for (const auto &pins : RELAY_PINS) {
         if (RelayController::RELAY_STATE_STR_INT(digitalRead(pins)))
             _countRelayOn++;

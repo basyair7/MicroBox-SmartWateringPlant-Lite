@@ -1,16 +1,18 @@
 /**
  *  @file MicroBox_main.cpp
- *  @version 1.0.0
- *  @brief Main program impelementation for the Arduino-based project.
- *  @details Implement the setup and loop functions, initializing hardware,
- *           modules, and handling core program logic.
+ *  @version 1.0.1
+ *  @brief MicroBoxプロジェクトのメイプログラムファイル。本ファイルでは、setup関数およびloop関数の処理を行う。
+ *  @details このファイルは、MicroBoxプロジェクトのメインプログラムファイルであり、ESP32マイクロコントローラーを使用して、
+ *           センサーの読み取り、WiFi接続、Blynkアプリケーションとの通信、およびその他のシステム機能を管理します。
+ *           FreeRTOSを使用して複数のタスクを実行し、センサーの更新、Blynkの更新、およびシステム情報の更新を効率的に処理します。
+ *  
  *  @author
  *  basyair7
  *  @date
- *  2025
+ *  2026
  *  
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

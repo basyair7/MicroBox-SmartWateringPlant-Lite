@@ -1,11 +1,11 @@
 /**
  *  @file ProgramWiFi.cpp
- *  @version 1.0.0
+ *  @version 1.0.1
  *  @author basyair7
- *  @date 2025
+ *  @date 2026
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,13 +24,13 @@
 #include "MicroBox/software/ProgramWiFi"
 #include "MicroBox/software/SysHandlers"
 
-// run program if WiFi connecting
+// WiFi接続中の場合、プログラムを実行する。
 void ProgramWiFiClass::WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info)
 {
     Serial.println(F("\nConnection to AP Successfully"));
 }
 
-// run program if WiFi connecting
+// WiFi接続が切断された場合、一定時間ごとに再接続を試みる。
 void ProgramWiFiClass::WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)
 {
     static unsigned long LastMillis = 0;
@@ -48,7 +48,7 @@ void ProgramWiFiClass::WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_
     }
 }
 
-// got ip address if wifi connected
+// WiFi接続が成功した場合、IPアドレスを取得して表示する。
 void ProgramWiFiClass::WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
 {
     this->LOCALIPServer = WiFi.localIP().toString().c_str();
@@ -57,17 +57,17 @@ void ProgramWiFiClass::WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
     Serial.println(this->LOCALIPServer);
 }
 
-// run program mode STA
+// STAモードでプログラムを実行を行う。
 void ProgramWiFiClass::wifi_mode_sta() {
-    // Setup WiFi
+    // WiFiのSTAモードに設定する。
     // WiFi.mode(WIFI_AP_STA);
     WiFi.mode(WIFI_STA);
     this->Bootbtn_obj.begin();
 
-    // Disable sleep mode
+    // 接続安定化のため、WiFiスリープを無効化する。
     WiFi.setSleep(false);
 
-    // register event handlers
+    // イベントハンドラの登録を行う。
     // WiFiStationConnected onEvent
     WiFi.onEvent(
         std::bind(
@@ -93,7 +93,7 @@ void ProgramWiFiClass::wifi_mode_sta() {
         ), ARDUINO_EVENT_WIFI_STA_DISCONNECTED
     );
 
-    // Attempt to connect to WiFi
+    // WiFi接続を開始する。
     WiFi.begin(this->__SSID_STA__.c_str(), this->__PASS_STA__.c_str());
     while (WiFi.status() != WL_CONNECTED) {
         this->Bootbtn_obj.ChangeWiFiMode();
@@ -106,18 +106,18 @@ void ProgramWiFiClass::wifi_mode_sta() {
     Serial.println(WiFi.RSSI());
 }
 
-// run program mode AP
+// APモードでプログラムを実行を行う。
 void ProgramWiFiClass::wifi_mode_ap() {
-    // Setup WiFi mode AP
+    // WiFiのAPモードに設定する。
     WiFi.mode(WIFI_AP);
 
-    // initializing Access Point
+    // APモードでWiFiを開始する。
     WiFi.softAP(
         this->__SSID_AP__.c_str(),
         this->__PASS_AP__.c_str()
     );
 
-    // get IP Adrress
+    // APモードでのIPアドレスを取得して表示する。
     this->LOCALIPServer = WiFi.softAPIP().toString().c_str();
     Serial.print(F("IP Address: "));
     Serial.println(this->LOCALIPServer);
@@ -125,5 +125,10 @@ void ProgramWiFiClass::wifi_mode_ap() {
 }
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_ProgramWiFi)
+/**
+ * @brief グローバルインスタンスの定義
+ * このインスタンスは、ProgramWiFiクラスのグローバルオブジェクトとして定義されており、プログラム全体で使用されます。
+ * これにより、ProgramWiFiクラスの機能を簡単に利用できるようになります。
+ */
 ProgramWiFiClass ProgramWiFi;
 #endif

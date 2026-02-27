@@ -1,11 +1,14 @@
 /**
  *  @file relayhandlers.cpp
- *  @version 1.0.0
- *  @date 2025
+ *  @version 1.0.1
+ *  @date 2026
  *  @author basyair7
  *  
+ *  @brief  このファイルは、LFSMemoryクラスのリレーハンドラの実装を含む。
+ *          リレーデータの初期化、リレー変数および状態の変更、ならびに設定ファイルからのリレー変数の解析機能を実装する。
+ * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -21,7 +24,8 @@
 #include "MicroBox/software/LFSMemory"
 
 /**
- *  __initialize_data_relay__
+ *  @brief __initialize_data_relay__
+ *  リレーのデータを初期化するための関数。設定ファイルが存在しない場合に、デフォルトのリレーデータを作成して設定ファイルに保存する。
  *  @param doc DynamicJsonDocument& -> id, name, pin, status
  */
 void LFSMemory::__initialize_data_relay__(DynamicJsonDocument &doc) {
@@ -41,9 +45,11 @@ void LFSMemory::__initialize_data_relay__(DynamicJsonDocument &doc) {
 }
 
 /**
- * changeVarRelay
- * @param varName
- * @param value
+ * @brief changeVarRelay
+ * 変更するリレー変数の名前と新しい値を受け取り、設定ファイル内の対応するリレー変数の名前を更新します。
+ * もしリレー変数が存在しない場合は、新しいリレー変数を作成して、指定された名前と値を設定します。
+ * @param varName 変更するリレー変数の名前
+ * @param value 新しいリレー変数の値
  */
 void LFSMemory::changeVarRelay(String varName, String value) {
     this->initializeOrUpdateVarRelay(
@@ -55,9 +61,11 @@ void LFSMemory::changeVarRelay(String varName, String value) {
 }
 
 /**
- * changeStateRelay
- * @param varName
- * @param status
+ * @brief changeStateRelay
+ * リレーの状態を変更するための関数。リレー変数の名前と新しい状態を受け取り、設定ファイル内の対応するリレー変数の状態を更新します。
+ * もしリレー変数が存在しない場合は、新しいリレー変数を作成して、指定された名前と状態を設定します。
+ * @param varName 変更するリレー変数の名前
+ * @param status 新しいリレー変数の状態 (true または false)
  */
 void LFSMemory::changeStateRelay(String varName, bool status) {
     this->initializeOrUpdateVarRelay(
@@ -70,7 +78,9 @@ void LFSMemory::changeStateRelay(String varName, bool status) {
 
 /**
  * parseVarRelay
- * @param varName
+ * 設定ファイルからリレー変数の情報を解析するための関数。リレー変数の名前を受け取り、対応するリレー変数のピン番号、状態、ID、および名前を取得します。
+ * もしリレー変数が存在しない場合は、引数のポインタにデフォルト値を設定します。
+ * @param varName 解析するリレー変数の名前
  * @param pin uint8_t pointer
  * @param state bool pointer
  * @param id int pointer

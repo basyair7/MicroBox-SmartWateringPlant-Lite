@@ -1,11 +1,14 @@
 /**
  *  @file confighandlers.cpp
- *  @version 1.0.0
- *  @date 2025
+ *  @version 1.0.1
+ *  @brief このファイルは、LFSMemoryの設定バンドラの実装を含み、WiFiの設定を変更する機能や、
+ *         状態設定の読み書き機能を提供する。
+ * 
+ *  @date 2026
  *  @author basyair7
  *  
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -22,9 +25,10 @@
 #include "envWiFi.h"
 
 /**
- *  changeConfigWiFi_STA
- *  @param new_ssid
- *  @param new_pass
+ *  @brief LFSMemory::changeConfigWiFi_STA
+ *  @details この関数は、WiFiステーションモードのSSIDとパスワードを変更するための設定ハンドラです。
+ *  @param new_ssid 新しいSSID
+ *  @param new_pass 新しいパスワード
  */
 void LFSMemory::changeConfigWiFi_STA(String new_ssid, String new_pass) {
     this->initializeOrUpdateWiFiConfig(
@@ -37,9 +41,10 @@ void LFSMemory::changeConfigWiFi_STA(String new_ssid, String new_pass) {
 }
 
 /**
- *  changeConfigWiFi_AP
- *  @param new_ssid
- *  @param new_pass
+ *  @brief LFSMemory::changeConfigWiFi_AP
+ *  @details この関数は、WiFiアクセスポイントモードのSSIDとパスワードを変更するための設定ハンドラです。
+ *  @param new_ssid 新しいSSID
+ *  @param new_pass 新しいパスワード
  */
 void LFSMemory::changeConfigWiFi_AP(String new_ssid, String new_pass) {
     this->initializeOrUpdateWiFiConfig(
@@ -52,9 +57,11 @@ void LFSMemory::changeConfigWiFi_AP(String new_ssid, String new_pass) {
 }
 
 /**
- *  changeConfigState
- *  @param stateConfig
- *  @param value
+ *  @brief LFSMemory::changeConfigState
+ *  @details この関数は、指定された状態設定を変更するための設定ハンドラです。
+ *  
+ *  @param stateConfig 変更する状態設定のキー
+ *  @param value 新しい値
  */
 void LFSMemory::changeConfigState(String stateConfig, bool value) {
     this->initializeOrUpdateState(
@@ -66,9 +73,10 @@ void LFSMemory::changeConfigState(String stateConfig, bool value) {
 }
 
 /**
- *  readConfigState
- *  @param stateConfig
- *  @param value Pointer
+ *  @brief LFSMemory::readConfigState
+ *  @details この関数は、指定された状態設定を読み取るための設定ハンドラです。
+ *  @param stateConfig 読み取る状態設定のキー
+ *  @param value 読み取った値を格納するためのポインタ
  */
 void LFSMemory::readConfigState(String stateConfig, bool *value) {
     this->initializeOrUpdateState(

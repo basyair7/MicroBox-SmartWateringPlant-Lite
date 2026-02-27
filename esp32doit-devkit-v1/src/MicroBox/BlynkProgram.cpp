@@ -1,15 +1,15 @@
 /**
  *  @file BlynkProgram.cpp
- *  @version 1.0.0
+ *  @version 1.0.1
  *  
  *  @author
  *  basyair7
  *  
  *  @date
- *  2025
+ *  2026
  * 
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,20 +30,21 @@
 #include "MicroBox/software/MyEEPROM"
 #include "MicroBox/externobj"
 
-// Include Blynk Library
+// Blynk関連のコードを実装するファイル。Blynkのセットアップ、データ送信、および仮想ピンのハンドラー関数を定義する。
 #include "envBlynk.h"
 #include <BlynkSimpleEsp32.h>
 
-MyEEPROM myeeprom_obj; //!< EEPROM utility module
-BlynkTimer Timer;      //!< Blynk timer object for periodic tasks
+MyEEPROM myeeprom_obj; //!< MyEEPROMオブジェクトのインスタンス。EEPROMへの読み書きを管理するために使用される。
+BlynkTimer Timer;      //!< BlynkTimerオブジェクトのインスタンス。Blynkのタイマー機能を使用して、定期的なタスクをスケジュールするために使用される。
 
-bool switch_state; //!< State variable for switch control
+bool switch_state; //!< Blynkの仮想ピンの状態を保持する変数。Blynkアプリからの入力を処理するために使用される。
 
 /**
- * @brief Reboot ESP from Blynk App Command.
- * @details When this virtual pin is set, the reboot state is triggered
- *          and stored in the `RebootState` variable.
- * @param V4 Virtual pin for reboot command.
+ * @brief Blynkの仮想ピンV4に対するハンドラー関数。Blynkモードの無効化やWiFiモードの切り替えを管理する。
+ * @details この関数は、Blynkアプリから仮想ピンV4に対してコマンドが送信されたときに呼び出される。
+ *          Blynkモードを無効化し、WiFiモードをWIFI_APに切り替えるための処理を行う。
+ * 
+ * @param V4 仮想ピンV4の値を処理するための引数。Blynkアプリから送信された値を受け取る。
  */
 // BLYNK_WRITE(V4) {
 //     __lastTimeReboot__ = millis();
@@ -51,10 +52,11 @@ bool switch_state; //!< State variable for switch control
 // }
 
 /**
- * @brief Disables Blynk mode or switch WiFi mode on WIFI_AP.
- * @details Saves the state to EEPROM, delays for a stable reboot,
- *          and triggeres a restart.
- * @param V4 Virtual pin for Blynk mode disable.
+ * @brief Blynkの仮想ピンV3に対するハンドラー関数。手動灌漑の制御を管理する。
+ * @details この関数は、Blynkアプリから仮想ピンV3に対してコマンドが送信されたときに呼び出される。
+ *          手動灌漑の状態を制御し、オート灌漑が有効な場合は手動灌漑を無効にする処理を行う。
+ * 
+ * @param V4 仮想ピンV3の値を処理するための引数。Blynkアプリから送信された値を受け取る。
  */
 BLYNK_WRITE(V4) {
     if (param.asInt() == 1) {
@@ -66,10 +68,13 @@ BLYNK_WRITE(V4) {
 }
 
 /**
- * @brief Manages manual watering via Blynk.
- * @details Activates or deactivates relay controlling the watering system.
- *          Manual watering is disable if auto-watering is active.
- * @param V3 Virtual pin for manual watering control.
+ * @brief Blynkの仮想ピンV3に対するハンドラー関数。手動灌漑の制御を管理する。
+ * @details この関数は、Blynkアプリから仮想ピンV3に対してコマンドが送信されたときに呼び出される。
+ *          手動灌漑の状態を制御し、オート灌漑が有効な場合は手動灌漑を無効にする処理を行う。
+ *          - オート灌漑が有効な場合は、手動灌漑の状態をBlynkアプリに反映させる。
+ *          - オート灌漑が無効な場合は、リレーを制御して手動灌漑の状態を切り替える。
+ * 
+ * @param V3 仮想ピンV3の値を処理するための引数。Blynkアプリから送信された値を受け取る。
  */
 BLYNK_WRITE(V3) {
     if (wateringSys.AutoWateringState) {
@@ -88,9 +93,10 @@ BLYNK_WRITE(V3) {
 }
 
 /**
- * @brief Configures the auto-watering state via Blynk.
- * @details Updates the auto-watering configuration in the LittleFS file system.
- * @param V2 Virtual pin for auto-watering configuration.
+ * @brief Blynkの仮想ピンV2に対するハンドラー関数。オート灌漑の設定を管理する。
+ * @details この関数は、Blynkアプリから仮想ピンV2に対してコマンドが送信されたときに呼び出される。
+ * @param V2 仮想ピンV2の値を処理するための引数。Blynkアプリから送信された値を受け取る。オート灌漑の状態を切り替えるために使用される。
+ *          - オート灌漑の状態をEEPROMに保存する。
  */
 BLYNK_WRITE(V2) {
     lfsprog.changeConfigState(
@@ -100,11 +106,10 @@ BLYNK_WRITE(V2) {
 }
 
 /**
- * @brief Sends data sensor Soil Moisture and DHT to Blynk.
- * @details Periodically transmits the soil moisture level
- *          and DHT temperature to a virtual pin.
- *          - V0 : Virtual pin for Soil Moisture sensor.
- *          - V1 : Virtual pin for DHT Sensor.
+ * @brief Blynkの仮想ピンV0とV1に対する定期的なデータ送信を管理する関数。土壌水分レベルとDHT温度をBlynkアプリに送信する。
+ * @details この関数は、BlynkTimerを使用して定期的に呼び出される。土壌水分レベルとDHT温度をBlynkアプリの仮想ピンV0とV1に送信する。
+ *          - 土壌水分レベルは仮想ピンV0に送信される。
+ *          - DHT温度は仮想ピンV1に送信される。
  */
 unsigned long _LastMillisSendData = 0;
 void sendDataSensor(void) {
@@ -116,9 +121,10 @@ void sendDataSensor(void) {
 }
 
 /**
- * @brief Initializes Blynk and sets up periodic tasks.
- * @details Connects to WiFi, initializes Blynk, and sets up a timer to
- *          send sensor data.
+ * @brief Blynkを初期化し、定期タスクを設定する。
+ * @details この関数は、WiFiモードがSTAの場合にBlynkを初期化し、定期的なデータ送信のためのタイマーを設定する。
+ *          - Blynk.begin()を呼び出してBlynkを初期化する。
+ *          - BlynkTimerを使用して、sendDataSensor関数を500ミリ秒ごとに呼び出すように設定する。
  */
 void BlynkSetup() {
     if (WiFi.getMode() == WIFI_STA) {
@@ -132,8 +138,11 @@ void BlynkSetup() {
 }
 
 /**
- * @brief Runs the Blynk and timer tasks.
- * @details Continously runs the Blynk and timer tasks if the WiFi mode is STA.
+ * @brief Blynkとタイマーのタスクを継続的に実行する関数。WiFiモードがSTAの場合にBlynk.run()とTimer.run()を呼び出す。
+ * @details この関数は、WiFiモードがSTAの場合にBlynkとタイマーのタスクを継続的に実行するために呼び出される。Blynk.run()を呼び出してBlynkのイベント処理を行い、Timer.run()を呼び出して定期タスクを実行する。
+ *          - WiFiモードがSTAでない場合は、Blynkとタイマーのタスクは実行されない。
+ *          - Blynk.run()はBlynkのイベント処理を行い、Timer.run()は定期タスクを実行する。
+ *          - この関数は、Blynkとタイマーのタスクを継続的に実行するために、メインループ内で呼び出されることが想定されている。
  */
 void BlynkRun() {
     if (WiFi.getMode() == WIFI_STA) {

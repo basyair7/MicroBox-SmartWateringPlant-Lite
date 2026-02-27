@@ -1,11 +1,13 @@
 /**
  *  @file tools.cpp
- *  @version 1.0.0
- *  @date 2025
+ *  @version 1.0.1
+ *  @date 2026
  *  @author basyair7
  *  
+ *  @brief  このファイルは、LFSMemoryクラスのツール関数の実装を含む。設定ファイルの読み書き、ならびにリレー変数の初期化と更新に関連する関数を実装する。
+ *  
  *  @copyright
- *  Copyright (C) 2025, basyair7
+ *  Copyright (C) 2026, basyair7
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -27,8 +29,11 @@ bool _readConfigState  = disable;
 bool _writeConfigState = disable;
 
 /**
- *  readconfig
- *  @param path
+ *  @brief readconfig
+ *  設定ファイルからデータを読み取るための関数。指定されたパスのファイルを開き、その内容を文字列として返します。
+ *  もしファイルが存在しない場合は、"null"という文字列を返します。
+ * 
+ *  @param path 読み取るファイルのパス
  *  @return String
  */
 String LFSMemory::readconfig(const String path) {
@@ -61,31 +66,11 @@ String LFSMemory::readconfig(const String path) {
 
 /**
  * writeconfig
+ * 設定ファイルにデータを書き込むための関数。指定されたパスのファイルを開き、与えられた文字列データを書き込みます。
+ * もしファイルが存在しない場合は、新しいファイルを作成してデータを書き込みます。
  * @param path
  * @param valJson
  */
-// void LFSMemory::writeconfig(const String path, String valJson) {
-//     while (_readConfigState) {
-//         Serial.print(F("writeconfig is busy, retrying...\n"));
-//         delay(10);
-//     }
-
-//     _writeConfigState = enable;
-//     this->removefileconfig(path);
-
-//     File _file = openfile(path, LFS_WRITE);
-//     if (_file) {
-//         _file.write((const uint8_t *)valJson.c_str(), valJson.length());
-//         delayMicroseconds(50);
-//         _file.close();
-//     }
-//     else {
-//         Serial.printf("Failed to create a new file %s\n", path.c_str());
-//     }
-
-//     _writeConfigState = disable;
-// }
-
 void LFSMemory::writeconfig(const String path, String valJson) {
     while (_readConfigState) {
         Serial.print(F("writeconfig is busy, retrying...\n"));
@@ -115,7 +100,34 @@ void LFSMemory::writeconfig(const String path, String valJson) {
     _writeConfigState = disable;
 }
 
+// void LFSMemory::writeconfig(const String path, String valJson) {
+//     while (_readConfigState) {
+//         Serial.print(F("writeconfig is busy, retrying...\n"));
+//         delay(10);
+//     }
 
+//     _writeConfigState = enable;
+//     this->removefileconfig(path);
+
+//     File _file = openfile(path, LFS_WRITE);
+//     if (_file) {
+//         _file.write((const uint8_t *)valJson.c_str(), valJson.length());
+//         delayMicroseconds(50);
+//         _file.close();
+//     }
+//     else {
+//         Serial.printf("Failed to create a new file %s\n", path.c_str());
+//     }
+
+//     _writeConfigState = disable;
+// }
+
+/**
+ * removefileconfig
+ * 指定されたパスのファイルを削除するための関数。ファイルが存在する場合は削除し、削除に成功したかどうかを返します。
+ * @param path 削除するファイルのパス
+ * @return bool ファイルが削除された場合はtrue、そうでない場合はfalse
+ */
 bool LFSMemory::removefileconfig(const String path) {
     bool x = true;
     if (lfsIsExists(path)) {

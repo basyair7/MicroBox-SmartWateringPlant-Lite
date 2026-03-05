@@ -1,0 +1,199 @@
+/** 
+ *  @file DS3231rtc
+ *  @version 1.0.1
+ *  @date 2026
+ *  @author basyair7
+ * 
+ *  @brief DS3231 RTCモジュールを使用して、現在の日時を取得するクラス。
+ *  @details このクラスは、DS3231 RTCモジュールを使用して、現在の日時を取得するための機能を提供します。
+ *           RTCモジュールは、正確な日時を保持するためのハードウェアであり、電源が切れても日時情報を保持します。
+ * 
+ *  @copyright
+ *  Copyright (C) 2026, basyair7
+ * 
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ * 
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ * 
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>
+ */
+
+#pragma once
+#include <Arduino.h>
+#include <Wire.h>
+#include <RTClib.h>
+
+/**
+ * @class DS3231rtc
+ * @brief DS3231 RTCモジュールを使用して、現在の日時を取得するクラス。
+ * @details このクラスは、DS3231 RTCモジュールを使用して、現在の日時を取得するための機能を提供します。RTCモジュールは、正確な日時を保持するためのハードウェアであり、電源が切れても日時情報を保持します。
+ *          このクラスは、RTCモジュールから日時情報を取得し、必要にフォーマットして提供します。RTCモジュールの初期化や日時の設定もこのクラスで行うことができます。
+ */
+class DS3231rtc {
+    RTC_DS3231 __rtc__; // DS3231 RTCオブジェクトのインスタンス
+    const char __listDaysOfWeek__[7][10] = { // 曜日を表す文字列のリスト
+        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    };
+
+    /**
+     * @brief 現在の日時を取得する関数。
+     * @return 現在の日時を表すDateTimeオブジェクト。
+     */
+    uint8_t hours() {
+        uint8_t __hours__ = this->__rtc__.now().hour();
+        return (__hours__ > 12) ? (__hours__ - 12) : (__hours__ == 0 ? 12 : __hours__); // 24時間表記を12時間表記に変換 
+    }
+
+    public:
+        bool _twelve_hour_format; // 12時間表記を使用するかどうかのフラグ
+
+        /**
+         * @brief 現在の日時を取得する関数。
+         * @return 現在の日時を表すDateTimeオブジェクト。
+         */
+        DateTime now() {
+            return this->__rtc__.now();
+        }
+
+        /**
+         * @brief DS3231 RTCモジュールの日時を手動で設定する関数。
+         * @param year 設定する年（4桁の形式で指定）。
+         * @param month 設定する月（1から12の範囲で指定）。
+         * @param day 設定する日（1から31の範囲で指定）。
+         * @param hour 設定する時間（0から23の範囲で指定）。
+         * @param minute 設定する分（0から59の範囲で指定）。
+         * @param second 設定する秒（0から59の範囲で指定）。
+         * @details この関数は、DS3231 RTCモジュールの日時を手動で設定するための関数です。引数として、年、月、日、時間、分、秒を指定します。指定された日時はRTCモジュールに設定され、その後RTCモジュールから現在の日時を取得すると、設定された日時が返されます。
+        */
+        void manualAdjust(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second) {
+            this->__rtc__.adjust(DateTime(year, month, day, hour, minute, second));
+        }
+
+        /**
+         * @brief DS3231 RTCモジュールの日時をコンパイル日時に設定する関数。
+         * @details この関数は、DS3231 RTCモジュールの日時をコンパイル日時に設定するための関数です。RTCモジュールが電源を失った場合や、初期化時にRTCモジュールが正しい日時を保持していない場合に、この関数を呼び出すことで、RTCモジュールの日時を現在のコンパイル日時に設定することができます。
+         *          コンパイル日時は、コードがコンパイルされた日時を表すものであり、RTCモジュールの日時を正確に設定するために使用されます。
+         *          この関数は、RTCモジュールの日時をコンパイル日時に設定するための便利な方法を提供します。
+         */
+        void autoAdjust(void) {
+            this->__rtc__.adjust(DateTime(F(__DATE__), F(__TIME__)));
+        }
+
+        /**
+         * @brief 現在の日付要素（月・日・年）を取得する関数。
+         * @param month 月を格納する変数へのポインタ。nullptrの場合は月の値は取得されません。
+         * @param day 日を格納する変数へのポインタ。nullptrの場合は日の値は取得されません。
+         * @param year 年を格納する変数へのポインタ。nullptrの場合は年の値は取得されません。
+         * @details この関数は、現在の日付要素（月・日・年）を取得するための関数です。引数として、月、日、年を格納する変数へのポインタを指定します。指定されたポインタがnullptrでない場合、そのポインタに対応する日付要素の値が格納されます。例えば、月を取得したい場合は、monthに有効な変数へのポインタを渡し、dayやyearにはnullptrを渡すことができます。
+         *          この関数は、現在の日付要素を簡単に取得するための便利な方法を提供します。
+         *          例えば、現在の月を取得したい場合は、以下のように使用します。
+         */
+        template<typename T>
+        void date(T *month = nullptr, T *day = nullptr, T *year = nullptr) {
+            if (month) *month = this->now().month();
+            if (day) *day = this->now().day();
+            if (year) *year = this->now().year();
+        }
+
+        /**
+         * @brief 現在の時間要素（時・分・秒）を取得する関数。
+         * @param hour 時を格納する変数へのポインタ。nullptrの場合は時の値は取得されません。
+         * @param minute 分を格納する変数へのポインタ。nullptrの場合は分の値は取得されません。
+         * @param second 秒を格納する変数へのポインタ。nullptrの場合は秒の値は取得されません。
+         * @param am_pm 12時間表記を使用している場合、AM/PMを格納する変数へのポインタ。nullptrの場合はAM/PMの値は取得されません。
+         * @details この関数は、現在の時間要素（時・分・秒）を取得するための関数です。引数として、時、分、秒を格納する変数へのポインタを指定します。指定されたポインタがnullptrでない場合、そのポインタに対応する時間要素の値が格納されます。また、12時間表記を使用している場合は、am_pmに有効な変数へのポインタを渡すことで、AM/PMの値も取得できます。
+         *          例えば、現在の時を取得したい場合は、hourに有効な変数へのポインタを渡し、minuteやsecond、am_pmにはnullptrを渡すことができます。
+         *          この関数は、現在の時間要素を簡単に取得するための便利な方法を提供します。
+         *          例えば、現在の時を取得したい場合は、以下のように使用します。
+         */
+        template<typename T>
+        void time(T *hour = nullptr, T *minute = nullptr, T *second = nullptr, String *am_pm = nullptr) {
+            if (!this->_twelve_hour_format) {
+                if (hour) *hour = this->now().hour();
+            } else {
+                if (hour) *hour = this->hours();
+                if (am_pm) *am_pm = (this->now().hour() < 12) ? "AM" : "PM";
+            }
+
+            if (minute) *minute = this->now().minute();
+            if (second) *second = this->now().second();
+        }
+
+        /**
+         * @brief 現在の日付を文字列形式で取得する関数。
+         * @return 現在の日付を表す文字列。形式は「MM/DD/YYYY」です。
+         * @details この関数は、現在の日付を文字列形式で取得するための関数です。返される文字列は、月、日、年の順で構成され、スラッシュで区切られています。例えば、2024年6月15日の場合は「06/15/2024」という形式で返されます。
+         *          この関数は、現在の日付を簡単に文字列形式で取得するための便利な方法を提供します。
+         */
+        String datestr(void) {
+            return String(this->now().month()) + "/"
+                + String(this->now().day()) + "/"
+                + String(this->now().year());
+        }
+
+        /**
+         * @brief 現在の時間を文字列形式で取得する関数。
+         * @return 現在の時間を表す文字列。12時間表記を使用している場合は「hh:mm:ss AM/PM」、24時間表記を使用している場合は「HH:mm:ss」という形式で返されます。
+         * @details この関数は、現在の時間を文字列形式で取得するための関数です。返される文字列の形式は、12時間表記を使用しているかどうかによって異なります。12時間表記を使用している場合は、時、分、秒の順で構成され、スペースで区切られたAM/PMが付加されます。例えば、午後3時30分45秒の場合は「03:30:45 PM」という形式で返されます。24時間表記を使用している場合は、時、分、秒の順で構成され、コロンで区切られます。例えば、15時30分45秒の場合は「15:30:45」という形式で返されます。
+         *          この関数は、現在の時間を簡単に文字列形式で取得するための便利な方法を提供します。
+         */
+        String timestr(void) {
+            if (!this->_twelve_hour_format) {
+                return String(this->now().hour()) + ":"
+                    + String(this->now().minute()) + ":"
+                    + String(this->now().second());
+            }
+
+            return String(this->hours()) + ":"
+                + String(this->now().minute()) + ":"
+                + String(this->now().second()) + " "
+                + ((this->now().hour() < 12) ? "AM" : "PM");
+        }
+
+        /**
+         * @brief 現在の曜日を文字列形式で取得する関数。
+         * @return 現在の曜日を表す文字列。例えば、「Monday」、「Tuesday」などが返されます。
+         * @details この関数は、現在の曜日を文字列形式で取得するための関数です。返される文字列は、曜日を表す英語の単語で構成されます。例えば、月曜日の場合は「Monday」、火曜日の場合は「Tuesday」という形式で返されます。
+         *          この関数は、現在の曜日を簡単に文字列形式で取得するための便利な方法を提供します。
+         *          例えば、現在の曜日を取得したい場合は、以下のように使用します。
+         */
+        String getDayOfWeek(void) {
+            return this->__listDaysOfWeek__[this->now().dayOfTheWeek()];
+        }
+
+        /**
+         * @brief DS3231 RTCモジュールを初期化する関数。
+         * @details この関数は、DS3231 RTCモジュールを初期化し、RTCモジュールが正常に動作しているかを確認します。RTCモジュールが見つからない場合や、RTCモジュールの電池が切れている場合は、エラーメッセージをシリアルモニターに出力します。
+         * @param twelve_hour_format 12時間表記を使用するかどうかを指定するフラグ。trueの場合、12時間表記を使用します。falseの場合、24時間表記を使用します。
+         */
+        void begin(bool twelve_hour_format = false) {
+            while (!this->__rtc__.begin()) {
+                Serial.println(F("Couldn't find RTC"));
+                delay(1000);
+            }
+
+            if (this->__rtc__.lostPower()) {
+                Serial.println(F("RTC lost power, let's set the time!"));
+                // RTCの日時をコンパイル日時に設定
+                this->__rtc__.adjust(DateTime(F(__DATE__), F(__TIME__)));
+            }
+
+            this->_twelve_hour_format = twelve_hour_format;
+            Serial.println();
+            Serial.println(F("DS3231rtc Initializing..."));
+            Serial.printf("Date: %s %s\nTime: %s\n\n\n",
+                this->getDayOfWeek().c_str(),
+                this->datestr().c_str(),
+                this->timestr().c_str()
+            );
+            Serial.println(F("RTC Initialized Successfully"));
+            Serial.println();
+        }
+};

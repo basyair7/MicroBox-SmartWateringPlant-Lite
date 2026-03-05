@@ -36,8 +36,11 @@
 #include "MicroBox/hardware/LEDBoard.h"
 #include "MicroBox/hardware/sensor/DHTProgram"
 #include "MicroBox/hardware/sensor/SoilMoisture"
+#include "MicroBox/hardware/sensor/TDSProgram"
+#include "MicroBox/hardware/sensor/WaterTemp"
 #include "MicroBox/hardware/RelayController"
 #include "MicroBox/hardware/LCDdisplay"
+#include "MicroBox/hardware/DS3231rtc"
 
 // Include System Headers
 #include "MicroBox/software/BlynkProgram.h"
@@ -48,6 +51,7 @@
 #include "MicroBox/software/ProgramWiFi"
 #include "MicroBox/software/WebServer"
 #include "MicroBox/software/WateringSys"
+#include "MicroBox/software/FertilizerProgram"
 #include "MicroBox/externobj"
 #include "variable"
 
@@ -55,17 +59,23 @@
 
 // Initialize modules and global variables
 // Initializes Sensor Program
+SoilMoisture soilmoisture; //!< Soil Moisture sensor management module
+TDSProgram tdsprog = TDSProgram(PIN_TDS); //!< TDS sensor program
+WaterTemp watertemp = WaterTemp(PIN_WATERTEMP); //!< Water Temperature sensor
+
+// Initializes Hardware Components
 BootButton bootbtn = BootButton(BOOTBUTTON, INPUT); //!< Boot button utility
 LEDBoard led_running, led_warning; //!< Led indikator program
+DS3231rtc rtcprog; //!< RTC program for time management
 LCDdisplay lcd = LCDdisplay(); //!< LCD utility module
 DHTProgram dhtprog = DHTProgram(PIN_DHT, DHT22); //!< DHT sensor program
-SoilMoisture soilmoisture; //!< Soil Moisture sensor management module
 // RelayController relayController; //!< Relay management module
 
 // Initializes System Program
 MyEEPROM myeeprom_prog;  //!< EEPROM utility module
 LFSMemory lfsprog;       //!< LittleFS management module
 WateringSys wateringSys; //!< Watering System program
+FertilizerProgram fertilizerProg; //<! Fertilizer System program
 
 // Milliseconds trackers for task execution
 unsigned long __lastMillis__ = 0, __lastTimeReboot__ = 0;
@@ -84,6 +94,8 @@ void ThisRTOS::vTask1(void *pvParameter) {
     // Initialize sensor
     soilmoisture.begin(PIN_SMS);
     dhtprog.begin();
+    tdsprog.begin();
+    watertemp.begin();
 
     while (true) {
         // Run soil moisture sensor and update readings
@@ -92,49 +104,29 @@ void ThisRTOS::vTask1(void *pvParameter) {
         // Run dht sensor and update readings
         dhtprog.running();
 
+        // Run water temperature sensor and update readings
+        // watertemp.update();
+
+        // Set the water temperature to TDS program for compensation
+        // tdsprog.setTemperature(watertemp.getTemperature());
+
+        // Run TDS sensor and update readings
+        tdsprog.update();
+
         bool watering_process = wateringSys.WateringProcess;
         watering_process ? led_running.on() : led_running.off();
 
-        // static unsigned long LastTimeRefreshMonitor = 0;
         static unsigned long LastTimeRefreshLCD = 0;
-        // if ((unsigned long) (millis() - LastTimeRefreshMonitor) >= 1000L)
-        // {
-        //     LastTimeRefreshMonitor = millis();
-
-        //     if (WiFi.getMode() == WIFI_AP || WiFi.status() == WL_CONNECTED) {
-        //         Serial.println(F("**************************************\n"));
-        //         Serial.print(F("WiFi mode : "));
-        //         Serial.println(WiFi.getMode() == WIFI_STA ? "WIFI STA" : "WIFI AP");
-
-        //         // Print DHT sensor readings
-        //         Serial.println(F("**************************************\n"));
-        //         Serial.println(F("DHT Sensor :"));
-        //         Serial.print(F("Temperature : "));
-        //         Serial.print(dhtprog.temperature);
-        //         Serial.println(F("°C"));
-        //         Serial.print(F("Humidity : "));
-        //         Serial.print(dhtprog.humidity);
-        //         Serial.println(F("%"));
-
-        //         // Print SoilMoisture sensor readings
-        //         Serial.println(F("**************************************\n"));
-        //         Serial.println(F("Soil Moisture Sensor :"));
-        //         Serial.print(F("Data : "));
-        //         Serial.print(soilmoisture.value);
-        //         Serial.println(F("%"));
-        //     }
-        // }
-
         if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1500L) {
             LastTimeRefreshLCD = millis();
 
             auto updateLCD = [](int state, bool watering_process) {
                 if (state <= 5) {
                     lcd.clear();
-                    lcd.print("Temp: ", 0, 0);
-                    lcd.print(String(dhtprog.temperature) + "*C");
-                    lcd.print("Hum: ", 0, 1);
-                    lcd.print(String(dhtprog.humidity) + "%");
+                    lcd.print("Water Temp: ", 0, 0);
+                    lcd.print(String(watertemp.getTemperature()) + "*C");
+                    lcd.print("TDS Value: ", 0, 1);
+                    lcd.print(String(tdsprog.getTDSValue()) + " ppm");
                 }
 
                 if (state >= 5 && state <= 10) {
@@ -146,23 +138,41 @@ void ThisRTOS::vTask1(void *pvParameter) {
                 
                 if (state >= 10 && state <= 15) {
                     lcd.clear();
-                    lcd.print("Auto Watering: ", 0, 0);
-                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
+                    lcd.print("Temp: ", 0, 0);
+                    lcd.print(String(dhtprog.temperature) + "*C");
+                    lcd.print("Hum: ", 0, 1);
+                    lcd.print(String(dhtprog.humidity) + "%");
                 }
 
                 if (state >= 15 && state <= 20) {
                     lcd.clear();
-                    lcd.print("Watering State: ", 0, 0);
-                    lcd.print(watering_process ? "Watering" : "Standby", 0, 1);
+                    lcd.print("Auto Watering: ", 0, 0);
+                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
                 }
 
                 if (state >= 20 && state <= 25) {
+                    lcd.clear();
+                    lcd.print("Watering: ", 0, 0);
+                    lcd.print(watering_process ? "RUN" : "IDLE", 0, 1);
+                }
+
+                if (state >= 25 && state <= 30) {
+                    lcd.clear();
+                    lcd.print("Fertilizer: ", 0, 1);
+                    lcd.print(fertilizerProg.stateToString());
+                }
+
+                if (state >= 30 && state <= 35) {
                     lcd.clear();
                     lcd.print("WiFi mode: ", 0, 0);
                     lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
                 }
 
-                if (state >= 25 && state <= 30) {
+                if (state >= 35 && state <= 40) {
+                    lcd.clear();
+                }
+
+                if (state >= 45 && state <= 50) {
                     lcd.clear();
                     String statusWiFiSta = WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected";
                     lcd.print("Status: ", 0, 0);
@@ -283,6 +293,8 @@ void MicroBox_Main::setup(unsigned long baud) {
     led_running.begin(LED_RUNNING);
     led_warning.begin(LED_WARNING);
     bootbtn.begin();
+
+    rtcprog.begin(); //!< Initialize RTC program
     
     // Create FreeRTOS task
     // ThisRTOS *rtos = new ThisRTOS;

@@ -24,27 +24,31 @@
 #include <Arduino.h>
 
 // PIN I/O COMPONENTS
-// Don't use GPIO22 (I2C SCL) and GPIO21 (I2C SDA) 
-#define LED_RUNNING         BUILTIN_LED ///< Pin for Built-in LED indicator pin
+// Don't use GPIO22 (I2C SCL) and GPIO21 (I2C SDA)
+#define BOOTBUTTON          0           ///< Pin for the boot button 
+#define LED_RUNNING         BUILTIN_LED ///< Pin for Built-in LED indicator pin GPIO2
 #define LED_WARNING         4
-#define BOOTBUTTON          0           ///< Pin for the boot button
 #define BTN_RELAY_1         12          ///< Pin for the switcher relay 1
 #define BTN_RELAY_2         13          ///< Pin for the switcher relay 2
-#define BTN_AUTOWATERING    18          ///< Pin for the Auto Watering (enable or disable) 
+#define PIN_DHT             14          ///< Pin for the DHT module
+#define BTN_AUTOWATERING    18          ///< Pin for the Auto Watering (enable or disable)
+#define PIN_WATERTEMP       19          ///< Pin for the water temperature sensor (DS18B20) 
 #define BTN_BACKLIGHT       25          ///< Pin for the backlight (enable or disable) 
 #define PIN_DS18B20         33          ///< Pin for the DS18B20 temperature sensor
-#define PIN_DHT             14          ///< Pin for the DHT module
 #define PIN_TDS             34          ///< Pin for the TDS sensor
 #define PIN_SMS             35          ///< Pin for the Soil Moisture Sensor
 
 // Define pinout relay
-#define RELAY1           26
-#define RELAY2           27
-#define RELAY_FERTILIZER 32
-#define VAR_SWITCH       "relay"
+#define RELAY1              26
+#define RELAY2              27
+#define RELAY_FERTILIZER    32
+#define VAR_SWITCH          "relay"
 
-#define WATERING_LVL_MAX 80 //< Watering Level Maximum for Soil Moisture
-#define WATERING_LVL_MIN 30 //< Watering Level Minimum for Soil Moisture
+#define WATERING_LVL_MAX    80   //< Watering Level Maximum for Soil Moisture
+#define WATERING_LVL_MIN    30   //< Watering Level Minimum for Soil Moisture
+#define PPM_TARGET          500  //< 
+#define PPM_TOLERANCE       10   //< 
+#define INTERVAL_FERTILIZER 7    //< Interval for fertilizer application in days
 
 inline const uint16_t RELAY_PINS[2] = {
     RELAY1, RELAY2
@@ -58,3 +62,4 @@ inline const String VALUE_DEFAULT[2] {
 // Don't replace these addresses as they are cirtical for EEPROM operations
 #define ADDR_EEPROM_WIFI_MODE     0x04 ///< EEPROM address for storing Wi-Fi mode
 #define ADDR_EEPROM_BACKLIGHT_LCD 0x08
+#define ADDR_EEPROM_AUTO_FERTILIZER 0x0C

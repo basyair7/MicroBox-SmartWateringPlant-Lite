@@ -24,9 +24,13 @@
 
 #include "hardware/sensor/DHTProgram"
 #include "hardware/sensor/SoilMoisture"
+#include "hardware/sensor/TDSProgram"
+#include "hardware/sensor/WaterTemp"
 #include "hardware/LEDBoard.h"
 #include "hardware/LCDdisplay"
 #include "hardware/RelayController"
+#include "hardware/DS3231rtc"
+
 #include "software/LFSMemory"
 #include "software/ProgramWiFi"
 #include "software/WateringSys"
@@ -34,9 +38,12 @@
 extern LEDBoard led_running, led_warning;
 extern DHTProgram dhtprog;
 extern SoilMoisture soilmoisture;
+extern TDSProgram tdsprog;
+extern WaterTemp watertemp;
 // extern RelayController relayController;
 
 extern LCDdisplay lcd;
+extern DS3231rtc rtcprog;
 extern LFSMemory lfsprog;
 extern WateringSys wateringSys;
 

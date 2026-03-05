@@ -74,6 +74,8 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "tdsprogram": "cpp",
-        "watertemp": "cpp"
+        "watertemp": "cpp",
+        "fertilizerprogram": "cpp",
+        "ds3231rtc": "cpp"
     }
 }

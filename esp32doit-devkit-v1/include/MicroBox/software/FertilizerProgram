@@ -1,5 +1,5 @@
 /**
- *  @file ButtonManager
+ *  @file FertilizerProgram
  *  @version 1.0.1
  *  @author basyair7
  *  @date 2026
@@ -20,3 +20,67 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <https://www.gnu.org/licenses/>
 */
+
+#pragma once
+
+#include <Arduino.h>
+#include "variable"
+#include "MyEEPROM"
+#include "../hardware/DS3231rtc"
+
+enum FertilizerState {
+    IDLE,
+    MIXING,
+    PUMPING,
+    FINISHED
+};
+
+class FertilizerProgram {
+    MyEEPROM __myeeprom; //!< EEPROMユーティリティモジュール
+    
+    // ---- ハードウェア ----
+    uint8_t _pumpPin, _motorPin;
+    uint32_t pumpStartUnix;
+    bool on = false, off = true;
+    
+    // ---- フリップフロップ回路を用いてポンプの状態を切り替える。 ----
+    unsigned long _pumpPreviousTime = 0; // ポンプ運転の時間管理
+    bool _pumpState = false; // ポンプの状態（オン／オフ）
+    
+    // ---- State ----
+    FertilizerState _state = IDLE;
+    uint32_t _mixStartUnix;
+
+    bool FertilizerChecked;
+
+    // ---- RTC経過時間 ----
+    uint32_t lastFertilizerDay;
+    unsigned long _pumpStartUnix;
+
+    public:
+        const char* stateToString() const {
+            switch (this->_state) {
+                case IDLE: return "IDLE";
+                case MIXING: return "MIXING";
+                case PUMPING: return "PUMPING";
+                case FINISHED: return "FINISHED";
+                default: return "UNKNOWN"; 
+            }
+        }
+
+        void begin(const uint8_t pumpPin, const uint8_t motorPin, bool _optocouple = true);
+        void run(uint8_t hour, uint32_t minute);
+
+        DateTime getNextFertilizerDay() const;
+        uint32_t getDaysPassed() const;
+        uint32_t getDaysRemaining() const;
+        
+
+    private:
+        void FertilizerProgram::RelayInit(bool _optocouple = true);
+        void run_pump(bool state);
+        void run_motor(bool state);
+
+        void mix_fertilizer();
+        void give_fertilizer(bool _run);
+};

@@ -25,7 +25,7 @@
 
 #include <Arduino.h>
 
-class TDSSensor {
+class TDSProgram {
     // センサー読み取り値「あたい」を平均化「へいきんか」するためのデフォルトのサンプル数。
     static const int DEFAULT_SCOUNT = 10;
     
@@ -87,7 +87,7 @@ class TDSSensor {
          * @param adcResolution ADCの分解能「ぶんかいのう」。通常「つうじょう」は10ビット（1023）または12ビット（4095）ですが、使用するマイクロコントローラーによって異「こと」なります。デフォルトは12ビット（4095）ですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。
          * @param scount センサー読み取り値を平均化「へいきんか」するためのサンプル数。デフォルトは10ですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。サンプル数が多いほど平均化「へいきんか」の精度「せいど」が向上「こうじょう」しますが、計算「けいさん」に時間がかかる可能性「かのうせい」があります。
          */
-        TDSSensor(
+        TDSProgram(
             int pin, 
             float vref = 3.3, 
             int adcResolution = 4095, 

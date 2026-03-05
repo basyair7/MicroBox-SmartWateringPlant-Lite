@@ -52,7 +52,7 @@ inline void WateringSys::startWatering() {
 inline void WateringSys::stopWatering() {
     this->_isWatering = false;
     for (const auto &item : RELAY_PINS)
-        RelayController::WRITE(item, false, 1000); // Turn off relays
+        RelayController::WRITE(item, false, 1000); // 全リレーをオフにする。
 
     if (!this->hasCompleted && this->hasStarted) {
         Serial.println(F("Automatic watering is completed."));

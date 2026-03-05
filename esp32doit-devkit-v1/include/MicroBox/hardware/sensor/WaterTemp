@@ -27,7 +27,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-class WaterTempSensor {
+class WaterTemp {
     OneWire _oneWire; //< DS18B20通信用「つうしんよう」OneWireインスタンス
     DallasTemperature _sensors; //< DS18B20センサー管理用「かんりよう」DallasTemperatureインスタンス
     uint8_t _pin; //< DS18B20センサーに接続「せつぞく」されたGPIOピン番号
@@ -43,7 +43,7 @@ class WaterTempSensor {
          * @param readInterval センサー読み取り間隔「かんかく」をミリ秒単位「たんい」で指定。デフォルトは2000ミリ秒（2秒）。
          * この値は、センサーからの最新の温度値を取得「しゅとく」するための更新頻度「こうしんひんど」を制御「せいぎょ」するために使用されます。
          */
-        WaterTempSensor(uint8_t pin, uint16_t readInterval = 2000)
+        WaterTemp(uint8_t pin, uint16_t readInterval = 2000)
             : _oneWire(pin), _sensors(&_oneWire), _pin(pin), _readInterval(readInterval) {}
 
         /**

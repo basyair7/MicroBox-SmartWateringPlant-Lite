@@ -31,7 +31,7 @@
 #include "MicroBox_main.h"
 #include "ThisRTOS.hpp"
 
-// Include Sensor and Module Headers
+// センサーとモジュールのヘッダーをインクルード
 #include "MicroBox/hardware/BootButton.h"
 #include "MicroBox/hardware/LEDBoard.h"
 #include "MicroBox/hardware/sensor/DHTProgram"
@@ -42,7 +42,7 @@
 #include "MicroBox/hardware/LCDdisplay"
 #include "MicroBox/hardware/DS3231rtc"
 
-// Include System Headers
+// システムヘッダーをインクルード
 #include "MicroBox/software/BlynkProgram.h"
 #include "MicroBox/software/ButtonManager"
 #include "MicroBox/software/MyEEPROM"
@@ -57,36 +57,36 @@
 
 #include "envWiFi.h"
 
-// Initialize modules and global variables
-// Initializes Sensor Program
-SoilMoisture soilmoisture; //!< Soil Moisture sensor management module
-TDSProgram tdsprog = TDSProgram(PIN_TDS); //!< TDS sensor program
-WaterTemp watertemp = WaterTemp(PIN_WATERTEMP); //!< Water Temperature sensor
+// モジュールとグローバル変数を初期化
+// センサープログラムを初期化
+SoilMoisture soilmoisture; //!< 土壌水分センサー管理モジュール
+TDSProgram tdsprog = TDSProgram(PIN_TDS); //!< TDSセンサープログラム
+WaterTemp watertemp = WaterTemp(PIN_WATERTEMP); //!< 水温センサー
 
-// Initializes Hardware Components
-BootButton bootbtn = BootButton(BOOTBUTTON, INPUT); //!< Boot button utility
-LEDBoard led_running, led_warning; //!< Led indikator program
-DS3231rtc rtcprog; //!< RTC program for time management
-LCDdisplay lcd = LCDdisplay(); //!< LCD utility module
-DHTProgram dhtprog = DHTProgram(PIN_DHT, DHT22); //!< DHT sensor program
-// RelayController relayController; //!< Relay management module
+// ハードウェアコンポーネントを初期化
+BootButton bootbtn = BootButton(BOOTBUTTON, INPUT); //!< ブートボタンユーティリティ
+LEDBoard led_running, led_warning; //!< LEDインジケータープログラム
+DS3231rtc rtcprog; //!< 時間管理のためのRTCプログラム
+LCDdisplay lcd = LCDdisplay(); //!< LCDユーティリティモジュール
+DHTProgram dhtprog = DHTProgram(PIN_DHT, DHT22); //!< DHTセンサープログラム
+// RelayController relayController; //!< リレーマネジメントモジュール
 
-// Initializes System Program
-MyEEPROM myeeprom_prog;  //!< EEPROM utility module
-LFSMemory lfsprog;       //!< LittleFS management module
-WateringSys wateringSys; //!< Watering System program
-FertilizerProgram fertilizerProg; //<! Fertilizer System program
+// システムプログラムを初期化
+MyEEPROM myeeprom_prog;  //!< EEPROMユーティリティモジュール
+LFSMemory lfsprog;       //!< LittleFSマネジメントモジュール
+WateringSys wateringSys; //!< 灌水システムプログラム
+FertilizerProgram fertilizerProg; //<! 肥料システムプログラム
 
-// Milliseconds trackers for task execution
+// タスク実行のためのミリ秒トラッカー
 unsigned long __lastMillis__ = 0, __lastTimeReboot__ = 0;
 bool RebootState = false; //!< Tracks ESP reboot state
 
 /**
- * @brief Task for running sensor update and watering control.
- * @param pvParameter Parameters for the task (not used).
- * @details This task continuously reads sensor data (Soil Moisture and DHT)
- *          and runs the watering system based on sensor readings and predefined logic.
- *          It also prints the sensor values to the serial monitor for debugging and monitoring purposes.
+ * @brief センサー更新と灌水制御を実行するタスク。
+ * @param pvParameter タスクのパラメータ（使用されない）。
+ * @details このタスクは、センサーデータ（土壌水分とDHT）を継続的に読み取り、
+ *          センサー読み取り値と定義済みのロジックに基づいて灌水システムを実行します。
+ *          また、デバッグと監視のためにシリアルモニターにセンサー値を印刷します。
  */
 void ThisRTOS::vTask1(void *pvParameter) {
     (void) pvParameter; // Unused parameter
@@ -98,19 +98,19 @@ void ThisRTOS::vTask1(void *pvParameter) {
     watertemp.begin();
 
     while (true) {
-        // Run soil moisture sensor and update readings
+        // 土壌水分センサーを実行し、読み取り値を更新
         soilmoisture.getData(true, 4095, 2500);
 
-        // Run dht sensor and update readings
+        // DHTセンサーを実行し、読み取り値を更新
         dhtprog.running();
 
-        // Run water temperature sensor and update readings
+        // 水温センサーを実行し、読み取り値を更新
         // watertemp.update();
 
-        // Set the water temperature to TDS program for compensation
+        // TDSプログラムに水温を設定して補正
         // tdsprog.setTemperature(watertemp.getTemperature());
 
-        // Run TDS sensor and update readings
+        // TDSセンサーを実行し、読み取り値を更新
         tdsprog.update();
 
         bool watering_process = wateringSys.WateringProcess;
@@ -124,7 +124,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
                 if (state <= 5) {
                     lcd.clear();
                     lcd.print("Water Temp: ", 0, 0);
-                    lcd.print(String(watertemp.getTemperature()) + "*C");
+                    lcd.print(String(watertemp.getTemperature()) + "°C");
                     lcd.print("TDS Value: ", 0, 1);
                     lcd.print(String(tdsprog.getTDSValue()) + " ppm");
                 }
@@ -139,7 +139,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
                 if (state >= 10 && state <= 15) {
                     lcd.clear();
                     lcd.print("Temp: ", 0, 0);
-                    lcd.print(String(dhtprog.temperature) + "*C");
+                    lcd.print(String(dhtprog.temperature) + "°C");
                     lcd.print("Hum: ", 0, 1);
                     lcd.print(String(dhtprog.humidity) + "%");
                 }
@@ -158,21 +158,38 @@ void ThisRTOS::vTask1(void *pvParameter) {
 
                 if (state >= 25 && state <= 30) {
                     lcd.clear();
-                    lcd.print("Fertilizer: ", 0, 1);
-                    lcd.print(fertilizerProg.stateToString());
+                    lcd.print("Fertilizer: ", 0, 0);
+                    lcd.print(fertilizerProg.stateToString(), 0, 1);
                 }
 
                 if (state >= 30 && state <= 35) {
+                    lcd.clear();
+                    lcd.print("Fertilizer Date: ", 0, 0);
+                    lcd.print("Next: ", 0, 1);
+                    lcd.print(fertilizerProg.getNextFertilizerDay());
+                }
+
+                if (state >= 35 && state <= 40) {
+                    lcd.clear();
+                    lcd.print("Fertilizer Date: ", 0, 0);
+                    lcd.print("Passed: ", 0, 1);
+                    lcd.print(fertilizerProg.getDaysPassed());
+                }
+
+                if (state >= 40 && state <= 45) {
+                    lcd.clear();
+                    lcd.print("Fertilizer Date: ", 0, 0);
+                    lcd.print("Remaining: ", 0, 1);
+                    lcd.print(fertilizerProg.getDaysRemaining());
+                }
+
+                if (state >= 50 && state <= 55) {
                     lcd.clear();
                     lcd.print("WiFi mode: ", 0, 0);
                     lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
                 }
 
-                if (state >= 35 && state <= 40) {
-                    lcd.clear();
-                }
-
-                if (state >= 45 && state <= 50) {
+                if (state >= 55 && state <= 60) {
                     lcd.clear();
                     String statusWiFiSta = WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected";
                     lcd.print("Status: ", 0, 0);
@@ -185,130 +202,132 @@ void ThisRTOS::vTask1(void *pvParameter) {
             lcdState = (lcdState + 1) % 30;
         }
 
-        // Delay the task for 100 miliseconds to control the task execution frequency
+        // タスク実行頻度を制御するために100ミリ秒遅延
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
 /**
- * @brief Task for running Blynk updates and web server OTA updates.
- * @param pvParameter Parameters for the task (not used).
- * @details This taks continuously runs the Blynk update function, and
- *          if the WiFi mode is set to Access Point (AP), it also update
- *          the web server for over-the-air (OTA) updates. This ensures that
- *          the Blynk application remains responsive and the web server can
- *          handle OTA update when needed.
+ * @brief Blynk更新とWebサーバーOTA更新を実行するタスク。
+ * @param pvParameter タスクのパラメータ（使用されない）。
+ * @details このタスクは、Blynk更新関数を継続的に実行し、
+ *          WiFiモードがアクセスポイント（AP）に設定されている場合、
+ *          オーバー・ザ・エア（OTA）更新のためにWebサーバーも更新します。
+ *          これにより、Blynkアプリケーションの応答性が維持され、
+ *          必要に応じてWebサーバーがOTA更新を処理できます。
  */
 void ThisRTOS::vTask2(void *pvParameter) {
     (void) pvParameter; // Unused parameter
 
-    // Read WiFi state and initialize
+    // WiFi状態を読み取り、初期化
     bool wifi_state = myeeprom_prog.read(ADDR_EEPROM_WIFI_MODE);
-    // Read Auto Change WiFi
+    // 自動変更WiFiを読み取り
     bool _autoChangeState;
     lfsprog.readConfigState(AUTOCHANGE, &_autoChangeState);
     
     Serial.print(F("Auto Change WiFi MODE: "));
     Serial.println(_autoChangeState ? "Enable" : "Disable");
 
-    // Initialize WiFi program
+    // WiFiプログラムを初期化
     ProgramWiFi.setup(
         lfsprog.__SSID_STA__, lfsprog.__PASS_STA__,
         lfsprog.__SSID_AP__, lfsprog.__PASS_AP__
     );
     ProgramWiFi.initWiFi(wifi_state);
 
-    // Initialize Blynk Program
+    // Blynkプログラムを初期化
     BlynkSetup();
 
-    // Initialize WebServer Program
+    // WebServerプログラムを初期化
     if (WiFi.getMode() == WIFI_AP)
         WebServer.ServerInit();
 
     while (true) {
-        // Run the Blynk update function to keep the Blynk application responsive
+        // Blynkアプリケーションの応答性を保つためにBlynk更新関数を実行
         BlynkRun();
 
-        // If the WiFi mode is set to Access Point (AP), update the web for OTA updates.
+        // WiFiモードがアクセスポイント（AP）に設定されている場合、OTA更新のためにWebを更新
         if (WiFi.getMode() == WIFI_AP) {
             WebServer.UpdateOTAloop();
         }
 
-        // Delay the task for 100 miliseconds to control the task execution frequency
+        // タスク実行頻度を制御するために100ミリ秒遅延
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
 /**
- * @brief Task for updating system information and handling reboots.
- * @param pvParameter Parameters for the task (not used).
+ * @brief システム情報更新と再起動処理を実行するタスク。
+ * @param pvParameter タスクのパラメータ（使用されない）。
  */
 void ThisRTOS::vTask3(void *pvParameter) {
     (void) pvParameter;
     
     wateringSys.begin();
+    fertilizerProg.begin(RELAY_FERTILIZER, RELAY_MOTOR);
     ButtonManager.init();
     lcd.backlight(ButtonManager.backlightState);
 
     while (true) {
-        // Run the system reboot logic if necessary
+        // 必要に応じてシステム再起動ロジックを実行
         RebootSys::run(&__lastTimeReboot__, RebootState);
 
-        // Execute automatic state change logic
+        // 自動状態変更ロジックを実行
         bootbtn.ChangeWiFiMode();
         AutoChangeState::run();
 
         ButtonManager.update();
 
-        // Execute process queue for RelayController
+        // RelayControllerのプロセスキューを実行
         RelayController::PROCESSQUEUE();
 
         wateringSys.run();
+        fertilizerProg.run(HOUR_FERTILIZER, MINUTE_FERTILIZER);
 
-        // Delay the task for 100 miliseconds to control the task execution frequency
+        // タスク実行頻度を制御するために100ミリ秒遅延
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
 /**
- * @brief Setup function for initializing harware and modules.
- * @param baud Baud Rate for serial communication.
- * @details This function is executed once at startup. It initializes:
- *          - Serial communication and EEPROM
- *          - WiFi, web server, and Blynk (if STA Mode)
- *          - RTOS Programs
+ * @brief ハードウェアとモジュールを初期化するセットアップ関数。
+ * @param baud シリアル通信のボーレート。
+ * @details この関数は起動時に一度実行されます。以下を初期化します：
+ *          - シリアル通信とEEPROM
+ *          - WiFi、Webサーバー、Blynk（STAモードの場合）
+ *          - RTOSプログラム
  */
 void MicroBox_Main::setup(unsigned long baud) {
     Serial.begin(baud); //!< Initialize serial communication
 
-    // Initialize EEPROM
+    // EEPROMを初期化
     myeeprom_prog.initialize();
 
-    // Initialize LittleFS Program
+    // LittleFSプログラムを初期化
     lfsprog.setupLFS();
 
-    // Initialize hardware components
+    // ハードウェアコンポーネントを初期化
     lcd.init();
     RelayController::BEGIN();
     led_running.begin(LED_RUNNING);
     led_warning.begin(LED_WARNING);
     bootbtn.begin();
 
-    rtcprog.begin(); //!< Initialize RTC program
+    rtcprog.begin(); //!< RTCプログラムを初期化
     
-    // Create FreeRTOS task
+    // FreeRTOSタスクを作成
     // ThisRTOS *rtos = new ThisRTOS;
-    // Create Task and Running vTask 1
+    // タスクを作成し、vTask 1を実行
     xTaskCreateUniversal([](void *param) {
         static_cast<ThisRTOS*>(param)->vTask1(param);
     }, "Task 1", 4096, NULL, 1, NULL, PRO_CPU_NUM);
     
-    // Create Task and Running vTask 1
+    // タスクを作成し、vTask 2を実行
     xTaskCreateUniversal([](void *param) {
         static_cast<ThisRTOS*>(param)->vTask2(param);
     }, "Task 2", 4096, NULL, 1, NULL, APP_CPU_NUM);
 
-    // Create Task and Running vTask 1
+    // タスクを作成し、vTask 3を実行
     xTaskCreateUniversal([](void *param) {
         static_cast<ThisRTOS*>(param)->vTask3(param);
     }, "Task 3", 4096, NULL, 1, NULL, APP_CPU_NUM);
@@ -318,7 +337,7 @@ void MicroBox_Main::setup(unsigned long baud) {
 
 void MicroBox_Main::loop() {
     /** 
-     * The loop can contain other task or
-     * functionalities that need to be performed
+     * ループには、他のタスクや
+     * 実行する必要のある機能を含めることができます
     */
 }

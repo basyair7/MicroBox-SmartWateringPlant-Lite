@@ -75,6 +75,9 @@ void WebServerClass::onEvent(
                 // Add logic for the "relay_handler" event here
                 // 例: リレーの状態を更新し、必要に応じて関連するデータをクライアントに送信するなど
             }
+            else if (strcmp(event, "datetime") == 0) {
+                this->handleRTCServer(client); // Handle "datetime" event
+            }
         }
     }
     else if (type == WS_EVT_ERROR) {

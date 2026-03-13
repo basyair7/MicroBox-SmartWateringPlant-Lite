@@ -1,6 +1,7 @@
 /**
  *  @file wateringhandlers.cpp
  *  @version 1.0.1
+ *  @brief Webサーバーの灌水ハンドラー関連関数ファイル。
  *  @date 2026
  *  @author basyair7
  *  
@@ -22,6 +23,10 @@
 #include "MicroBox/hardware/RelayController"
 #include "MicroBox/externobj"
 
+/**
+ * @brief 自動灌水の状態を変更します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::AutoWatering(AsyncWebServerRequest *req) {
     StaticJsonDocument<50> jsonDoc;
     String resBuffer = "", message = "";
@@ -44,6 +49,10 @@ void WebServerClass::AutoWatering(AsyncWebServerRequest *req) {
     req->send_P(statusCode, APPJSON, resBuffer.c_str());
 }
 
+/**
+ * @brief 手動灌水を実行します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::ManualWatering(AsyncWebServerRequest *req) {
     StaticJsonDocument<200> jsonDoc;
     String resBuffer = "", message = "";

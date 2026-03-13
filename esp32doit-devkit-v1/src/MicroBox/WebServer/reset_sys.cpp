@@ -1,6 +1,7 @@
 /**
  *  @file reset_sys.cpp
  *  @version 1.0.1
+ *  @brief Webサーバーのシステムリセット関連関数ファイル。
  *  @date 2026
  *  @author basyair7
  *  
@@ -21,15 +22,19 @@
 #include "MicroBox/software/WebServer"
 #include "MicroBox/externobj"
 
+/**
+ * @brief システムリセットページを表示し、設定を再初期化します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::ResetSys(AsyncWebServerRequest *req) {
-    // read file html
+    // HTMLファイルを読み込む
     String page = this->file_buffer(DIRHTML + "reset-sys.html");
     if (page == "") {
         this->handleNotFound(req);
         return;
     }
 
-    // get ip address
+    // IPアドレスを取得
     clientIP = req->client()->localIP();
     LocalIP = clientIP.toString();
 
@@ -43,13 +48,13 @@ void WebServerClass::ResetSys(AsyncWebServerRequest *req) {
         this->LocalIP.c_str()
     };
 
-    // replace page
+    // ページを置き換え
     for (size_t i = 0; i < sizeof(tags_html)/sizeof(tags_html[0]); i++)
         page.replace(placeholders[i], tags_html[i]);
 
     req->send_P(200, TEXTHTML, page.c_str());
 
-    // reinitailizing config
+    // 設定を再初期化
     lfsprog.reinitializeState();
     lfsprog.reinitializeVarRelay();
     lfsprog.reinitializeWiFiConfig();

@@ -171,7 +171,15 @@ class WebServerClass : protected Info {
         void wifi_ap_config_2(AsyncWebServerRequest *req);
         void wifi_sta_config_1(AsyncWebServerRequest *req);
         void wifi_sta_config_2(AsyncWebServerRequest *req);
-
+    
+    // RTC設定
+    private:
+        void RTC_Config_Main(AsyncWebServerRequest *req);
+        void Save_RTC_Config(AsyncWebServerRequest *req);
+        void __getRTCServer__(StaticJsonDocument<200> &doc);
+        void RTCServer(AsyncWebServerRequest *req);
+        void handleRTCServer(AsyncWebSocketClient *client);
+    
     private:
         String RelayChecked(uint8_t pinRelay);
         void updateRelayState(int pinRelay, bool state);

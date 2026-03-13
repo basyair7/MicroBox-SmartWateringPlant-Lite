@@ -1,6 +1,7 @@
 /**
  *  @file data_server.cpp
  *  @version 1.0.1
+ *  @brief データサーバー関連のWebサーバー関数ファイル。
  *  @date 2026
  *  @author basyair7
  *  
@@ -23,6 +24,10 @@
 #include "MicroBox/hardware/RelayController"
 #include "MicroBox/externobj"
 
+/**
+ * @brief データサーバーのデータをJSONドキュメントに追加します。
+ * @param doc データを追加するDynamicJsonDocument
+ */
 void WebServerClass::GetDataServer(DynamicJsonDocument &doc) {
     StaticJsonDocument<500> dataRelay;
 
@@ -38,7 +43,11 @@ void WebServerClass::GetDataServer(DynamicJsonDocument &doc) {
     dataRelay.clear();
 }
 
-// WebServer Program
+// Webサーバープログラム
+/**
+ * @brief WebサーバーでデータをJSON形式で返します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::DataWebServer(AsyncWebServerRequest *req) {
     DynamicJsonDocument doc(1024);
     String jsonBuffer = "";
@@ -52,7 +61,11 @@ void WebServerClass::DataWebServer(AsyncWebServerRequest *req) {
     req->send_P(codeRes, APPJSON, jsonBuffer.c_str());
 }
 
-// WebSocket program
+// WebSocketプログラム
+/**
+ * @brief WebSocketでデータを送信します。
+ * @param client WebSocketクライアント
+ */
 void WebServerClass::handleDataServeWS(AsyncWebSocketClient *client) {
     if (this->ws.count() > 5) {
         Serial.println("Too many WebSocket clients, rejecting new request.");

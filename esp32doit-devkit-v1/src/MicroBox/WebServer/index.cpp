@@ -1,6 +1,7 @@
 /**
  *  @file index.cpp
  *  @version 1.0.1
+ *  @brief Webサーバーのインデックスページ関連関数ファイル。
  *  @date 2026
  *  @author basyair7
  *  
@@ -22,15 +23,19 @@
 #include "MicroBox/hardware/RelayController"
 #include "MicroBox/externobj"
 
+/**
+ * @brief インデックスページを表示します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::index(AsyncWebServerRequest *req) {
-    // Read file html
+    // HTMLファイルを読み込む
     String page = this->file_buffer(this->DIRHTML + "index.html");
     if (page == "") {
         this->handleNotFound(req);
         return;
     }
 
-    // get list data relay
+    // リレーのデータリストを取得
     std::vector<String>listVar;
     std::vector<int>listPin;
     // std::vector<int>listId;
@@ -56,7 +61,7 @@ void WebServerClass::index(AsyncWebServerRequest *req) {
         listVar[1], String(listPin[1]), this->RelayChecked(listPin[1])
     };
 
-    // Replace page
+    // ページを置き換え
     for (size_t item = 0; item < sizeof(tags_html)/sizeof(tags_html[0]); item++) {
         page.replace(placeholders[item], tags_html[item]);
     }

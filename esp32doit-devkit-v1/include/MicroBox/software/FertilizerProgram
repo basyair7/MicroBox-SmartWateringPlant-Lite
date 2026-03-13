@@ -71,13 +71,12 @@ class FertilizerProgram {
         void begin(const uint8_t pumpPin, const uint8_t motorPin, bool _optocouple = true);
         void run(uint8_t hour, uint32_t minute);
 
-        DateTime getNextFertilizerDay() const;
+        uint32_t getNextFertilizerDay() const;
         uint32_t getDaysPassed() const;
         uint32_t getDaysRemaining() const;
         
 
     private:
-        void FertilizerProgram::RelayInit(bool _optocouple = true);
         void run_pump(bool state);
         void run_motor(bool state);
 

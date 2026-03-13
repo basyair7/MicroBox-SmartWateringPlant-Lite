@@ -1,9 +1,10 @@
 /**
  *  @file wifi_sta_config.cpp
  *  @version 1.0.1
+ *  @brief WiFi STA設定関連関数ファイル。
  *  @date 2026
  *  @author basyair7
- *  
+ *
  *  @copyright
  *  Copyright (C) 2026, basyair7
  *  This program is free software: you can redistribute it and/or modify
@@ -21,6 +22,10 @@
 #include "MicroBox/software/WebServer"
 #include "MicroBox/externobj"
 
+/**
+ * @brief WiFi STA設定のメイン関数。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::WiFi_STA_Config_Main(AsyncWebServerRequest *req) {
     if (WiFi.getMode() == WIFI_STA)
         wifi_sta_config_1(req);
@@ -28,15 +33,19 @@ void WebServerClass::WiFi_STA_Config_Main(AsyncWebServerRequest *req) {
         wifi_sta_config_2(req);
 }
 
+/**
+ * @brief WiFi STA設定を保存します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::Save_WiFi_STA_Config(AsyncWebServerRequest *req) {
-    // read file html
+    // HTMLファイルを読み取る
     String page = this->file_buffer(DIRHTML + "save_config_wifi_sta.html");
     if (page == "") {
         this->handleNotFound(req);
         return;
     }
 
-    // get input arguments
+    // 入力引数を取得
     String New_SSID, New_Pass;
     if (req->hasArg("newssid") && req->hasArg("newpassword")) {
         New_SSID = req->arg("newssid");
@@ -44,7 +53,7 @@ void WebServerClass::Save_WiFi_STA_Config(AsyncWebServerRequest *req) {
         lfsprog.changeConfigWiFi_STA(New_SSID, New_Pass);
     }
 
-    // get ip address
+    // IPアドレスを取得
     clientIP = req->client()->localIP();
     LocalIP  = clientIP.toString();
 
@@ -62,15 +71,19 @@ void WebServerClass::Save_WiFi_STA_Config(AsyncWebServerRequest *req) {
         this->LocalIP.c_str()
     };
 
-    // replace page
+    // ページを置き換える
     for (size_t i = 0; i < sizeof(tags_html)/sizeof(tags_html[0]); i++)
         page.replace(placeholders[i], tags_html[i]);
 
     req->send(200, TEXTHTML, page);
 }
 
+/**
+ * @brief WiFi STA設定ページ1を表示します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::wifi_sta_config_1(AsyncWebServerRequest *req) {
-    // read file html
+    // HTMLファイルを読み取る
     String page = this->file_buffer(DIRHTML + "config_wifi_sta_1.html");
     if (page == "") {
         this->handleNotFound(req);
@@ -93,22 +106,26 @@ void WebServerClass::wifi_sta_config_1(AsyncWebServerRequest *req) {
         ProgramWiFi.__SSID_AP__.c_str()
     };
 
-    // replace page
+    // ページを置き換える
     for (size_t i = 0; i < sizeof(tags_html)/sizeof(tags_html[0]); i++)
         page.replace(placeholders[i], tags_html[i]);
 
     req->send(200, TEXTHTML, page);
 }
 
+/**
+ * @brief WiFi STA設定ページ2を表示します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::wifi_sta_config_2(AsyncWebServerRequest *req) {
-    // read file html
+    // HTMLファイルを読み取る
     String page = file_buffer(DIRHTML + "config_wifi_sta_2.html");
     if (page == "") {
         this->handleNotFound(req);
         return;
     }
 
-    // get ip address
+    // IPアドレスを取得
     clientIP = req->client()->localIP();
     LocalIP = clientIP.toString();
 
@@ -128,7 +145,7 @@ void WebServerClass::wifi_sta_config_2(AsyncWebServerRequest *req) {
         this->LocalIP.c_str()
     };
 
-    // replace page
+    // ページを置き換える
     for (size_t i = 0; i < sizeof(tags_html)/sizeof(tags_html[0]); i++)
         page.replace(placeholders[i], tags_html[i]);
 

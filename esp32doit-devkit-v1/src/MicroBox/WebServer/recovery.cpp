@@ -1,6 +1,7 @@
 /**
  *  @file recovery.cpp
  *  @version 1.0.1
+ *  @brief Webサーバーのリカバリーページ関連関数ファイル。
  *  @date 2026
  *  @author basyair7
  *  
@@ -21,44 +22,48 @@
 #include "MicroBox/software/WebServer"
 #include "MicroBox/externobj"
 
+/**
+ * @brief リカバリーページを表示します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::RecoveryPage(AsyncWebServerRequest *req) {
-    // read file html
+    // HTMLファイルを読み込む
     String page = this->file_buffer(this->DIRHTML + "recovery.html");
     if (page == "") {
         this->handleNotFound(req);
         return;
     }
 
-    // get ip address
+    // IPアドレスを取得
     this->LocalIP = req->client()->localIP().toString();
 
-    // convert port typedata to char
+    // ポート番号を文字型に変換
     char portWeb[10 + sizeof(char)];
     sprintf(portWeb, "%d", this->port);
 
-    // replace localip
+    // ローカルIPを置き換え
     this->LocalIP = this->LocalIP + ":" + portWeb;
 
-    // read auto change wifi state
+    // 自動WiFi変更状態を読み取り
     bool _autoChangeWiFi;
     lfsprog.readConfigState(AUTOCHANGE, &_autoChangeWiFi);
 
     const String placeholders[] = {
-        "%VERSION_PROJECT%", 
-        "%HW_VERSION%", 
+        "%VERSION_PROJECT%",
+        "%HW_VERSION%",
         "%SW_VERSION%",
-        "%BUILD_DATE%", 
+        "%BUILD_DATE%",
         "%FIRMWARE_REGION%",
-        "%LOCALIP%", 
+        "%LOCALIP%",
         "%PORT%",
-        
-        "%SSID_AP%", 
+
+        "%SSID_AP%",
         "%PASS_AP%",
-        "%SSID_STA%", 
+        "%SSID_STA%",
         "%PASS_STA%",
         "%AUTO_CHANGE_WIFI%",
-        
-        "%LOCALIP%", "%LOCALIP%", "%LOCALIP%"
+
+        "%LOCALIP%", "%LOCALIP%", "%LOCALIP%", "%LOCALIP%"
     };
 
     const String tags_html[] = {
@@ -76,10 +81,10 @@ void WebServerClass::RecoveryPage(AsyncWebServerRequest *req) {
         ProgramWiFi.__PASS_STA__,
         _autoChangeWiFi ? "Enable" : "Disable",
 
-        this->LocalIP, this->LocalIP, this->LocalIP
+        this->LocalIP, this->LocalIP, this->LocalIP, this->LocalIP
     };
 
-    // replace page
+    // ページを置き換え
     for (size_t i = 0; i < sizeof(tags_html)/sizeof(tags_html[0]); i++)
         page.replace(placeholders[i], tags_html[i]);
 

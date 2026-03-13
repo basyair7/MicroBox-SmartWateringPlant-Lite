@@ -1,6 +1,7 @@
-/**　
+/**
  *  @file Routes.cpp
  *  @version 1.0.1
+ *  @brief Webサーバーのルート設定関連関数ファイル。
  *  @date 2026
  *  @author basyair7
  *  
@@ -20,8 +21,11 @@
 
 #include "MicroBox/software/WebServer"
 
+/**
+ * @brief Webサーバーのシステムルートを設定します。
+ */
 void WebServerClass::RoutesSystem() {
-    // If page not found
+    // ページが見つからない場合
     this->serverAsync.onNotFound(
         std::bind(
             &WebServerClass::handleNotFound, this,
@@ -29,7 +33,15 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Setup HTTP GET endpoint for index page
+    // RTCモジュールの日時をWebサーバーへ送信する。
+    this->serverAsync.on("/datetime", HTTP_GET, 
+        std::bind(
+            &WebServerClass::RTCServer, this,
+            std::placeholders::_1
+        )
+    );
+
+    // インデックスページのHTTP GETエンドポイントを設定
     this->serverAsync.on("/", HTTP_GET,
         std::bind(
             &WebServerClass::index, this,
@@ -44,7 +56,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Setup HTTP Get endpoint for rest-api data-server
+    // REST-APIデータサーバーのHTTP GETエンドポイントを設定
     this->serverAsync.on("/data-server", HTTP_GET, 
         std::bind(
             &WebServerClass::DataWebServer, this,
@@ -52,7 +64,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
     
-    // Setup HTTP GET endpoint for recovery page
+    // リカバリーページのHTTP GETエンドポイントを設定
     this->serverAsync.on("/recovery", HTTP_GET, 
         std::bind(
             &WebServerClass::RecoveryPage, this,
@@ -60,7 +72,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Setup HTTP GET endpoint for enable blynk
+    // Blynk有効化のHTTP GETエンドポイントを設定
     this->serverAsync.on("/enable-blynk", HTTP_GET,
         std::bind(
             &WebServerClass::EnableBlynk, this,
@@ -68,7 +80,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Setup HTTP GET endpoint to reboot the system
+    // システム再起動のHTTP GETエンドポイントを設定
     this->serverAsync.on("/rst-webserver", HTTP_GET,
         std::bind(
             &WebServerClass::RebootSys, this,
@@ -76,7 +88,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Setup HTTP GET endpoint to reset system
+    // システムリセットのHTTP GETエンドポイントを設定
     this->serverAsync.on("/reset-system", HTTP_GET,
         std::bind(
             &WebServerClass::ResetSys, this,
@@ -84,7 +96,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Setup HTTP GET endpoint to config wifi sta
+    // WiFi STA設定のHTTP GETエンドポイントを設定
     this->serverAsync.on("/config-wifi-sta", HTTP_GET,
         std::bind(
             &WebServerClass::WiFi_STA_Config_Main, this,
@@ -92,7 +104,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Setup HTTP GET endpoint to save config wifi sta
+    // WiFi STA設定保存のHTTP POSTエンドポイントを設定
     this->serverAsync.on("/save-config-wifi-sta", HTTP_POST,
         std::bind(
             &WebServerClass::Save_WiFi_STA_Config, this,
@@ -100,7 +112,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Setup HTTP GET endpoint to config wifi ap
+    // WiFi AP設定のHTTP GETエンドポイントを設定
     this->serverAsync.on("/config-wifi-ap", HTTP_GET,
         std::bind(
             &WebServerClass::WiFi_AP_Config_Main, this,
@@ -108,7 +120,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Setup HTTP GET endpoint to save config wifi ap
+    // WiFi AP設定保存のHTTP POSTエンドポイントを設定
     this->serverAsync.on("/save-config-wifi-ap", HTTP_POST,
         std::bind(
             &WebServerClass::Save_WiFi_AP_Config, this,
@@ -116,7 +128,7 @@ void WebServerClass::RoutesSystem() {
         )
     );
 
-    // Update auto change state WiFi mode
+    // WiFiモード自動変更状態を更新
     this->serverAsync.on("/auto-change-wifi-mode", HTTP_GET,
         std::bind(
             &WebServerClass::UpdateAutoChangeWiFi, this,
@@ -125,8 +137,11 @@ void WebServerClass::RoutesSystem() {
     );
 }
 
+/**
+ * @brief Webサーバーのリレールートを設定します。
+ */
 void WebServerClass::RoutesRelay() {
-    // update relay state (post method)
+    // リレー状態を更新（POSTメソッド）
     this->serverAsync.on("/post-relay", HTTP_POST, [](AsyncWebServerRequest *req) {}, NULL,
         std::bind(
             &WebServerClass::postRelay, this,
@@ -138,14 +153,14 @@ void WebServerClass::RoutesRelay() {
         )
     );
 
-    // query data relay (return format json)
+    // リレーデータをクエリ（JSON形式で返す）
     this->serverAsync.on("/query-relay", HTTP_GET,
         std::bind(
             &WebServerClass::queryDataRelay, this, std::placeholders::_1
         )
     );
 
-    // getRelayState
+    // リレー状態を取得
     this->serverAsync.on("/getRelayStatus", HTTP_GET,
         std::bind(
             &WebServerClass::readRelayState, this,
@@ -153,21 +168,21 @@ void WebServerClass::RoutesRelay() {
         )
     );
 
-    // update relay state (get method)
+    // リレー状態を更新（GETメソッド）
     this->serverAsync.on("/check", HTTP_GET,
         std::bind(
             &WebServerClass::checkRelayState, this, std::placeholders::_1
         )
     );
 
-    // update auto watering
+    // 自動灌水を更新
     this->serverAsync.on("/auto-watering", HTTP_GET,
         std::bind(
             &WebServerClass::AutoWatering, this, std::placeholders::_1
         )
     );
 
-    // update manual watering
+    // 手動灌水を更新
     this->serverAsync.on("/manual-watering", HTTP_GET,
         std::bind(
             &WebServerClass::ManualWatering, this, std::placeholders::_1
@@ -175,6 +190,9 @@ void WebServerClass::RoutesRelay() {
     );
 }
 
+/**
+ * @brief Webサーバーのすべてのルートを設定します。
+ */
 void WebServerClass::Routes() {
     RoutesSystem();
     RoutesRelay();

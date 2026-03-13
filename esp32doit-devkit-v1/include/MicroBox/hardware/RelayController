@@ -28,28 +28,43 @@
 #include <vector>
 #include "variable"
 
-#define RELAY_STATE_STR_BOOL(state) ((state) ? "ON" : "OFF") // ブール値のフラグ
+#define RELAY_STATE_STR_BOOL(state) ((state) ? "ON" : "OFF") // ブール値をオン・オフ文字列に変換するマクロ
 
+/**
+ * @brief リレーアクションの構造体。リレーのピン、状態、遅延などを定義。
+ */
 struct RelayAction {
-    uint8_t pin_relay;
-    bool state;
-    int id_relay;
-    String label;
-    uint32_t delay, nextActionTime;
-    bool saveState;
+    uint8_t pin_relay;      ///< リレーピン番号
+    bool state;             ///< リレーの状態（true: オン、false: オフ）
+    int id_relay;           ///< リレーID
+    String label;           ///< アクションのラベル
+    uint32_t delay;         ///< アクションの遅延時間（ミリ秒）
+    uint32_t nextActionTime; ///< 次回アクション実行時刻
+    bool saveState;         ///< 状態を保存するかどうか
 };
 
+/**
+ * @class RelayController
+ * @brief RelayControllerクラスは、リレーの制御を管理します。キューによる遅延実行、状態保存、静的インスタンスに
+ *        よるアクセスを提供。
+ */
 class RelayController {
-    std::queue<RelayAction> actionQueue;
-    unsigned long LastActionTime = 0;
-    uint8_t ON = 0x0, OFF = 0x1;
+    std::queue<RelayAction> actionQueue; ///< リレーアクションの実行キュー
+    unsigned long LastActionTime = 0;   ///< 前回のアクション実行時刻
+    uint8_t ON = 0x0, OFF = 0x1;        ///< オプトカプラ制御用: ON/OFF値
 
     public:
-        uint8_t pins_io_relay;
-        int id_relay;
-        bool relay_state, optocouple;
-        String label_relay;
+        uint8_t pins_io_relay; ///< リレーのI/Oピン番号
+        int id_relay;          ///< リレーID
+        bool relay_state;      ///< リレーの現在の状態
+        bool optocouple;       ///< オプトカプラ使用フラグ
+        String label_relay;    ///< リレーの名前またはラベル
 
+        /**
+         * @brief ピン状態を数値に変換します（オプトカプラ対応）。
+         * @param pin ピンの状態値
+         * @return 変換された状態値
+         */
         const uint8_t relay_state_str_int(uint8_t pin) {
             if (this->optocouple)
                 return pin ? 0 : 1;
@@ -58,20 +73,77 @@ class RelayController {
         }
 
     public:
+        /**
+         * @brief リレーモジュールを初期化します。
+         * @param _optocouple オプトカプラを使用するかどうか (デフォルト: true)
+         * @param _delay デフォルトの遅延時間 (ミリ秒、デフォルト: 1000)
+         */
         void begin(bool _optocouple = true, uint32_t _delay = 1000UL);
         
+        /**
+         * @brief 指定したリレーピンの状態を読み取ります。
+         * @param pin_relay リレーピン番号
+         */
         void read(uint8_t pin_relay);
+        
+        /**
+         * @brief 指定した名前のリレーの状態を読み取ります。
+         * @param relay_varName リレーの変数名
+         */
         void read(String relay_varName);
+        
+        /**
+         * @brief 指定したリレーピンに状態を設定し、状態を保存します。
+         * @param pin_relay リレーピン番号
+         * @param state リレーの状態 (true: オン、false: オフ)
+         * @param _delay 実行遅延時間 (ミリ秒)
+         */
         void write(const uint8_t &pin_relay, const bool &state, uint32_t _delay);
+        
+        /**
+         * @brief 指定した名前のリレーに状態を設定し、状態を保存します。
+         * @param relay_varName リレーの変数名
+         * @param state リレーの状態 (true: オン、false: オフ)
+         * @param _delay 実行遅延時間 (ミリ秒)
+         */
         void write(const String &relay_varName, const bool &state, uint32_t _delay);
+        
+        /**
+         * @brief 指定したリレーピンに状態を設定しますが、状態は保存しません。
+         * @param pin_relay リレーピン番号
+         * @param state リレーの状態 (true: オン、false: オフ)
+         * @param _delay 実行遅延時間 (ミリ秒)
+         */
         void write_without_save(const uint8_t &pin_relay, const bool &state, uint32_t _delay);
+        
+        /**
+         * @brief 指定した名前のリレーに状態を設定しますが、状態は保存しません。
+         * @param relay_varName リレーの変数名
+         * @param state リレーの状態 (true: オン、false: オフ)
+         * @param _delay 実行遅延時間 (ミリ秒)
+         */
         void write_without_save(const String &relay_varName, const bool &state, uint32_t _delay);
 
+        /**
+         * @brief アクションキューを処理し、遅延実行されたリレー操作を実行します。
+         */
         void processQueue();
 
     private:
+        /**
+         * @brief リレーアクションを実行します。
+         * @param action 実行するリレーアクション
+         */
         void executeAction(const RelayAction &action);
 
+        /**
+         * @brief リレーアクションの詳細をシリアル出力で表示します。
+         * @param id リレーID
+         * @param pin リレーピン
+         * @param name リレーの名前
+         * @param state リレーの状態
+         * @param MsgSaveState 保存状態のメッセージ
+         */
         void showAction(const int id, const uint8_t pin, const String &name, const bool state, const String &MsgSaveState)
         {
             Serial.println(F("Relay Action : "));
@@ -87,12 +159,17 @@ class RelayController {
         }
 
     public:
-        static int ID_RELAY;
-        static uint8_t PIN_IO_RELAY;
-        static bool RELAY_STATE;
-        static String LABEL_RELAY;
-        static bool OPTOCOUPLE;
+        static int ID_RELAY;         ///< リレーID（静的メンバー）
+        static uint8_t PIN_IO_RELAY; ///< リレーI/Oピン（静的メンバー）
+        static bool RELAY_STATE;     ///< リレー状態（静的メンバー）
+        static String LABEL_RELAY;   ///< リレーラベル（静的メンバー）
+        static bool OPTOCOUPLE;      ///< オプトカプラフラグ（静的メンバー）
 
+        /**
+         * @brief ピンの状態を数値に変換します（静的関数版、オプトカプラ対応）。
+         * @param pin ピンの状態値
+         * @return 変換された状態値
+         */
         static const uint8_t RELAY_STATE_STR_INT(uint8_t pin) {
             if (RelayController::OPTOCOUPLE)
                 return pin ? 0 : 1;
@@ -100,44 +177,88 @@ class RelayController {
                 return pin ? 1 : 0;
         }
 
+        /**
+         * @brief RelayControllerのシングルトンインスタンスを返します。
+         * @return RelayControllerの静的インスタンス
+         */
         static RelayController &instance() {
             static RelayController instance;
             return instance;
         }
 
+        /**
+         * @brief リレーモジュールを初期化します（静的関数版）。
+         * @param _optocouple オプトカプラを使用するかどうか (デフォルト: true)
+         * @param _delay デフォルトの遅延時間 (ミリ秒、デフォルト: 1000)
+         */
         static void BEGIN(bool _optocouple = true, uint32_t _delay = 1000UL) {
             RelayController::OPTOCOUPLE = _optocouple;
             instance().begin(_optocouple, _delay);
         }
 
+        /**
+         * @brief 指定したリレーピンの状態を読み取ります（静的関数版）。
+         * @param pin_relay リレーピン番号
+         */
         static void READ(uint8_t pin_relay) {
             instance().read(pin_relay);
         }
 
+        /**
+         * @brief 指定した名前のリレーの状態を読み取ります（静的関数版）。
+         * @param relay_varName リレーの変数名
+         */
         static void READ(String relay_varName) {
             instance().read(relay_varName);
         }
 
+        /**
+         * @brief 指定したリレーピンに状態を設定し、状態を保存します（静的関数版）。
+         * @param pin_relay リレーピン番号
+         * @param state リレーの状態 (true: オン、false: オフ)
+         * @param _delay 実行遅延時間 (ミリ秒)
+         */
         static void WRITE(const uint8_t &pin_relay, const bool &state, uint32_t _delay)
         {
             instance().write(pin_relay, state, _delay);
         }
 
+        /**
+         * @brief 指定した名前のリレーに状態を設定し、状態を保存します（静的関数版）。
+         * @param relay_varName リレーの変数名
+         * @param state リレーの状態 (true: オン、false: オフ)
+         * @param _delay 実行遅延時間 (ミリ秒)
+         */
         static void WRITE(const String &relay_varName, const bool &state, uint32_t _delay)
         {
             instance().write(relay_varName, state, _delay);
         }
 
+        /**
+         * @brief 指定したリレーピンに状態を設定しますが、状態は保存しません（静的関数版）。
+         * @param pin_relay リレーピン番号
+         * @param state リレーの状態 (true: オン、false: オフ)
+         * @param _delay 実行遅延時間 (ミリ秒)
+         */
         static void WRITE_WITHOUT_SAVE(const uint8_t &pin_relay, const bool &state, uint32_t _delay)
         {
             instance().write_without_save(pin_relay, state, _delay);
         }
 
+        /**
+         * @brief 指定した名前のリレーに状態を設定しますが、状態は保存しません（静的関数版）。
+         * @param relay_varName リレーの変数名
+         * @param state リレーの状態 (true: オン、false: オフ)
+         * @param _delay 実行遅延時間 (ミリ秒)
+         */
         static void WRITE_WITHOUT_SAVE(const String &relay_varName, const bool &state, uint32_t _delay)
         {
             instance().write_without_save(relay_varName, state, _delay);
         }
 
+        /**
+         * @brief アクションキューを処理し、遅延実行されたリレー操作を実行します（静的関数版）。
+         */
         static void PROCESSQUEUE() {
             instance().processQueue();
         }

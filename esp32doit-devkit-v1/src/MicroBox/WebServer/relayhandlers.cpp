@@ -1,6 +1,7 @@
 /**
  *  @file relayhandlers.cpp
  *  @version 1.0.1
+ *  @brief Webサーバーのリレーハンドラー関連関数ファイル。
  *  @date 2026
  *  @author basyair7
  *  
@@ -20,6 +21,11 @@
 
 #include "MicroBox/software/WebServer"
 
+/**
+ * @brief リレーのチェック状態を返します。
+ * @param pinRelay リレーピン番号
+ * @return チェック状態の文字列
+ */
 String WebServerClass::RelayChecked(uint8_t pinRelay) {
     if (RelayController::OPTOCOUPLE)
         return digitalRead(pinRelay) ? "" : "checked";
@@ -27,10 +33,19 @@ String WebServerClass::RelayChecked(uint8_t pinRelay) {
         return digitalRead(pinRelay) ? "checked" : "";
 }
 
+/**
+ * @brief リレーの状態を更新します。
+ * @param pinRelay リレーピン番号
+ * @param state リレーの状態 (true: オン、false: オフ)
+ */
 void WebServerClass::updateRelayState(int pinRelay, bool state) {
     RelayController::WRITE(pinRelay, state, 1000);
 }
 
+/**
+ * @brief リレーのデータをJSONドキュメントに追加します。
+ * @param doc データを追加するStaticJsonDocument
+ */
 void WebServerClass::queryDataRelayStr(StaticJsonDocument<500> &doc) {
     doc["auto"]["id"] = "auto";
     doc["auto"]["status"] = wateringSys.AutoWateringState;
@@ -46,6 +61,10 @@ void WebServerClass::queryDataRelayStr(StaticJsonDocument<500> &doc) {
     }
 }
 
+/**
+ * @brief リレーのデータをクエリします。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::queryDataRelay(AsyncWebServerRequest *req) {
     String jsonres = "";
     uint16_t statusCode = 200;
@@ -68,17 +87,25 @@ void WebServerClass::queryDataRelay(AsyncWebServerRequest *req) {
     req->send_P(statusCode, APPJSON, jsonres.c_str());
 }
 
+/**
+ * @brief リレーのPOSTリクエストを処理します。
+ * @param req 非同期Webサーバーリクエスト
+ * @param data データポインタ
+ * @param len データ長
+ * @param index インデックス
+ * @param total 合計
+ */
 void WebServerClass::postRelay(AsyncWebServerRequest *req, uint8_t *data, size_t len, size_t index, size_t total)
 {
     String body = String((char*)data).substring(0, len);
     Serial.printf("\nReceived data\t: %s\n", body.c_str());
 
-    // process data JSON
+    // JSONデータを処理
     DynamicJsonDocument doc(500), jsonData(500);
     String jsonres = "", handleErrorMsg = "";
     int statusCode = 200; bool errorState;
     
-    // check data body
+    // データボディをチェック
     this->handleError_deserializeJson(
         "postRelay",
         deserializeJson(doc, body),
@@ -94,7 +121,7 @@ void WebServerClass::postRelay(AsyncWebServerRequest *req, uint8_t *data, size_t
         serializeJson(doc, jsonres);
     }
     else {
-        // check auto watering state
+        // 自動灌水状態をチェック
         if (!wateringSys.AutoWateringState) {
             for (size_t i = 0; i < sizeof(RELAY_PINS)/sizeof(RELAY_PINS[0]); i++)
             {
@@ -114,12 +141,12 @@ void WebServerClass::postRelay(AsyncWebServerRequest *req, uint8_t *data, size_t
         }
     }
 
-    // Build final response
+    // 最終レスポンスを構築
     doc.clear();
     doc["status"] = statusCode;
     doc["msg"] = handleErrorMsg;
 
-    // Only include "data" if no error occurred
+    // エラーが発生しなかった場合のみ"data"を含める
     if (!errorState && !jsonData.isNull()) {
         doc["data_relay"] = jsonData;
     }
@@ -128,6 +155,10 @@ void WebServerClass::postRelay(AsyncWebServerRequest *req, uint8_t *data, size_t
     req->send_P(statusCode, APPJSON, jsonres.c_str());
 }
 
+/**
+ * @brief リレーの状態を読み取ります。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::readRelayState(AsyncWebServerRequest *req) {
     StaticJsonDocument<500> doc, dataRelay;
     String resBuffer = "";
@@ -142,6 +173,10 @@ void WebServerClass::readRelayState(AsyncWebServerRequest *req) {
     req->send(statusCode, APPJSON, resBuffer);
 }
 
+/**
+ * @brief リレーの状態をチェックします。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::checkRelayState(AsyncWebServerRequest *req) {
     StaticJsonDocument<200> doc;
     StaticJsonDocument<50> data;
@@ -154,7 +189,7 @@ void WebServerClass::checkRelayState(AsyncWebServerRequest *req) {
         bool relayState = state.toInt();
         int _querycount = 0;
 
-        // check auto watering state
+        // 自動灌水状態をチェック
         if (!wateringSys.AutoWateringState) {
             for (const auto &item : RELAY_PINS) {
                 String varName = String(VAR_SWITCH) + String(item);
@@ -182,7 +217,7 @@ void WebServerClass::checkRelayState(AsyncWebServerRequest *req) {
         statusCode = 400;
     }
 
-    // Build final response
+    // 最終レスポンスを構築
     String jsonBuffer = "";
     doc["status"] = statusCode;
     doc["msg"]    = res;

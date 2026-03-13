@@ -1,9 +1,10 @@
 /**
  *  @file WebServerHandlers.cpp
  *  @version 1.0.1
+ *  @brief Webサーバーハンドラー関連関数ファイル。
  *  @date 2026
  *  @author basyair7
- *  
+ *
  *  @copyright
  *  Copyright (C) 2026, basyair7
  *  This program is free software: you can redistribute it and/or modify
@@ -22,13 +23,18 @@
 #include "MicroBox/software/WebServer"
 #include "MicroBox/externobj"
 
+/**
+ * @brief 指定されたファイルの内容をバッファとして読み取ります。
+ * @param fileName 読み取るファイル名
+ * @return ファイルの内容を文字列として返す
+ */
 String WebServerClass::file_buffer(String fileName) {
     this->file = openfile(fileName, LFS_READ);
     if (!this->file) {
         return "";
     }
 
-    // read file content
+    // ファイルの内容を読み取る
     size_t fileSize = this->file.size();
     std::unique_ptr<char []> fileBuffer(new char[fileSize + 1]);
     this->file.readBytes(fileBuffer.get(), fileSize);
@@ -38,6 +44,10 @@ String WebServerClass::file_buffer(String fileName) {
     return String(fileBuffer.get());
 }
 
+/**
+ * @brief システムを再起動します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::RebootSys(AsyncWebServerRequest *req) {
     StaticJsonDocument<100> doc;
     String jsonRes = "";
@@ -53,6 +63,10 @@ void WebServerClass::RebootSys(AsyncWebServerRequest *req) {
     RebootState = true;
 }
 
+/**
+ * @brief Blynkを有効化し、システムを再起動します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::EnableBlynk(AsyncWebServerRequest *req) {
     StaticJsonDocument<100> doc;
 
@@ -72,6 +86,10 @@ void WebServerClass::EnableBlynk(AsyncWebServerRequest *req) {
     RebootState = true;
 }
 
+/**
+ * @brief WiFi自動変更の状態を更新します。
+ * @param req 非同期Webサーバーリクエスト
+ */
 void WebServerClass::UpdateAutoChangeWiFi(AsyncWebServerRequest *req) {
     StaticJsonDocument<200> doc;
     String message = "", jsonBuffer = "";
@@ -95,7 +113,7 @@ void WebServerClass::UpdateAutoChangeWiFi(AsyncWebServerRequest *req) {
     req->send_P(statusCode, APPJSON, jsonBuffer.c_str());
 }
 
-// page 404
+// 404ページ
 void WebServerClass::handleNotFound(AsyncWebServerRequest *req) {
     StaticJsonDocument<200> doc;
 
@@ -117,6 +135,14 @@ void WebServerClass::handleNotFound(AsyncWebServerRequest *req) {
     req->send_P(codeRes, APPJSON, jsonRes.c_str());
 }
 
+/**
+ * @brief JSONデシリアライズエラーを処理します。
+ * @param program エラーが発生したプログラム名
+ * @param error デシリアライズエラー
+ * @param errorState エラーステートポインタ
+ * @param statusCode ステータスコードポインタ
+ * @param res レスポンスメッセージポインタ
+ */
 void WebServerClass::handleError_deserializeJson(
     const String &program, DeserializationError error,
     bool *errorState, int *statusCode, String *res

@@ -109,9 +109,9 @@ uint32_t FertilizerProgram::getDaysRemaining() const {
 /**
  * @brief 次回の施肥予定日を取得する。
  */
-DateTime FertilizerProgram::getNextFertilizerDay() const {
-    return DateTime(this->lastFertilizerDay) +
-           TimeSpan(INTERVAL_FERTILIZER, 0, 0, 0);
+uint32_t FertilizerProgram::getNextFertilizerDay() const {
+    DateTime nextDay =  DateTime(this->lastFertilizerDay) + TimeSpan(INTERVAL_FERTILIZER, 0, 0, 0);
+    return nextDay.unixtime();
 }
 
 /**

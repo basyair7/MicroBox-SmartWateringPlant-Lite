@@ -1,7 +1,7 @@
 /**
  *  @file variable
  *  @version 1.0.0
- *  @brief This file contains the pin definitions and configuration constants for the project.
+ *  @brief このファイルにはプロジェクトのピン定義と設定定数が含まれます。
  *  @date 2025
  *  @author basyair7
  *  
@@ -23,32 +23,38 @@
 
 #include <Arduino.h>
 
-// PIN I/O COMPONENTS
-// Don't use GPIO22 (I2C SCL) and GPIO21 (I2C SDA)
-#define BOOTBUTTON          0           ///< Pin for the boot button 
-#define LED_RUNNING         BUILTIN_LED ///< Pin for Built-in LED indicator pin GPIO2
+// PIN I/O コンポーネント
+// GPIO22 (I2C SCL) と GPIO21 (I2C SDA) は使用しないでください
+#define BOOTBUTTON          0           ///< ブートボタンのピン
+#define LED_RUNNING         BUILTIN_LED ///< 組み込みLEDインジケーターピン GPIO2
 #define LED_WARNING         4
-#define BTN_RELAY_1         12          ///< Pin for the switcher relay 1
-#define BTN_RELAY_2         13          ///< Pin for the switcher relay 2
-#define PIN_DHT             14          ///< Pin for the DHT module
-#define BTN_AUTOWATERING    18          ///< Pin for the Auto Watering (enable or disable)
-#define PIN_WATERTEMP       19          ///< Pin for the water temperature sensor (DS18B20) 
-#define BTN_BACKLIGHT       25          ///< Pin for the backlight (enable or disable) 
-#define PIN_DS18B20         33          ///< Pin for the DS18B20 temperature sensor
-#define PIN_TDS             34          ///< Pin for the TDS sensor
-#define PIN_SMS             35          ///< Pin for the Soil Moisture Sensor
+#define BTN_RELAY_1         12          ///< リレースイッチャー1のピン
+#define BTN_RELAY_2         13          ///< リレースイッチャー2のピン
+#define PIN_DHT             14          ///< DHTモジュールのピン
+#define BTN_AUTOWATERING    18          ///< 自動灌水のピン（有効または無効）
+#define PIN_WATERTEMP       19          ///< 水温センサー (DS18B20) のピン
+#define BTN_BACKLIGHT       25          ///< バックライトのピン（有効または無効）
+#define PIN_DS18B20         33          ///< DS18B20温度センサーのピン
+#define PIN_TDS             34          ///< TDSセンサーのピン
+#define PIN_SMS             35          ///< 土壌水分センサーのピン
 
-// Define pinout relay
+// リレーピンアウトを定義
 #define RELAY1              26
 #define RELAY2              27
-#define RELAY_FERTILIZER    32
+#define RELAY_FERTILIZER    23
+#define RELAY_MOTOR         32
 #define VAR_SWITCH          "relay"
 
-#define WATERING_LVL_MAX    80   //< Watering Level Maximum for Soil Moisture
-#define WATERING_LVL_MIN    30   //< Watering Level Minimum for Soil Moisture
-#define PPM_TARGET          500  //< 
-#define PPM_TOLERANCE       10   //< 
-#define INTERVAL_FERTILIZER 7    //< Interval for fertilizer application in days
+#define WATERING_LVL_MAX    80   //< 土壌水分に対する灌水レベルの最大値
+#define WATERING_LVL_MIN    30   //< 土壌水分に対する灌水レベルの最小値
+
+#define PPM_TARGET          500  //< TDSの目標値 (PPM)
+#define PPM_TOLERANCE       10   //< TDSの許容範囲 (PPM)
+
+#define HOUR_FERTILIZER     8
+#define MINUTE_FERTILIZER   10
+#define INTERVAL_FERTILIZER 7    //< 肥料適用間隔（日数）
+
 
 inline const uint16_t RELAY_PINS[2] = {
     RELAY1, RELAY2
@@ -58,8 +64,8 @@ inline const String VALUE_DEFAULT[2] {
     "Relay 1", "Relay 2"
 };
 
-// EEPROM address definitions
-// Don't replace these addresses as they are cirtical for EEPROM operations
-#define ADDR_EEPROM_WIFI_MODE     0x04 ///< EEPROM address for storing Wi-Fi mode
+// EEPROMアドレス定義
+// EEPROM操作にとって重要なため、これらのアドレスを置き換えないでください
+#define ADDR_EEPROM_WIFI_MODE     0x04 ///< Wi-Fiモードを保存するためのEEPROMアドレス
 #define ADDR_EEPROM_BACKLIGHT_LCD 0x08
 #define ADDR_EEPROM_AUTO_FERTILIZER 0x0C

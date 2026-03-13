@@ -1,9 +1,9 @@
 /**
  *  @file main.cpp
  *  @version 1.0.1
- *  @brief Main program for the Arduino framework.
- *  @details This file contains the main entry of the ESP32 program.
- *           Be careful when modifying this file, as it may affect the entrie program's behavior.
+ *  @brief Arduinoフレームワークのメインプログラム。
+ *  @details このファイルにはESP32プログラムのメインエントリが含まれます。
+ *           このファイルを変更する際は注意してください、プログラム全体の動作に影響を与える可能性があります。
  *  @author basyair7
  *  @date 2026
  *  
@@ -27,21 +27,21 @@
 #include "MicroBox_main.h"
 
 /**
- * @brief Initializes the program by delegating to the Main class setup.
- * @details This function serves as the `setup` implementation from `MicroBox_main.h`
- *          It calls the `Main::SETUP` function for user-defined initialization logic.
- * @param baudRate Baud rate for serial communication.
- * @param erase_eeprom Boolean flag to erase EEPROM data (default: false).
+ * @brief Mainクラスのsetupに委譲してプログラムを初期化します。
+ * @details この関数は`MicroBox_main.h`からの`setup`実装として機能します。
+ *          ユーザー定義の初期化ロジックのために`Main::SETUP`関数を呼び出します。
+ * @param baudRate シリアル通信のボーレート。
+ * @param erase_eeprom EEPROMデータを消去するブールフラグ（デフォルト: false）。
  */
 void setup() {
-    // Initialize the main program with serial communication speed set to 115200 bps.
-    // EEPROm program loading is disable (false)
+    // シリアル通信速度を115200 bpsに設定してメインプログラムを初期化します。
+    // EEPROMプログラムの読み込みは無効（false）です。
     Main::SETUP(115200, false);
 }
 
 /**
- * @brief Executes the main program loop by delegating to the Main class loop.
- * @details This function serves as the `loop` implementation from `MicroBox_main.h`
+ * @brief Mainクラスのloopに委譲してメインプログラムループを実行します。
+ * @details この関数は`MicroBox_main.h`からの`loop`実装として機能します。
  */
 void loop() {
     Main::LOOP();

@@ -21,6 +21,7 @@
  */
 
 #include "MicroBox/software/LFSMemory"
+#include "MicroBox/externobj"
 
 #define enable  true
 #define disable false
@@ -38,6 +39,7 @@ bool _writeConfigState = disable;
  */
 String LFSMemory::readconfig(const String path) {
     while (_writeConfigState) {
+        led_warning.on();
         Serial.print(F("readconfig is busy, retrying...\n"));
         delay(10);
     }
@@ -56,10 +58,12 @@ String LFSMemory::readconfig(const String path) {
         delayMicroseconds(50);
     }
     else {
+        led_warning.on();
         Serial.printf("Failed to open file %s for reading\n", path.c_str());
         _val = "null";
     }
     
+    led_warning.off();
     _readConfigState = disable;
     return _val;
 }
@@ -73,6 +77,7 @@ String LFSMemory::readconfig(const String path) {
  */
 void LFSMemory::writeconfig(const String path, String valJson) {
     while (_readConfigState) {
+        led_warning.on();
         Serial.print(F("writeconfig is busy, retrying...\n"));
         delay(10);
     }
@@ -87,6 +92,7 @@ void LFSMemory::writeconfig(const String path, String valJson) {
 
     File _file = openfile(path, LFS_WRITE);
     if (!_file) {
+        led_warning.on();
         Serial.printf("Failed to open file %s for writing!\n", path.c_str());
         _writeConfigState = disable;
         return;
@@ -95,6 +101,7 @@ void LFSMemory::writeconfig(const String path, String valJson) {
     _file.write((const uint8_t *)valJson.c_str(), valJson.length());
     _file.flush();
     _file.close();
+    led_warning.off();
     
     // Serial.println("File written successfully.");
     _writeConfigState = disable;

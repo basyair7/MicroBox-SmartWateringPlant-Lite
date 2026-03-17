@@ -104,7 +104,7 @@ class AutoChangeState {
         }
         else {
             // WiFiが切断（せつだい）された場合、タイマーを開始します。
-            led_warning.run(true, 1000);
+            led_warning.runState(true, 1000);
             unsigned long elapsed = millis() - startMillis;
 
             if (elapsed >= timeout) {

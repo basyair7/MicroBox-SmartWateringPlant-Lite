@@ -27,6 +27,7 @@
 // WiFi接続中の場合、プログラムを実行する。
 void ProgramWiFiClass::WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info)
 {
+    led_warning.off();
     Serial.println(F("\nConnection to AP Successfully"));
 }
 
@@ -45,6 +46,7 @@ void ProgramWiFiClass::WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_
             this->__SSID_STA__.c_str(),
             this->__PASS_STA__.c_str()
         );
+        led_warning.run(1500);
     }
 }
 
@@ -110,6 +112,7 @@ void ProgramWiFiClass::wifi_mode_sta() {
 void ProgramWiFiClass::wifi_mode_ap() {
     // WiFiのAPモードに設定する。
     WiFi.mode(WIFI_AP);
+    led_warning.run(1500);
 
     // APモードでWiFiを開始する。
     WiFi.softAP(

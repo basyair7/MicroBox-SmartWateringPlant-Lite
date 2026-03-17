@@ -66,8 +66,12 @@ class LEDBoard {
          * @param state LEDの点滅状態を指定するブール値。trueで点滅、falseで点滅なしになります。
          * @param _delay LEDの点滅間隔をミリ秒単位で指定します。例えば、_delayが500の場合、LEDは500msごとに点滅します。
          */
-        static void RUN(const bool state, const uint32_t _delay) {
+        static void RUNSTATE(const bool state, const uint32_t _delay) {
             if (state) instance().runLED(_delay);
+        }
+
+        static void RUN(const uint32_t _delay) {
+            instance().runLED(_delay);
         }
 
         /**
@@ -102,8 +106,12 @@ class LEDBoard {
          * @param state LEDの点滅状態を指定するブール値。trueで点滅、falseで点滅なしになります。
          * @param _delay LEDの点滅間隔をミリ秒単位で指定します。例えば、_delayが500の場合、LEDは500msごとに点滅します。
          */
-        void run(const bool state, const uint32_t _delay) {
+        void runState(const bool state, const uint32_t _delay) {
             if (state) this->runLED(_delay);
+        }
+
+        void run(const uint32_t _delay) {
+            this->runLED(_delay);
         }
 
         /**

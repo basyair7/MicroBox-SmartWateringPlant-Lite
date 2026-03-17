@@ -27,26 +27,30 @@
 
 void onOTAStart() {
     otaDisplay = true;
-    if (xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) {
-        lcd.clear();
-        lcd.print("OTA update started!");
-        xSemaphoreGive(i2cMutex);
-    }
+    if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) return;
+    lcd.clear();
+    lcd.print("OTA update started!");    
+    xSemaphoreGive(i2cMutex);
 }
 
 void onOTAProgress(size_t current, size_t final) {
     static unsigned long ota_progress_millis = 0;
-    if (millis() - ota_progress_millis > 1000) {
+
+    if (millis() - ota_progress_millis > 500) {
         ota_progress_millis = millis();
-        if (xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) {
-            lcd.clear();
-            lcd.print("Current: ", 0, 0);
-            lcd.print(current);
-            lcd.print("byte");
-            lcd.print("Final: ", 0, 1);
-            lcd.print(final);
-            lcd.print("byte");
+
+        if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) return;
+
+        int progress = (current * 100) / final;
+        int bars = progress / 6; // max ~16 char
+
+        lcd.clear();
+        lcd.print("OTA Updating", 0, 0);
+
+        for (int i = 0; i < bars; i++) {
+            lcd.print("#");
         }
+
         xSemaphoreGive(i2cMutex);
     }
 }

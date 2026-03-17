@@ -27,7 +27,7 @@
 // GPIO22 (I2C SCL) と GPIO21 (I2C SDA) は使用しないでください
 #define BOOTBUTTON          0           ///< ブートボタンのピン
 #define LED_RUNNING         BUILTIN_LED ///< 組み込みLEDインジケーターピン GPIO2
-#define LED_WARNING         32
+#define LED_WARNING         5
 
 #define PIN_DHT             14          ///< DHTモジュールのピン
 #define PIN_WATERTEMP       15          ///< 水温センサー (DS18B20) のピン

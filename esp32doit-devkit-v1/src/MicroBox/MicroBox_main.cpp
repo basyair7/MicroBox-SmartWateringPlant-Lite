@@ -176,7 +176,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
                 slide = btnSlide;
             }
 
-            if (xSemaphoreTake(i2cMutex, portMAX_DELAY)) {
+            if (!otaDisplay && xSemaphoreTake(i2cMutex, portMAX_DELAY)) {
                 lcd.clear();
                 switch (slide) {
                     case 0:
@@ -428,9 +428,30 @@ void MicroBox_Main::loop() {
     */
 }
 
+/**
+ * @brief 起動時のスプラッシュ画面を表示する
+ * @details プロジェクト名（NAMEPROJECT）をLCD上で左スクロール表示し、
+ *          その後にバージョン情報（VERSIONPROJECT）を表示する。
+ *          一定時間表示した後、画面をクリアする。
+ * 
+ * @param _delay 表示後に待機する時間（ミリ秒）※現在は未使用
+ */
 void MicroBox_Main::splash_boot(uint32_t _delay) {
-    lcd.print(NAMEPROJECT, 0, 0);
-    lcd.print(VERSIONPROJECT, 0, 1);
+    LiquidCrystal_animated running_text;
+    size_t len = strlen(NAMEPROJECT);
+
+    // バージョン情報を表示する。
+    lcd.print("Version : ", 0, 1);
+    lcd.print(VERSIONPROJECT);
+
+    // プロジェクト名を左スクロール表示する。
+    for (byte i = 0; i < len + 16; i++) {
+        lcd.print(running_text.Scroll_LCD_Left(NAMEPROJECT), 0, 0);
+        delay(150);
+    }
+    running_text.Clear_Scroll_LCD_Left();
+
+    // 表示後に画面をクリアする。
     delay(_delay);
     lcd.clear();
 }

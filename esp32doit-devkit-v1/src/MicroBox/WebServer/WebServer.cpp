@@ -60,8 +60,8 @@ void onOTAEnd(bool success) {
     if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) return;
 
     lcd.clear();
-    lcd.print(success ? "OTA update" : "OTA error", 0, 0);
-    lcd.print(success ? "Success!" : "Update failed", 0, 1);
+    lcd.print(!success ? "OTA update" : "OTA error", 0, 0);
+    lcd.print(!success ? "Success!" : "Update failed", 0, 1);
 
     xSemaphoreGive(i2cMutex);
 }

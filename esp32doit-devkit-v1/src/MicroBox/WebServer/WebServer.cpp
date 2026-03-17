@@ -27,33 +27,42 @@
 
 void onOTAStart() {
     otaDisplay = true;
-    lcd.clear();
-    lcd.print("OTA update started!");
+    if (xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) {
+        lcd.clear();
+        lcd.print("OTA update started!");
+        xSemaphoreGive(i2cMutex);
+    }
 }
 
 void onOTAProgress(size_t current, size_t final) {
     static unsigned long ota_progress_millis = 0;
     if (millis() - ota_progress_millis > 1000) {
         ota_progress_millis = millis();
-        lcd.clear();
-        lcd.print("Current: ", 0, 0);
-        lcd.print(current);
-        lcd.print("byte");
-        lcd.print("Final: ", 0, 1);
-        lcd.print(final);
-        lcd.print("byte");
+        if (xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) {
+            lcd.clear();
+            lcd.print("Current: ", 0, 0);
+            lcd.print(current);
+            lcd.print("byte");
+            lcd.print("Final: ", 0, 1);
+            lcd.print(final);
+            lcd.print("byte");
+            xSemaphoreGive(i2cMutex);
+        }
     }
 }
 
 void onOTAEnd(bool success) {
-    if (success) {
-        lcd.clear();
-        lcd.print("OTA update finished successfully!", 0, 0);
+    if (xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) {
+        if (success) {
+            lcd.clear();
+            lcd.print("OTA update finished successfully!", 0, 0);
+        }
+        else {
+            lcd.clear();
+            lcd.print("There was an error during OTA update!");
+        }
     }
-    else {
-        lcd.clear();
-        lcd.print("There was an error during OTA update!");
-    }
+    xSemaphoreGive(i2cMutex);
 }
 
 void WebServerClass::ServerInit() {

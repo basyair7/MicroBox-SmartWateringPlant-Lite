@@ -47,6 +47,7 @@ void onOTAProgress(size_t current, size_t final) {
         lcd.clear();
         lcd.print("OTA Updating", 0, 0);
 
+        lcd.setCursor(0, 1);
         for (int i = 0; i < bars; i++) {
             lcd.print("#");
         }

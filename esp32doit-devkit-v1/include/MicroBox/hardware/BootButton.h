@@ -63,30 +63,5 @@ class BootButton {
          * @details この関数は、ブートボタンの状態を定期的に監視し、ボタンが押されたときにWiFiモードを切り替えます。
          * 切り替え後のWiFiモードはEEPROMに保存され、システムは再起動されます。
          */
-        void ChangeWiFiMode() {
-            // ブートボタンの現在の状態を読み取る
-            this->__current_btn_state = this->__bootBtn.digitalReadPushButton();
-            if (this->__current_btn_state != this->__last_btn_state)
-                this->__btn_change = true;
-
-            // ボタン状態が変化した場合の処理
-            if (this->__btn_change) {
-                if (!this->__current_btn_state) {
-                    this->__wifi_state = !this->__wifi_state; // WiFiモードを切り替える
-                    this->__MyEEPROM.save_wifi_state(this->__wifi_state); // EEPROMに新しいWiFiモードの状態を保存
-                    delay(50);
-                    // 切り替え後のWiFiモードをシリアルモニタに表示する。
-                    Serial.print(F("WiFi Mode : "));
-                    Serial.println(
-                        this->__wifi_state ? F("MODE STA") : F("MODE AP")
-                    );
-                    delay(2000);
-                    ESP.restart(); // システムを再起動して新しいWiFiモードを適用する
-                }
-                // ボタン状態の変化フラグをリセットする
-                this->__btn_change = false;
-            }
-            // 最後のボタン状態を更新する
-            this->__last_btn_state = this->__current_btn_state;
-        }
+        void ChangeWiFiMode();
 };

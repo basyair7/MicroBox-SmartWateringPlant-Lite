@@ -116,7 +116,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
 
     while (true) {
         // 土壌水分センサーを実行し、読み取り値を更新
-        soilmoisture.getData(true, 4095, 2500);
+        soilmoisture.getData(true, 3395, 4095);
 
         // DHTセンサーを実行し、読み取り値を更新
         dhtprog.running();
@@ -256,7 +256,7 @@ void MicroBox_Main::setup(unsigned long baud) {
     led_warning.begin(LED_WARNING);
     bootbtn.begin();
 
-    this->splash_boot(5000);
+    this->splash_boot(1000);
     
     // FreeRTOSタスクを作成
     static ThisRTOS rtos;

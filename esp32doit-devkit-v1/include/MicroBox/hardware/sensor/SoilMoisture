@@ -49,7 +49,7 @@ class SoilMoisture {
          * @param map_min マッピングの最小値「さいしょうち」（デフォルトは0）。通常「つうじょう」、センサーの最小生「さいしょうなま」データ値「あたい」に設定「せってい」されます。
          * @param map_max マッピングの最大値「さいだいち」（デフォルトは4095）。通常「つうじょう」、センサーの最大生「さいだいなま」データ値「あたい」に設定「せってい」されます。
          */
-        void getData(bool mapping = true, uint32_t map_min = 0, uint32_t map_max = 4095)
+        void getData(bool mapping = true, uint32_t wet = 0, uint32_t dry = 4095)
         {
             // begin()が呼び出されていない場合は、エラーメッセージを表示「ひょうじ」し、値「あたい」を-1に設定します。
             if (!this->_CHECK_BEGIN) {
@@ -63,7 +63,7 @@ class SoilMoisture {
             
             // mappingがtrueの場合、raw_resultを0-100の範囲「はんい」にマッピングします。そうでない場合は、生の値をそのまま使用「しよう」します。
             if (mapping) {
-                this->value = map(raw_result, map_min, map_max, 0, 100);
+                this->value = map(raw_result, wet, dry, 100, 0);
                 this->value = constrain(this->value, 0, 100);
             }
             else {

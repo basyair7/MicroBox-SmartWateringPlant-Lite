@@ -46,22 +46,18 @@ void onOTAProgress(size_t current, size_t final) {
             lcd.print("Final: ", 0, 1);
             lcd.print(final);
             lcd.print("byte");
-            xSemaphoreGive(i2cMutex);
         }
+        xSemaphoreGive(i2cMutex);
     }
 }
 
 void onOTAEnd(bool success) {
-    if (xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) {
-        if (success) {
-            lcd.clear();
-            lcd.print("OTA update finished successfully!", 0, 0);
-        }
-        else {
-            lcd.clear();
-            lcd.print("There was an error during OTA update!");
-        }
-    }
+    if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) return;
+
+    lcd.clear();
+    lcd.print(success ? "OTA update" : "OTA error", 0, 0);
+    lcd.print(success ? "Success!" : "Update failed", 0, 1);
+
     xSemaphoreGive(i2cMutex);
 }
 

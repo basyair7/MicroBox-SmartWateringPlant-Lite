@@ -82,8 +82,14 @@ unsigned long __lastMillis__ = 0, __lastTimeReboot__ = 0;
 bool RebootState = false; //!< Tracks ESP reboot state
 bool otaDisplay = false;
 
+/**
+ * @brief I2C通信用のミューテックス
+ * @details 複数タスクからI2Cデバイス（LCDやRTCなど）へ同時アクセスする際の競合を防ぐために使用する。
+ *          I2C通信を行う前にロックし、完了後に解放することで排他制御を実現する。
+ */
 SemaphoreHandle_t i2cMutex;
 
+// LCD表示モード
 enum LCDMode {
     LCD_AUTO,
     LCD_MANUAL

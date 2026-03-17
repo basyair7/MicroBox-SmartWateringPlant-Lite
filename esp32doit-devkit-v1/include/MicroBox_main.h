@@ -37,6 +37,11 @@ class MicroBox_Main {
     protected:
         /**
          * @brief システムをリブートする。
+         */
+        void splash_boot(uint32_t _delay);
+
+        /**
+         * @brief システムをリブートする。
          * @param baud シリアル通信のボーレート。
          */
         void setup(unsigned long baud);

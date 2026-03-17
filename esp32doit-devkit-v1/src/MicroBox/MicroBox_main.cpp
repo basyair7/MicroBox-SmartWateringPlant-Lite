@@ -176,12 +176,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
                 slide = btnSlide;
             }
 
-            // static uint8_t lastSlide = 255;
             if (xSemaphoreTake(i2cMutex, portMAX_DELAY)) {
-                // if (slide != lastSlide) {
-                //     lcd.clear();
-                //     lastSlide = slide;
-                // }
                 lcd.clear();
                 switch (slide) {
                     case 0:
@@ -398,6 +393,8 @@ void MicroBox_Main::setup(unsigned long baud) {
     lcd.init();
     rtcprog.begin(); //!< RTCプログラムを初期化
     xSemaphoreGive(i2cMutex);
+
+    this->splash_boot(5000);
     
     RelayController::BEGIN();
     led_running.begin(LED_RUNNING);
@@ -429,4 +426,11 @@ void MicroBox_Main::loop() {
      * ループには、他のタスクや
      * 実行する必要のある機能を含めることができます
     */
+}
+
+void MicroBox_Main::splash_boot(uint32_t _delay) {
+    lcd.print(NAMEPROJECT, 0, 0);
+    lcd.print(VERSIONPROJECT, 0, 1);
+    delay(_delay);
+    lcd.clear();
 }

@@ -35,7 +35,7 @@
  */
 class ButtonManagerClass {
     MyEEPROM eeprom_obj;    ///< バックライトの状態を保存（ほぞん）するためのEEPROMオブジェクト。
-    PushButtonDigital btnRelay1, btnRelay2, btnAutoWatering, btnBacklight; ///< リレーと機能のボタンオブジェクト。
+    PushButtonDigital btnRelay, btnAutoWatering, btnBacklight, btnDisplay; ///< リレーと機能のボタンオブジェクト。
     bool relayState1, relayState2, autoWateringState; ///< リレーと自動散水の現在の状態。
     bool lastRelay1, lastRelay2, lastAutoWatering, lastBacklight; ///< エッジ検出のための前回の状態。
 
@@ -83,14 +83,14 @@ class ButtonManagerClass {
         /**
          * @brief ボタンマネージャークラスのコンストラクタ。
           ここでは、各ボタンオブジェクトを初期化します。
-           例えば、btnRelay1はBTN_RELAY_1ピンに接続されたリレー1のボタンを表し、INPUTモードで初期化されます。
+           例えば、btnRelayはBTN_RELAYピンに接続されたリレーのボタンを表し、INPUTモードで初期化されます。
           他のボタンも同様に、対応するピンとINPUTモードで初期化されます。
          */
         ButtonManagerClass()
-            :   btnRelay1(BTN_RELAY_1, INPUT),
-                btnRelay2(BTN_RELAY_2, INPUT),
+            :   btnRelay(BTN_RELAY, INPUT),
                 btnAutoWatering(BTN_AUTOWATERING, INPUT),
-                btnBacklight(BTN_BACKLIGHT, INPUT) 
+                btnBacklight(BTN_BACKLIGHT, INPUT),
+                btnDisplay(BTN_DISPLAY, INPUT_PULLUP)
         {
             // TODO ("Not yet implemented")
         }
@@ -109,6 +109,8 @@ class ButtonManagerClass {
           他のボタンも同様に、対応する機能を切り替えるコードを実装できます。
          */
         void update();
+
+        uint8_t updateDisplay(const uint8_t interval);
 };
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined (NO_GLOBAL_ButtonManager)

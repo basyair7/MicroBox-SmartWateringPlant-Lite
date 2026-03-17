@@ -135,6 +135,22 @@ void WebServerClass::RoutesSystem() {
             std::placeholders::_1
         )
     );
+
+    // RTC設定のHTTP GETエンドポイントを設定
+    this->serverAsync.on("/config-rtc", HTTP_GET,
+        std::bind(
+            &WebServerClass::RTC_Config_Main, this,
+            std::placeholders::_1
+        )
+    );
+
+    // RTC設定保存のHTTP POSTエンドポイントを設定
+    this->serverAsync.on("/save-config-rtc", HTTP_POST,
+        std::bind(
+            &WebServerClass::Save_RTC_Config, this,
+            std::placeholders::_1
+        )
+    );
 }
 
 /**

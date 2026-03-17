@@ -27,22 +27,23 @@
 // GPIO22 (I2C SCL) と GPIO21 (I2C SDA) は使用しないでください
 #define BOOTBUTTON          0           ///< ブートボタンのピン
 #define LED_RUNNING         BUILTIN_LED ///< 組み込みLEDインジケーターピン GPIO2
-#define LED_WARNING         4
-#define BTN_RELAY_1         12          ///< リレースイッチャー1のピン
-#define BTN_RELAY_2         13          ///< リレースイッチャー2のピン
+#define LED_WARNING         32
+
 #define PIN_DHT             14          ///< DHTモジュールのピン
-#define BTN_AUTOWATERING    18          ///< 自動灌水のピン（有効または無効）
-#define PIN_WATERTEMP       19          ///< 水温センサー (DS18B20) のピン
-#define BTN_BACKLIGHT       25          ///< バックライトのピン（有効または無効）
-#define PIN_DS18B20         33          ///< DS18B20温度センサーのピン
+#define PIN_WATERTEMP       15          ///< 水温センサー (DS18B20) のピン
 #define PIN_TDS             34          ///< TDSセンサーのピン
 #define PIN_SMS             35          ///< 土壌水分センサーのピン
+
+#define BTN_RELAY           12          ///< リレースイッチャーのピン
+#define BTN_AUTOWATERING    13          ///< 自動灌水のピン（有効または無効）
+#define BTN_DISPLAY         18          
+#define BTN_BACKLIGHT       25          ///< バックライトのピン（有効または無効）
 
 // リレーピンアウトを定義
 #define RELAY1              26
 #define RELAY2              27
 #define RELAY_FERTILIZER    23
-#define RELAY_MOTOR         32
+#define RELAY_MOTOR         4
 #define VAR_SWITCH          "relay"
 
 #define WATERING_LVL_MAX    80   //< 土壌水分に対する灌水レベルの最大値

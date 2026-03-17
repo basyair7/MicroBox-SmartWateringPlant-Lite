@@ -24,6 +24,38 @@
 #include "MicroBox/software/WebServer"
 #include "MicroBox/software/ProgramWiFi"
 
+
+void onOTAStart() {
+    otaDisplay = true;
+    lcd.clear();
+    lcd.print("OTA update started!");
+}
+
+void onOTAProgress(size_t current, size_t final) {
+    static unsigned long ota_progress_millis = 0;
+    if (millis() - ota_progress_millis > 1000) {
+        ota_progress_millis = millis();
+        lcd.clear();
+        lcd.print("Current: ", 0, 0);
+        lcd.print(current);
+        lcd.print("byte");
+        lcd.print("Final: ", 0, 1);
+        lcd.print(final);
+        lcd.print("byte");
+    }
+}
+
+void onOTAEnd(bool success) {
+    if (success) {
+        lcd.clear();
+        lcd.print("OTA update finished successfully!", 0, 0);
+    }
+    else {
+        lcd.clear();
+        lcd.print("There was an error during OTA update!");
+    }
+}
+
 void WebServerClass::ServerInit() {
     // LittleFSを初期化する。
     // lfsprog.setupLFS();
@@ -36,6 +68,9 @@ void WebServerClass::ServerInit() {
 
     // OTA (Over The Air) 更新のために、ElegantOTAを初期化する。
     ElegantOTA.begin(&this->serverAsync);
+    ElegantOTA.onStart(onOTAStart);
+    ElegantOTA.onProgress(onOTAProgress);
+    ElegantOTA.onEnd(onOTAEnd);
 
     // WebSocketをセットアップする。クライアントが接続したときのイベントハンドラーを指定する。
     this->ws.onEvent(std::bind(
@@ -76,13 +111,14 @@ void WebServerClass::run_css_js_webserver() {
     // CSSファイルとJavaScriptファイルのリストを定義する。
     const std::vector<String> list_css_files = {
         "recovery.css", "index.css", 
-        "config_wifi_ap.css", "config_wifi_sta.css"
+        "config_wifi_ap.css", "config_wifi_sta.css",
+        "config_rtc.css"
     };
 
     const std::vector<String> list_js_files = {
         "clock.js", "data_server.js", "reboot.js",
         "reset-sys.js", "sweetalert.min.js", "switchBlynk.js",
-        "toggleCheck.js"
+        "toggleCheck.js", "date_time_rtc.js"
     };
 
     // 各CSSファイルを提供するための静的ルートを設定する。

@@ -49,3 +49,6 @@ extern WateringSys wateringSys;
 
 extern bool RebootState;
 extern unsigned long __lastTimeReboot__;
+extern bool otaDisplay;
+
+extern SemaphoreHandle_t i2cMutex;

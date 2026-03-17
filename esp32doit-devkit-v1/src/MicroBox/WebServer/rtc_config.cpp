@@ -79,7 +79,7 @@ void WebServerClass::Save_RTC_Config(AsyncWebServerRequest *req) {
 
         // 日付を解析
         __YEAR__  = date.substring(0, 4).toInt();
-        __MONTH__ = date.substring(3, 5).toInt();
+        __MONTH__ = date.substring(5, 7).toInt();
         __DAY__   = date.substring(8, 10).toInt();
 
         // 時間を解析

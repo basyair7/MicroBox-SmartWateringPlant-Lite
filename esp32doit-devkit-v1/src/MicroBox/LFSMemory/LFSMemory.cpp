@@ -136,12 +136,14 @@ void LFSMemory::initializeOrUpdateState(const String &cfile, std::function<void 
     }
     else {
         DeserializationError error = deserializeJson(doc, __readConfig__);
-        if (error) {
+        if (error || __readConfig__.length() == 0) {
             this->handleError_deserializeJson(
                 "initializeOrUpdateState", // エラー追跡用関数名
                 error.c_str() // エラーメッセージ
             );
-            return;
+            doc.clear();
+            doc[AUTOWATERING] = false;
+            doc[AUTOCHANGE]   = false;
         }
     }
 
@@ -280,6 +282,10 @@ void LFSMemory::setupLFS(void) {
     
     // LittleFSの初期化に成功した場合、必要なディレクトリを作成し、設定ファイルを初期化して、保存されているファイルを一覧表示する。
     this->createDirIfNeeded("/config");
+    this->createDirIfNeeded("/web");
+    this->createDirIfNeeded("/web/html");
+    this->createDirIfNeeded("/web/css");
+    this->createDirIfNeeded("/web/js");
     this->initializeWiFiConfig();
     this->initializeVarRelay();
     this->initializeState();

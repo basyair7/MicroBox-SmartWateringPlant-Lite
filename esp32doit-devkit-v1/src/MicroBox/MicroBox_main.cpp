@@ -80,6 +80,14 @@ FertilizerProgram fertilizerProg; //<! 肥料システムプログラム
 // タスク実行のためのミリ秒トラッカー
 unsigned long __lastMillis__ = 0, __lastTimeReboot__ = 0;
 bool RebootState = false; //!< Tracks ESP reboot state
+bool otaDisplay = false;
+
+SemaphoreHandle_t i2cMutex;
+
+enum LCDMode {
+    LCD_AUTO,
+    LCD_MANUAL
+};
 
 /**
  * @brief センサー更新と灌水制御を実行するタスク。
@@ -97,6 +105,11 @@ void ThisRTOS::vTask1(void *pvParameter) {
     tdsprog.begin();
     watertemp.begin();
 
+    constexpr uint8_t SLIDE_DURATION = 5;
+    constexpr uint8_t TOTAL_SLIDES = 12;
+    constexpr uint8_t MAX_STATE = SLIDE_DURATION * TOTAL_SLIDES;
+    constexpr uint8_t AUTO_MODE_INDEX = TOTAL_SLIDES;
+
     while (true) {
         // 土壌水分センサーを実行し、読み取り値を更新
         soilmoisture.getData(true, 4095, 2500);
@@ -105,101 +118,164 @@ void ThisRTOS::vTask1(void *pvParameter) {
         dhtprog.running();
 
         // 水温センサーを実行し、読み取り値を更新
-        // watertemp.update();
+        watertemp.update();
 
         // TDSプログラムに水温を設定して補正
-        // tdsprog.setTemperature(watertemp.getTemperature());
+        tdsprog.setTemperature(watertemp.getTemperature());
 
         // TDSセンサーを実行し、読み取り値を更新
         tdsprog.update();
 
         bool watering_process = wateringSys.WateringProcess;
         watering_process ? led_running.on() : led_running.off();
+        
+        uint8_t btnSlide = ButtonManager.updateDisplay(AUTO_MODE_INDEX);
+
+        static String rtcDate;
+        static String rtcTime;
+        static unsigned long lastRTC = 0;
+
+        if (millis() - lastRTC >= 1000) {
+
+            if (xSemaphoreTake(i2cMutex, portMAX_DELAY)) {
+                rtcDate = rtcprog.datestr();
+                rtcTime = rtcprog.timestr();
+                xSemaphoreGive(i2cMutex);
+            }
+
+            lastRTC = millis();
+        }
 
         static unsigned long LastTimeRefreshLCD = 0;
         if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1500L) {
             LastTimeRefreshLCD = millis();
 
-            auto updateLCD = [](int state, bool watering_process) {
-                if (state <= 5) {
-                    lcd.clear();
-                    lcd.print("Water Temp: ", 0, 0);
-                    lcd.print(String(watertemp.getTemperature()) + "°C");
-                    lcd.print("TDS Value: ", 0, 1);
-                    lcd.print(String(tdsprog.getTDSValue()) + " ppm");
-                }
-
-                if (state >= 5 && state <= 10) {
-                    lcd.clear();
-                    lcd.print("Soil Moisture", 0, 0);
-                    lcd.print("Value: ", 0, 1);
-                    lcd.print(String(soilmoisture.value) + "%");
-                }
-                
-                if (state >= 10 && state <= 15) {
-                    lcd.clear();
-                    lcd.print("Temp: ", 0, 0);
-                    lcd.print(String(dhtprog.temperature) + "°C");
-                    lcd.print("Hum: ", 0, 1);
-                    lcd.print(String(dhtprog.humidity) + "%");
-                }
-
-                if (state >= 15 && state <= 20) {
-                    lcd.clear();
-                    lcd.print("Auto Watering: ", 0, 0);
-                    lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
-                }
-
-                if (state >= 20 && state <= 25) {
-                    lcd.clear();
-                    lcd.print("Watering: ", 0, 0);
-                    lcd.print(watering_process ? "RUN" : "IDLE", 0, 1);
-                }
-
-                if (state >= 25 && state <= 30) {
-                    lcd.clear();
-                    lcd.print("Fertilizer: ", 0, 0);
-                    lcd.print(fertilizerProg.stateToString(), 0, 1);
-                }
-
-                if (state >= 30 && state <= 35) {
-                    lcd.clear();
-                    lcd.print("Fertilizer Date: ", 0, 0);
-                    lcd.print("Next: ", 0, 1);
-                    lcd.print(fertilizerProg.getNextFertilizerDay());
-                }
-
-                if (state >= 35 && state <= 40) {
-                    lcd.clear();
-                    lcd.print("Fertilizer Date: ", 0, 0);
-                    lcd.print("Passed: ", 0, 1);
-                    lcd.print(fertilizerProg.getDaysPassed());
-                }
-
-                if (state >= 40 && state <= 45) {
-                    lcd.clear();
-                    lcd.print("Fertilizer Date: ", 0, 0);
-                    lcd.print("Remaining: ", 0, 1);
-                    lcd.print(fertilizerProg.getDaysRemaining());
-                }
-
-                if (state >= 50 && state <= 55) {
-                    lcd.clear();
-                    lcd.print("WiFi mode: ", 0, 0);
-                    lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
-                }
-
-                if (state >= 55 && state <= 60) {
-                    lcd.clear();
-                    String statusWiFiSta = WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected";
-                    lcd.print("Status: ", 0, 0);
-                    lcd.print(WiFi.getMode() == WIFI_STA ? statusWiFiSta : "Unknown", 0, 1);
-                }
-            };
-
+            static LCDMode lcdMode = LCD_AUTO;
             static int lcdState = 0;
-            updateLCD(lcdState, watering_process);
-            lcdState = (lcdState + 1) % 30;
+            static uint8_t autoSlide = 0;
+            
+            uint8_t slide;
+
+            if (btnSlide == AUTO_MODE_INDEX) {
+                lcdMode = LCD_AUTO;
+            } else {
+                lcdMode = LCD_MANUAL;
+            }
+
+            if (lcdMode == LCD_AUTO) {
+                lcdState = (lcdState + 1) % MAX_STATE;
+                slide = lcdState / SLIDE_DURATION;
+            }
+            else {
+                slide = btnSlide;
+            }
+
+            // static uint8_t lastSlide = 255;
+            if (xSemaphoreTake(i2cMutex, portMAX_DELAY)) {
+                // if (slide != lastSlide) {
+                //     lcd.clear();
+                //     lastSlide = slide;
+                // }
+                lcd.clear();
+                switch (slide) {
+                    case 0:
+                    {
+                        lcd.print("Water Temp: ", 0, 0);
+                        lcd.print(String(watertemp.getTemperature()) + "*C");
+                        lcd.print("TDS Value: ", 0, 1);
+                        lcd.print(String(tdsprog.getTDSValue()) + " ppm");
+                    }
+                    break;
+
+                    case 1:
+                    {
+                        lcd.print("Soil Moisture", 0, 0);
+                        lcd.print("Value: ", 0, 1);
+                        lcd.print(String(soilmoisture.value) + "%");
+                    }
+                    break;
+
+                    case 2:
+                    {
+                        lcd.print("Temp: ", 0, 0);
+                        lcd.print(String(dhtprog.temperature) + "*C");
+                        lcd.print("Hum: ", 0, 1);
+                        lcd.print(String(dhtprog.humidity) + "%");
+                    }
+                    break;
+
+                    case 3:
+                    {
+                        lcd.print("Auto Watering: ", 0, 0);
+                        lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
+                    }
+                    break;
+
+                    case 4:
+                    {
+                        lcd.print("Watering: ", 0, 0);
+                        lcd.print(watering_process ? "RUN" : "IDLE", 0, 1);
+                    }
+                    break;
+
+                    case 5:
+                    {
+                        lcd.print("Fertilizer: ", 0, 0);
+                        lcd.print(fertilizerProg.stateToString(), 0, 1);
+                    }
+                    break;
+
+                    case 6:
+                    {
+                        lcd.print("Fertilizer Date: ", 0, 0);
+                        lcd.print("Next: ", 0, 1);
+                        lcd.print(fertilizerProg.getNextFertilizerDay());
+                    }
+                    break;
+
+                    case 7:
+                    {
+                        lcd.print("Fertilizer Date: ", 0, 0);
+                        lcd.print("Passed: ", 0, 1);
+                        lcd.print(fertilizerProg.getDaysPassed());
+                    
+                    }
+                    break;
+
+                    case 8:
+                    {
+                        lcd.print("Fertilizer Date: ", 0, 0);
+                        lcd.print("Remaining: ", 0, 1);
+                        lcd.print(fertilizerProg.getDaysRemaining());
+                    }
+                    break;
+
+                    case 9:
+                    {
+                        lcd.print("WiFi mode: ", 0, 0);
+                        lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
+                    }
+                    break;
+
+                    case 10:
+                    {
+                        String statusWiFiSta = WiFi.status() == WL_CONNECTED ? "Connected" : "Disconnected";
+                        lcd.print("Status: ", 0, 0);
+                        lcd.print(WiFi.getMode() == WIFI_STA ? statusWiFiSta : "Unknown", 0, 1);
+                    }
+                    break;
+
+                    case 11:
+                    {
+                        lcd.print("Date : ", 0, 0);
+                        lcd.print(rtcDate);
+                        lcd.print("Time : ", 0, 1);
+                        lcd.print(rtcTime);
+                    }
+                    break;
+                }
+                xSemaphoreGive(i2cMutex);
+            }
         }
 
         // タスク実行頻度を制御するために100ミリ秒遅延
@@ -298,6 +374,10 @@ void ThisRTOS::vTask3(void *pvParameter) {
  *          - RTOSプログラム
  */
 void MicroBox_Main::setup(unsigned long baud) {
+    Wire.begin(21, 22); // SDA, SCL
+    Wire.setClock(100000);
+    Wire.setTimeOut(200);
+
     Serial.begin(baud); //!< Initialize serial communication
 
     // EEPROMを初期化
@@ -307,32 +387,35 @@ void MicroBox_Main::setup(unsigned long baud) {
     lfsprog.setupLFS();
 
     // ハードウェアコンポーネントを初期化
+    i2cMutex = xSemaphoreCreateMutex();
+    xSemaphoreTake(i2cMutex, portMAX_DELAY);
     lcd.init();
+    rtcprog.begin(); //!< RTCプログラムを初期化
+    xSemaphoreGive(i2cMutex);
+    
     RelayController::BEGIN();
     led_running.begin(LED_RUNNING);
     led_warning.begin(LED_WARNING);
     bootbtn.begin();
 
-    rtcprog.begin(); //!< RTCプログラムを初期化
     
     // FreeRTOSタスクを作成
-    // ThisRTOS *rtos = new ThisRTOS;
+    static ThisRTOS rtos;
     // タスクを作成し、vTask 1を実行
     xTaskCreateUniversal([](void *param) {
         static_cast<ThisRTOS*>(param)->vTask1(param);
-    }, "Task 1", 4096, NULL, 1, NULL, PRO_CPU_NUM);
+    }, "Task 1", 4096, &rtos, 1, NULL, PRO_CPU_NUM);
     
     // タスクを作成し、vTask 2を実行
     xTaskCreateUniversal([](void *param) {
         static_cast<ThisRTOS*>(param)->vTask2(param);
-    }, "Task 2", 4096, NULL, 1, NULL, APP_CPU_NUM);
+    }, "Task 2", 4096, &rtos, 1, NULL, APP_CPU_NUM);
 
     // タスクを作成し、vTask 3を実行
     xTaskCreateUniversal([](void *param) {
         static_cast<ThisRTOS*>(param)->vTask3(param);
-    }, "Task 3", 4096, NULL, 1, NULL, APP_CPU_NUM);
+    }, "Task 3", 4096, &rtos, 1, NULL, APP_CPU_NUM);
 
-    // delete rtos;
 }
 
 void MicroBox_Main::loop() {

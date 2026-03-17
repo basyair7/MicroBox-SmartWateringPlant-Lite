@@ -46,8 +46,8 @@ class DS3231rtc {
      * @brief 現在の日時を取得する関数。
      * @return 現在の日時を表すDateTimeオブジェクト。
      */
-    uint8_t hours() {
-        uint8_t __hours__ = this->__rtc__.now().hour();
+    uint8_t hours(DateTime now) {
+        uint8_t __hours__ = now.hour();
         return (__hours__ > 12) ? (__hours__ - 12) : (__hours__ == 0 ? 12 : __hours__); // 24時間表記を12時間表記に変換 
     }
 
@@ -97,9 +97,10 @@ class DS3231rtc {
          */
         template<typename T>
         void date(T *month = nullptr, T *day = nullptr, T *year = nullptr) {
-            if (month) *month = this->now().month();
-            if (day) *day = this->now().day();
-            if (year) *year = this->now().year();
+            DateTime now = this->__rtc__.now();
+            if (month) *month = now.month();
+            if (day) *day = now.day();
+            if (year) *year = now.year();
         }
 
         /**
@@ -115,15 +116,16 @@ class DS3231rtc {
          */
         template<typename T>
         void time(T *hour = nullptr, T *minute = nullptr, T *second = nullptr, String *am_pm = nullptr) {
+            DateTime now = this->__rtc__.now();
             if (!this->_twelve_hour_format) {
-                if (hour) *hour = this->now().hour();
+                if (hour) *hour = now.hour();
             } else {
-                if (hour) *hour = this->hours();
-                if (am_pm) *am_pm = (this->now().hour() < 12) ? "AM" : "PM";
+                if (hour) *hour = this->hours(now);
+                if (am_pm) *am_pm = (now.hour() < 12) ? "AM" : "PM";
             }
 
-            if (minute) *minute = this->now().minute();
-            if (second) *second = this->now().second();
+            if (minute) *minute = now.minute();
+            if (second) *second = now.second();
         }
 
         /**
@@ -133,9 +135,10 @@ class DS3231rtc {
          *          この関数は、現在の日付を簡単に文字列形式で取得するための便利な方法を提供します。
          */
         String datestr(void) {
-            return String(this->now().month()) + "/"
-                + String(this->now().day()) + "/"
-                + String(this->now().year());
+            DateTime now = this->__rtc__.now();
+            return String(now.month()) + "/"
+                + String(now.day()) + "/"
+                + String(now.year());
         }
 
         /**
@@ -145,16 +148,18 @@ class DS3231rtc {
          *          この関数は、現在の時間を簡単に文字列形式で取得するための便利な方法を提供します。
          */
         String timestr(void) {
+            DateTime now = this->__rtc__.now();
+
             if (!this->_twelve_hour_format) {
-                return String(this->now().hour()) + ":"
-                    + String(this->now().minute()) + ":"
-                    + String(this->now().second());
+                return String(now.hour()) + ":"
+                    + String(now.minute()) + ":"
+                    + String(now.second());
             }
 
-            return String(this->hours()) + ":"
-                + String(this->now().minute()) + ":"
-                + String(this->now().second()) + " "
-                + ((this->now().hour() < 12) ? "AM" : "PM");
+            return String(this->hours(now)) + ":"
+                + String(now.minute()) + ":"
+                + String(now.second()) + " "
+                + ((now.hour() < 12) ? "AM" : "PM");
         }
 
         /**

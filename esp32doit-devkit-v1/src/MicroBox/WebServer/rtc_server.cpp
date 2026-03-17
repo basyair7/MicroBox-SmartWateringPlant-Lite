@@ -25,8 +25,11 @@
 
 void WebServerClass::__getRTCServer__(StaticJsonDocument<200> &doc) {
     JsonObject _datetime = doc.createNestedObject("datetime");
-    _datetime["date"] = rtcprog.datestr();
-    _datetime["time"] = rtcprog.timestr();
+    if (xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) {
+        _datetime["date"] = rtcprog.datestr();
+        _datetime["time"] = rtcprog.timestr();
+        xSemaphoreGive(i2cMutex);
+    }
 }
 
 void WebServerClass::RTCServer(AsyncWebServerRequest *req) {

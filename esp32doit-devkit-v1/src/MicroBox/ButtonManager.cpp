@@ -57,6 +57,7 @@ void ButtonManagerClass::toggleAutoWatering() {
     if (currentState != this->lastAutoWatering) {
         if (!currentState) {
             this->autoWateringState = !this->autoWateringState;
+            wateringSys.AutoWateringState = this->autoWateringState;
             lfsprog.changeConfigState(AUTOWATERING, this->autoWateringState);
         }
     }
@@ -80,15 +81,30 @@ void ButtonManagerClass::toggleBacklight() {
     lastBacklight = currentState;
 }
 
+uint8_t ButtonManagerClass::updateDisplay(const uint8_t interval) {
+    static bool lastState;
+    static uint8_t count = interval;
+
+    bool btn = btnDisplay.digitalReadPushButton();
+    if (btn != lastState) 
+        if (!btn) {
+            count++;
+            count = (count > interval ? 0 : count);
+        }
+    lastState = btn;
+
+    return count;
+}
+
 /**
  * @brief ButtonManagerClassの初期化を行う。各ボタンの初期化と、EEPROMからの状態の読み込みを行う。
  * @details 各リレーの状態もEEPROMから読み込まれ、初期化される。
  */
 void ButtonManagerClass::init() {
-    btnRelay1.init();
-    btnRelay2.init();
+    btnRelay.init();
     btnAutoWatering.init();
     btnBacklight.init();
+    btnDisplay.init();
 
     this->backlightState = this->eeprom_obj.read(ADDR_EEPROM_BACKLIGHT_LCD);
     this->autoWateringState = wateringSys.AutoWateringState;
@@ -109,8 +125,8 @@ void ButtonManagerClass::init() {
  */
 void ButtonManagerClass::update() {
     if (!this->autoWateringState) {
-        this->toggleRelay(btnRelay1, relayState1, lastRelay1, 0);
-        this->toggleRelay(btnRelay2, relayState2, lastRelay2, 1);
+        this->toggleRelay(btnRelay, relayState1, lastRelay1, 0);
+        this->toggleRelay(btnRelay, relayState2, lastRelay2, 1);
     }
     
     this->toggleAutoWatering();

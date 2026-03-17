@@ -31,15 +31,17 @@
 class MicroBox_Main {
     /****** ADD NEW FUNCTION HERE / ここに新しい関数を追加する。 ******/
     // void __example__(void);
+    /**
+     * @brief システムをリブートする。
+     */
+    public:
+        void splash_boot(uint32_t _delay);
+        void DisplayProgram(void);
+    
     
     /****** DON'T MODIFY THIS METHOD's FUNCTION (BE CAREFUL)! ******/
     /****** このメソッドの機能を変更しないこと（注意）！******/
     protected:
-        /**
-         * @brief システムをリブートする。
-         */
-        void splash_boot(uint32_t _delay);
-
         /**
          * @brief システムをリブートする。
          * @param baud シリアル通信のボーレート。

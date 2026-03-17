@@ -358,6 +358,9 @@ void ThisRTOS::vTask3(void *pvParameter) {
         // RelayControllerのプロセスキューを実行
         RelayController::PROCESSQUEUE();
 
+        if (WiFi.status() == WL_DISCONNECTED || WiFi.getMode() == WIFI_AP) 
+            led_warning.run(1500);
+
         wateringSys.run();
         fertilizerProg.run(HOUR_FERTILIZER, MINUTE_FERTILIZER);
 

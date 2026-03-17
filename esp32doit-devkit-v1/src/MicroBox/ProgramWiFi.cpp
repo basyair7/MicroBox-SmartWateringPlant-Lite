@@ -112,7 +112,6 @@ void ProgramWiFiClass::wifi_mode_sta() {
 void ProgramWiFiClass::wifi_mode_ap() {
     // WiFiのAPモードに設定する。
     WiFi.mode(WIFI_AP);
-    led_warning.run(1500);
 
     // APモードでWiFiを開始する。
     WiFi.softAP(

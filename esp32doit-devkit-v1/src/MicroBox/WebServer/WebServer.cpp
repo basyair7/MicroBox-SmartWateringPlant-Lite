@@ -24,7 +24,11 @@
 #include "MicroBox/software/WebServer"
 #include "MicroBox/software/ProgramWiFi"
 
-
+/**
+ * @brief OTAアップデート開始時の処理
+ * @details OTA開始時にフラグを有効化し、LCDに開始メッセージを表示する。
+ *          I2Cミューテックスを使用してLCDアクセスの排他制御を行う。
+ */
 void onOTAStart() {
     otaDisplay = true;
     if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) return;
@@ -33,6 +37,14 @@ void onOTAStart() {
     xSemaphoreGive(i2cMutex);
 }
 
+/**
+ * @brief OTAアップデート進捗率（％）を計算し、LCDに表示する。
+ *        下段には進捗バー（＃）を表示し、視覚的に進行状況を示す。
+ *         I2Cミューテックスにより安全にLCDへアクセスする。
+ * 
+ * @param current 現在の受信バイト数
+ * @param final 全体のバイト数
+ */
 void onOTAProgress(size_t current, size_t final) {
     static unsigned long ota_progress_millis = 0;
 
@@ -45,7 +57,9 @@ void onOTAProgress(size_t current, size_t final) {
         int bars = progress / 6; // max ~16 char
 
         lcd.clear();
-        lcd.print("OTA Updating", 0, 0);
+        lcd.print("OTA Updating:", 0, 0);
+        lcd.print(progress);
+        lcd.print("%");
 
         lcd.setCursor(0, 1);
         for (int i = 0; i < bars; i++) {
@@ -56,20 +70,24 @@ void onOTAProgress(size_t current, size_t final) {
     }
 }
 
-void onOTAEnd(bool success) {
+/**
+ * @brief OTAアップデート終了時の処理
+ * @details OTA完了時の結果（成功／失敗）をLCDに表示する。
+ *      　　I2Cミューテックスを使用して排他制御を行い、安全に表示を更新する。
+ * 
+ * @param state OTAが正常に完了した場合はtrue、それ以外はfalse
+ */
+void onOTAEnd(bool state) {
     if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) return;
 
     lcd.clear();
-    lcd.print(!success ? "OTA update" : "OTA error", 0, 0);
-    lcd.print(!success ? "Success!" : "Update failed", 0, 1);
+    lcd.print(!state ? "OTA update" : "OTA error", 0, 0);
+    lcd.print(!state ? "Success!" : "Update failed", 0, 1);
 
     xSemaphoreGive(i2cMutex);
 }
 
 void WebServerClass::ServerInit() {
-    // LittleFSを初期化する。
-    // lfsprog.setupLFS();
-
     // ローカルネットワーク探索のために、mDNSレスポンダを初期化する。
     if (!MDNS.begin("esp32-delay")) {
         Serial.println(F("Error starting mDNS"));

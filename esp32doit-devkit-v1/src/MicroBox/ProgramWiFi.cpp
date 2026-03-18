@@ -23,6 +23,7 @@
 
 #include "MicroBox/software/ProgramWiFi"
 #include "MicroBox/software/SysHandlers"
+#include "MicroBox/software/info.h"
 
 // WiFi接続中の場合、プログラムを実行する。
 void ProgramWiFiClass::WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info)
@@ -68,6 +69,14 @@ void ProgramWiFiClass::wifi_mode_sta() {
 
     // 接続安定化のため、WiFiスリープを無効化する。
     WiFi.setSleep(false);
+
+    String mac = WiFi.macAddress();
+    mac.replace(":", "");
+
+    String hostname = String(CODENAME) + "-" + String(SWVERSION) + mac.substring(mac.length() - 6);
+    hostname.replace(" ", "_");
+
+    WiFi.setHostname(hostname.c_str());
 
     // イベントハンドラの登録を行う。
     // WiFiStationConnected onEvent

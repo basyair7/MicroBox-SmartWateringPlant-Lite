@@ -73,7 +73,7 @@ void ProgramWiFiClass::wifi_mode_sta() {
     String mac = WiFi.macAddress();
     mac.replace(":", "");
 
-    String hostname = String(CODENAME) + "-" + String(SWVERSION) + mac.substring(mac.length() - 6);
+    String hostname = String(CODENAME) + mac.substring(mac.length() - 6);
     hostname.replace(" ", "_");
 
     WiFi.setHostname(hostname.c_str());

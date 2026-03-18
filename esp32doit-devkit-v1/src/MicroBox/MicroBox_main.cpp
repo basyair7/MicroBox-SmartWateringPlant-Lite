@@ -298,7 +298,7 @@ void MicroBox_Main::splash_boot(uint32_t _delay) {
 
     // バージョン情報を表示する。
     lcd.print("Version : ", 0, 1);
-    lcd.print(VERSIONPROJECT);
+    lcd.print(SWVERSION);
 
     // プロジェクト名を左スクロール表示する。
     for (byte i = 0; i < len + 16; i++) {

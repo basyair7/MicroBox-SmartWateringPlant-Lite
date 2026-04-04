@@ -26,6 +26,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
+#include <esp_wifi.h>
 #include <functional>
 #include "MyEEPROM"
 #include "../hardware/BootButton.h"
@@ -45,6 +46,12 @@ class ProgramWiFiClass {
         String __SSID_STA__, __PASS_STA__;
         String __SSID_AP__, __PASS_AP__;
         String LOCALIPServer;
+
+        int getConnectedClientCount() {
+            wifi_sta_list_t wifi_sta_list;
+            esp_wifi_ap_get_sta_list(&wifi_sta_list);
+            return wifi_sta_list.num;
+        }
     
     public:
         void setup(

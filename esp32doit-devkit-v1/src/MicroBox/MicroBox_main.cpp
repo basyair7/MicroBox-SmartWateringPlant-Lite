@@ -52,15 +52,28 @@
 #include "MicroBox/software/WebServer"
 #include "MicroBox/software/WateringSys"
 #include "MicroBox/software/FertilizerProgram"
+#include "MicroBox/config.h"
 #include "MicroBox/externobj"
-#include "variable"
 
+#include "variable"
 #include "envWiFi.h"
 
 // モジュールとグローバル変数を初期化
 // センサープログラムを初期化
 SoilMoisture soilmoisture; //!< 土壌水分センサー管理モジュール
-TDSProgram tdsprog = TDSProgram(PIN_TDS); //!< TDSセンサープログラム
+
+// TDSセンサープログラム
+const TDSConfig tds_config = {
+    PIN_TDS,
+    VREF,
+    ADC_RESOLUTION,
+    TDS_A,
+    TDS_B,
+    TDS_VOLTAGE_OFFSET,
+    SCOUNT
+};
+TDSProgram tdsprog = TDSProgram(tds_config);
+
 WaterTemp watertemp = WaterTemp(PIN_WATERTEMP); //!< 水温センサー
 
 // ハードウェアコンポーネントを初期化
@@ -363,7 +376,7 @@ void MicroBox_Main::DisplayProgram() {
     }
 
     static unsigned long LastTimeRefreshLCD = 0;
-    if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1500L) {
+    if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1000L) {
         LastTimeRefreshLCD = millis();
 
         static LCDMode lcdMode = LCD_AUTO;
@@ -477,11 +490,23 @@ void MicroBox_Main::DisplayProgram() {
 
                 case 10:
                 {
-                    const char* statusWiFiSta = WiFi.status() == WL_CONNECTED
-                                                ? "Connected" 
-                                                : "Disconnected";
+                    int clientCount = ProgramWiFi.getConnectedClientCount();
+
                     lcd.print("Status:", 0, 0);
-                    lcd.print(WiFi.getMode() == WIFI_STA ? statusWiFiSta : "Unknown", 0, 1);
+
+                    if (WiFi.getMode() == WIFI_STA) {
+                        const char* statusWiFiSta = WiFi.status() == WL_CONNECTED
+                                                    ? "Connected"
+                                                    : "Disconnected";
+                        lcd.print(statusWiFiSta, 0, 1);
+                    } 
+                    else if (WiFi.getMode() == WIFI_AP) {
+                        String apStatus = "Client: " + String(clientCount);
+                        lcd.print(apStatus.c_str(), 0, 1);
+                    } 
+                    else {
+                        lcd.print("Unknown", 0, 1);
+                    }
                 }
                 break;
 

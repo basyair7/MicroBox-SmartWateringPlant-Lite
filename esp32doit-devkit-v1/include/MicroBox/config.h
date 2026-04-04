@@ -24,6 +24,9 @@
  */
 
 #pragma once
-#define VREF           3.3 ///< Reference voltage for ADC calculations
-#define ADC_RESOLUTION 4095 ///< ADC resolution for ESP32 (12-bit)
-#define SCOUNT         10   ///< Number of samples to average for sensor readings
+#define VREF               3.3      ///< Reference voltage for ADC calculations
+#define ADC_RESOLUTION     4095     ///< ADC resolution for ESP32 (12-bit)
+#define SCOUNT             10       ///< Number of samples to average for sensor readings
+#define TDS_A              3.31
+#define TDS_B              -178.45
+#define TDS_VOLTAGE_OFFSET 0.08

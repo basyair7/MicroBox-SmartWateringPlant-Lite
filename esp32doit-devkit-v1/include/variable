@@ -49,8 +49,8 @@
 #define WATERING_LVL_MAX    80   //< 土壌水分に対する灌水レベルの最大値
 #define WATERING_LVL_MIN    30   //< 土壌水分に対する灌水レベルの最小値
 
-#define PPM_TARGET          500  //< TDSの目標値 (PPM)
-#define PPM_TOLERANCE       10   //< TDSの許容範囲 (PPM)
+#define PPM_TARGET          600  //< TDSの目標値 (PPM)
+#define PPM_TOLERANCE       5   //< TDSの許容範囲 (PPM)
 
 #define HOUR_FERTILIZER     8
 #define MINUTE_FERTILIZER   10

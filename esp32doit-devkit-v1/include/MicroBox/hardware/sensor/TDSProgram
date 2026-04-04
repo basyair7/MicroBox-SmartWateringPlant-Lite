@@ -25,6 +25,18 @@
 
 #include <Arduino.h>
 
+struct TDSConfig
+{
+    int pin;
+    float vref;
+    int adc;
+    float tds_a;
+    float tds_b;
+    float voltage_offset;
+    int scount;
+};
+
+
 class TDSProgram {
     // センサー読み取り値「あたい」を平均化「へいきんか」するためのデフォルトのサンプル数。
     static const int DEFAULT_SCOUNT = 10;
@@ -33,6 +45,7 @@ class TDSProgram {
     float _vref;             //< ADCの基準電圧「きじゅんでんあつ」。センサーの出力電圧「しゅつりょくでんあつ」を正確「せいかく」に算出「さんしゅつ」するために使用されます。
     uint16_t _adcResolution; //< ADCの分解能「ぶんかいのう」。通常「つうじょう」は10ビット（1023）または12ビット（4095）ですが、使用するマイクロコントローラーによって異「こと」なります。
     uint8_t _scount;         //< センサー読み取り値を平均化「へいきんか」するためのサンプル数。デフォルトは10ですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。
+    float _tds_a, _tds_b, _tds_voltage_offset;
 
     int _analogBuffer[DEFAULT_SCOUNT];     //< センサーからのアナログ読み取り値を格納「かくのう」するためのバッファ。平均化「へいきんか」処理「しょり」のために複数「ふくすう」のサンプルを保存「ほぞん」します。
     int _analogBufferTemp[DEFAULT_SCOUNT]; //< 平均化「へいきんか」処理「しょり」のための一時的「いちじてき」なバッファ。センサーからの読み取り値をコピーして、中央値「ちゅうおうち」を計算「けいさん」するために使用されます。
@@ -82,17 +95,17 @@ class TDSProgram {
     public:
         /**
          * @brief TDSセンサーのコンストラクタ。センサーのGPIOピン番号、ADCの基準電圧、ADCの分解能、および平均化「へいきんか」するためのサンプル数を指定して、TDSセンサーオブジェクトを初期化「しょきか」します。
-         * @param pin TDSセンサーが接続「せつぞく」されているGPIOピン番号。センサーからのアナログ読み取り値を取得「しゅとく」するために使用されます。
-         * @param vref ADCの基準電圧「きじゅんでんあつ」。センサーの出力電圧「しゅつりょくでんあつ」を正確「せいかく」に算出「さんしゅつ」するために使用されます。デフォルトは3.3Vですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。
-         * @param adcResolution ADCの分解能「ぶんかいのう」。通常「つうじょう」は10ビット（1023）または12ビット（4095）ですが、使用するマイクロコントローラーによって異「こと」なります。デフォルトは12ビット（4095）ですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。
-         * @param scount センサー読み取り値を平均化「へいきんか」するためのサンプル数。デフォルトは10ですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。サンプル数が多いほど平均化「へいきんか」の精度「せいど」が向上「こうじょう」しますが、計算「けいさん」に時間がかかる可能性「かのうせい」があります。
+         * @param tdsConfig
          */
-        TDSProgram(
-            int pin, 
-            float vref = 3.3, 
-            int adcResolution = 4095, 
-            int scount = DEFAULT_SCOUNT)
-        : _pin(pin), _vref(vref), _adcResolution(adcResolution), _scount(scount <= DEFAULT_SCOUNT ? scount : DEFAULT_SCOUNT) {}
+        TDSProgram(TDSConfig tdsConfig)
+        :   _pin(tdsConfig.pin), 
+            _vref(tdsConfig.vref), 
+            _adcResolution(tdsConfig.adc), 
+            _tds_a(tdsConfig.tds_a),
+            _tds_b(tdsConfig.tds_b),
+            _tds_voltage_offset(tdsConfig.voltage_offset),
+            _scount(tdsConfig.scount <= DEFAULT_SCOUNT ? tdsConfig.scount : DEFAULT_SCOUNT) 
+        {}
 
         /**
          * @brief TDSセンサーの初期化「しょきか」メソッド。センサーが接続「せつぞく」されているGPIOピンを入力「にゅうりょく」として設定「せってい」し、アナログ読み取り値のサンプリング「さんぷりんぐ」とTDS値およびPPM値の計算「けいさん」のタイムポイントを現在「げんざい」の時間に初期化「しょきか」します。
@@ -147,13 +160,18 @@ class TDSProgram {
                 this->_averageVoltage = this->getMedianNum(this->_analogBufferTemp, this->_scount) * (this->_vref / this->_adcResolution);
                 
                 float compensationCoefficient = 1.0f + 0.02f * (this->_temperature - 25.0f);
-                float compensationVoltage = this->_averageVoltage / compensationCoefficient;
+                float rawVoltage = this->_averageVoltage - _tds_voltage_offset;
+
+                if (rawVoltage < 0) rawVoltage = 0;
+
+                float compensationVoltage = rawVoltage / compensationCoefficient;
 
                 this->_tdsValue = (133.42f * compensationVoltage * compensationVoltage * compensationVoltage
                                     - 255.86f * compensationVoltage * compensationVoltage
                                     + 857.39f * compensationVoltage) * 0.5f;
                 
-                this->_ppm = this->_tdsValue;
+                this->_ppm = (this->_tds_a * this->_tdsValue) + this->_tds_b;
+                if (this->_ppm < 0) this->_ppm = 0;
             }
         }
 

@@ -130,8 +130,8 @@ void FertilizerProgram::begin(const uint8_t pumpPin, const uint8_t motorPin, boo
     pinMode(this->_pumpPin, OUTPUT);
     pinMode(this->_motorPin, OUTPUT);
 
-    run_motor(false);
-    run_pump(false);
+    this->run_motor(false);
+    this->run_pump(false);
 
     this->lastFertilizerDay = this->__myeeprom.read(ADDR_EEPROM_AUTO_FERTILIZER);
     if (this->lastFertilizerDay == 0)

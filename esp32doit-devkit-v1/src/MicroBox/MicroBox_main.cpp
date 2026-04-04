@@ -72,9 +72,9 @@ const TDSConfig tds_config = {
     TDS_VOLTAGE_OFFSET,
     SCOUNT
 };
-TDSProgram tdsprog = TDSProgram(tds_config);
+TDSProgram tdsprog = TDSProgram(tds_config);    //!< TDSセンサー管理モジュール
 
-WaterTemp watertemp = WaterTemp(PIN_WATERTEMP); //!< 水温センサー
+WaterTemp watertemp = WaterTemp(PIN_WATERTEMP); //!< 水温センサー管理モジュール
 
 // ハードウェアコンポーネントを初期化
 BootButton bootbtn = BootButton(BOOTBUTTON, INPUT); //!< ブートボタンユーティリティ

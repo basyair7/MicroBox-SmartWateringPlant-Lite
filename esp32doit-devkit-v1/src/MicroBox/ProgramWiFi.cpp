@@ -127,6 +127,7 @@ void ProgramWiFiClass::wifi_mode_ap() {
         this->__SSID_AP__.c_str(),
         this->__PASS_AP__.c_str()
     );
+    esp_wifi_set_max_tx_power(78);  // 78 = ~19.5 dBm (maks)
 
     // APモードでのIPアドレスを取得して表示する。
     this->LOCALIPServer = WiFi.softAPIP().toString().c_str();

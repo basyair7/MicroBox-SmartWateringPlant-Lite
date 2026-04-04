@@ -157,8 +157,8 @@ void FertilizerProgram::run(uint8_t hour, uint32_t _minute) {
         case IDLE:
         {
             // 待機状態。設定された時間と間隔に達した場合、MIXINGへ移行する。
-            run_motor(false);
-            run_pump(false);
+            this->run_motor(false);
+            this->run_pump(false);
 
             if (timeSinceLast.days() >= INTERVAL_FERTILIZER && now.hour() == hour && now.minute() == 0) {
                 this->_mixStartUnix = now.unixtime();

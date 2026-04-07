@@ -81,6 +81,18 @@ void ButtonManagerClass::toggleBacklight() {
     lastBacklight = currentState;
 }
 
+void ButtonManagerClass::manualFertilizer() {
+    static bool lastState;
+    bool btn1 = btnBacklight.digitalReadPushButton();
+    bool btn2 = btnDisplay.digitalReadPushButton();
+    bool currentState = btn1 && btn2;
+
+    if (currentState && !lastState) {
+        fertilizerProg.forceStart();
+    }
+    lastState = currentState;
+}
+
 uint8_t ButtonManagerClass::updateDisplay(const uint8_t interval) {
     static bool lastState;
     static uint8_t count = interval;
@@ -131,6 +143,7 @@ void ButtonManagerClass::update() {
     
     this->toggleAutoWatering();
     this->toggleBacklight();
+    this->manualFertilizer();
 }
 
 #if !defined(NO_GLOBAL_INSTANCES) && !defined (NO_GLOBAL_ButtonManager)

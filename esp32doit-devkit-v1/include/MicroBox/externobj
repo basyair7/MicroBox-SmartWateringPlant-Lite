@@ -34,12 +34,14 @@
 #include "software/LFSMemory"
 #include "software/ProgramWiFi"
 #include "software/WateringSys"
+#include "software/FertilizerProgram"
 
 extern LEDBoard led_running, led_warning;
 extern DHTProgram dhtprog;
 extern SoilMoisture soilmoisture;
 extern TDSProgram tdsprog;
 extern WaterTemp watertemp;
+extern FertilizerProgram fertilizerProg;
 // extern RelayController relayController;
 
 extern LCDdisplay lcd;

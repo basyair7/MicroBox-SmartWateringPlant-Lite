@@ -24,6 +24,14 @@
 #include "MicroBox/software/FertilizerProgram"
 #include "MicroBox/externobj"
 
+uint32_t FertilizerProgram::getNow() {
+#if DEBUG_MODE
+    return millis() / 1000; // デバッグモードでは、ミリ秒を秒に変換して返す
+#else
+    return rtcprog.now().unixtime(); // 通常モードでは、RTCから現在のUnix時間を返す
+#endif
+}
+
 /**
  * @brief ポンプを制御する関数。
  * @param state state が true の場合、ポンプをオンにする。state が false の場合、ポンプをオフにする。
@@ -89,15 +97,19 @@ inline void FertilizerProgram::give_fertilizer(bool _run) {
 /**
  * @brief 最後に肥料を与えてから経過した日数を計算する。
  */
-uint32_t FertilizerProgram::getDaysPassed() const {
+uint32_t FertilizerProgram::getDaysPassed() {
+#if DEBUG_MODE
+    return (getNow() - this->lastFertilizerDay) / DAY_SECONDS;
+#else
     DateTime now = rtcprog.now();
     return (now.unixtime() - this->lastFertilizerDay) / 86400UL;
+#endif
 }
 
 /**
  * @brief 次回の施肥までの残り日数を取得する。
  */
-uint32_t FertilizerProgram::getDaysRemaining() const {
+uint32_t FertilizerProgram::getDaysRemaining() {
     uint32_t passed = this->getDaysPassed();
     
     if (passed >= INTERVAL_FERTILIZER) 
@@ -109,9 +121,13 @@ uint32_t FertilizerProgram::getDaysRemaining() const {
 /**
  * @brief 次回の施肥予定日を取得する。
  */
-uint32_t FertilizerProgram::getNextFertilizerDay() const {
+uint32_t FertilizerProgram::getNextFertilizerDay() {
+#if DEBUG_MODE
+    return this->lastFertilizerDay + (INTERVAL_FERTILIZER * DAY_SECONDS);
+#else
     DateTime nextDay =  DateTime(this->lastFertilizerDay) + TimeSpan(INTERVAL_FERTILIZER, 0, 0, 0);
     return nextDay.unixtime();
+#endif
 }
 
 /**
@@ -135,7 +151,7 @@ void FertilizerProgram::begin(const uint8_t pumpPin, const uint8_t motorPin, boo
 
     this->lastFertilizerDay = this->__myeeprom.read(ADDR_EEPROM_AUTO_FERTILIZER);
     if (this->lastFertilizerDay == 0)
-        this->lastFertilizerDay = rtcprog.now().unixtime();
+        this->lastFertilizerDay = this->getNow();
 }
 
 /**
@@ -143,15 +159,19 @@ void FertilizerProgram::begin(const uint8_t pumpPin, const uint8_t motorPin, boo
  * IDLE -> MIXING -> PUMPING -> FINISHED の順番で動作する。
  */
 void FertilizerProgram::run(uint8_t hour, uint32_t _minute) {
-    // Code to run the fertilizer program
+    // 1秒ごとに状態をチェックするためのタイミング管理。
     static unsigned long lastCheck = 0;
+
+    // 現在のUnix時間を取得する。
+    uint32_t nowSec = this->getNow();
 
     if (millis() - lastCheck < 1000) return;
     lastCheck = millis();
 
-    DateTime now = rtcprog.now();
-
-    TimeSpan timeSinceLast = now - DateTime(this->lastFertilizerDay);
+#if !DEBUG_MODE
+    DateTime nowRTC = rtcprog.now();
+    TimeSpan timeSinceLast = nowRTC - DateTime(this->lastFertilizerDay);
+#endif
 
     switch (this->_state) {
         case IDLE:
@@ -159,9 +179,13 @@ void FertilizerProgram::run(uint8_t hour, uint32_t _minute) {
             // 待機状態。設定された時間と間隔に達した場合、MIXINGへ移行する。
             this->run_motor(false);
             this->run_pump(false);
-
-            if (timeSinceLast.days() >= INTERVAL_FERTILIZER && now.hour() == hour && now.minute() == 0) {
-                this->_mixStartUnix = now.unixtime();
+#if DEBUG_MODE
+            if ((uint32_t)(nowSec - this->lastFertilizerDay) >= DAY_SECONDS)
+#else
+            if (timeSinceLast.days() >= INTERVAL_FERTILIZER && nowRTC.hour() == hour && nowRTC.minute() == 0) 
+#endif       
+            {
+                this->_mixStartUnix = nowSec;
                 this->_state = MIXING;
             }
         }
@@ -173,13 +197,18 @@ void FertilizerProgram::run(uint8_t hour, uint32_t _minute) {
             // しかし、300秒以上経過した場合は安全のためにモーターを停止する。
             this->mix_fertilizer();
             if (this->FertilizerChecked) {
-                this->_pumpStartUnix = now.unixtime();
+                this->_pumpStartUnix = nowSec;
                 this->_pumpPreviousTime = millis();
                 this->_pumpState = false;
 
                 this->_state = PUMPING;
             }
-            else if (now.unixtime() - this->_mixStartUnix > 300) {
+#if DEBUG_MODE
+            else if (nowSec - this->_mixStartUnix > MIX_TIMEOUT)
+#else
+            else if (nowSec - this->_mixStartUnix > 300) 
+#endif       
+            {
                 this->run_motor(false);
                 this->_state = FINISHED;
             }
@@ -189,8 +218,13 @@ void FertilizerProgram::run(uint8_t hour, uint32_t _minute) {
         case PUMPING:
         {
             // 一定時間だけ肥料を供給する状態。
-            uint32_t elapsed = now.unixtime() - this->_pumpStartUnix;
-            if (elapsed >= (_minute * 60UL)) {
+            uint32_t elapsed = nowSec - this->_pumpStartUnix;
+#if DEBUG_MODE
+            if (elapsed >= PUMP_DURATION)
+#else
+            if (elapsed >= (_minute * 60UL))
+#endif 
+            {
                 this->give_fertilizer(false);
                 _state = FINISHED;
             }
@@ -203,10 +237,28 @@ void FertilizerProgram::run(uint8_t hour, uint32_t _minute) {
         case FINISHED:
         {
             // 施肥完了。最終施肥時間を保存し、IDLEに戻る。
-            this->lastFertilizerDay = rtcprog.now().unixtime();
-            this->__myeeprom.save_state(ADDR_EEPROM_AUTO_FERTILIZER, lastFertilizerDay);
+#if DEBUG_MODE
+            this->lastFertilizerDay = nowSec;
+#else       
+            if (!this->_isManualStart) {
+                this->lastFertilizerDay = nowSec;
+                this->__myeeprom.save_state(ADDR_EEPROM_AUTO_FERTILIZER, lastFertilizerDay);
+            }
+#endif
+            this->_isManualStart = false;
             this->_state = IDLE;
         }
         break;
     }
+}
+
+
+/**
+ * @brief 強制的に施肥プロセスを開始する関数。
+ * デバッグや手動での施肥開始に使用する。
+ */
+void FertilizerProgram::forceStart() {
+    this->_isManualStart = true;
+    this->_state = MIXING;
+    this->_mixStartUnix = this->getNow();
 }

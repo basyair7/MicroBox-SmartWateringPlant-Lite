@@ -78,6 +78,8 @@ class ButtonManagerClass {
            この関数は、ボタンの状態を監視し、状態が変化したときにLCDバックライトの状態を切り替えます。
          */
         void toggleBacklight();
+
+        void manualFertilizer();
     
     public:
         /**

@@ -28,6 +28,19 @@
 #include "MyEEPROM"
 #include "../hardware/DS3231rtc"
 
+// ================= DEBUG CONFIG =================
+#define DEBUG_MODE 0
+
+#if DEBUG_MODE
+    #define DAY_SECONDS 60UL        // 一日 ＝ 60秒 （テスト用に短縮）
+    #define MIX_TIMEOUT 10UL        // 混合タイムアウト ＝ 10秒 （テスト用に短縮）
+    #define PUMP_DURATION 10UL      // ポンプ運転時間 ＝ 10秒 （テスト用に短縮）
+#else
+    #define DAY_SECONDS 86400UL
+    #define MIX_TIMEOUT 300UL
+#endif
+// ===============================================
+
 enum FertilizerState {
     IDLE,
     MIXING,
@@ -40,7 +53,6 @@ class FertilizerProgram {
     
     // ---- ハードウェア ----
     uint8_t _pumpPin, _motorPin;
-    uint32_t pumpStartUnix;
     bool on = false, off = true;
     
     // ---- フリップフロップ回路を用いてポンプの状態を切り替える。 ----
@@ -51,11 +63,11 @@ class FertilizerProgram {
     FertilizerState _state = IDLE;
     uint32_t _mixStartUnix;
 
-    bool FertilizerChecked;
+    bool FertilizerChecked, _isManualStart;
 
     // ---- RTC経過時間 ----
     uint32_t lastFertilizerDay;
-    unsigned long _pumpStartUnix;
+    uint32_t _pumpStartUnix;
 
     public:
         const char* stateToString() const {
@@ -68,12 +80,14 @@ class FertilizerProgram {
             }
         }
 
+        void forceStart();
+
         void begin(const uint8_t pumpPin, const uint8_t motorPin, bool _optocouple = true);
         void run(uint8_t hour, uint32_t minute);
 
-        uint32_t getNextFertilizerDay() const;
-        uint32_t getDaysPassed() const;
-        uint32_t getDaysRemaining() const;
+        uint32_t getNextFertilizerDay();
+        uint32_t getDaysPassed();
+        uint32_t getDaysRemaining();
         
 
     private:
@@ -82,4 +96,6 @@ class FertilizerProgram {
 
         void mix_fertilizer();
         void give_fertilizer(bool _run);
+
+        uint32_t getNow();
 };

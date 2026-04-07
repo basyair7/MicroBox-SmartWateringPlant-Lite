@@ -68,7 +68,7 @@ void onOTAProgress(size_t current, size_t final) {
 
     // ===== LINE 1 =====
     lcd.setCursor(0, 0);
-    lcd.print("OTA update: ");
+    lcd.print("OTA update:");
     lcd.print(progress);
     lcd.print("% ");
     lcd.write(spin);

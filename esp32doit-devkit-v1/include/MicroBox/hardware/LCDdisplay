@@ -37,6 +37,72 @@
  * @details このクラスは、LCDの初期化、テキストの表示、カーソル位置の設定、およびバックライトの制御などの機能を提供します。LCDの列数と行数は、コンストラクタで指定できます。
  */
 class LCDdisplay {
+    byte block[8] = {
+        B11111,
+        B11111,
+        B11111,
+        B11111,
+        B11111,
+        B11111,
+        B11111,
+        B11111
+    };
+
+    byte empty[8] = {
+        B00000,
+        B00000,
+        B00000,
+        B00000,
+        B00000,
+        B00000,
+        B00000,
+        B00000
+    };
+
+    byte spinUp[8] = {
+        B00100,
+        B01110,
+        B10101,
+        B00100,
+        B00100,
+        B00100,
+        B00100,
+        B00000
+    };
+
+    byte spinRight[8] = {
+        B00100,
+        B00010,
+        B11111,
+        B00010,
+        B00100,
+        B00000,
+        B00000,
+        B00000
+    };
+
+    byte spinDown[8] = {
+        B00100,
+        B00100,
+        B00100,
+        B00100,
+        B10101,
+        B01110,
+        B00100,
+        B00000
+    };
+
+    byte spinLeft[8] = {
+        B00100,
+        B01000,
+        B11111,
+        B01000,
+        B00100,
+        B00000,
+        B00000,
+        B00000
+    };
+
     LiquidCrystal_I2C _lcd_obj; ///< LiquidCrystal_I2Cオブジェクトを使用してLCDを制御します。
 
     public:
@@ -60,6 +126,12 @@ class LCDdisplay {
             this->_lcd_obj.init(); //< LCDの初期化
             this->_lcd_obj.backlight(); //< LCDのバックライトをオンにする
             this->_lcd_obj.clear(); //< LCDの画面をクリアする
+            this->_lcd_obj.createChar(0, block); //< カスタムキャラクタ「block」を作成
+            this->_lcd_obj.createChar(1, empty); //< カスタムキャラクタ
+            this->_lcd_obj.createChar(2, spinUp); //< カスタムキャラクタ「spinUp」を作成
+            this->_lcd_obj.createChar(3, spinRight); //< カスタムキャラクタ「spinRight」を作成
+            this->_lcd_obj.createChar(4, spinDown); //< カスタムキャラクタ「spinDown」を作成
+            this->_lcd_obj.createChar(5, spinLeft); //< カスタムキャラクタ「spinLeft」を作成
         }
 
         /**
@@ -88,6 +160,15 @@ class LCDdisplay {
          */
         void setCursor(const uint8_t col, const uint8_t row) {
             this->_lcd_obj.setCursor(col, row);
+        }
+
+        /**
+         * @brief LCDディスプレイに値を表示するためのwrite関数です。
+         * @details この関数は、LCDに指定された値を表示するためのwrite関数です。値の型はテンプレートパラメータTで指定され、任意の型の値を表示できます。LCDにテキストを表示するために、この関数を使用して値を渡すことができます。
+         * @param value 表示する値。任意の型の値を指定できます
+         */
+        inline size_t write(uint8_t value) {
+            return this->_lcd_obj.write(value);
         }
 
         /**

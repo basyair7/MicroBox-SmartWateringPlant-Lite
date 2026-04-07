@@ -46,28 +46,48 @@ void onOTAStart() {
  * @param final 全体のバイト数
  */
 void onOTAProgress(size_t current, size_t final) {
-    static unsigned long ota_progress_millis = 0;
+    static unsigned long lastUpdate = 0;
+    static uint8_t spinnerIndex = 0;
 
-    if (millis() - ota_progress_millis > 500) {
-        ota_progress_millis = millis();
+    if (millis() - lastUpdate < 200) return;
+    lastUpdate = millis();
 
-        if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) return;
+    if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(100))) return;
 
-        int progress = (current * 100) / final;
-        int bars = progress / 6; // max ~16 char
+    int progress = (current * 100) / final;
 
-        lcd.clear();
-        lcd.print("OTA Updating:", 0, 0);
-        lcd.print(progress);
-        lcd.print("%");
+    // spinner
+    byte spinnerFrames[] = {2, 3, 4, 5};
+    byte spin = spinnerFrames[spinnerIndex++ % 4];
 
-        lcd.setCursor(0, 1);
-        for (int i = 0; i < bars; i++) {
-            lcd.print("#");
+    // progress bar
+    const int barWidth = 14; // 16 - 2 bracket
+    int filled = (progress * barWidth) / 100;
+
+    lcd.clear();
+
+    // ===== LINE 1 =====
+    lcd.setCursor(0, 0);
+    lcd.print("OTA update: ");
+    lcd.print(progress);
+    lcd.print("% ");
+    lcd.write(spin);
+
+    // ===== LINE 2 =====
+    lcd.setCursor(0, 1);
+    lcd.print("[");
+
+    for (int i = 0; i < barWidth; i++) {
+        if (i < filled) {
+            lcd.write(byte(0)); // full block
+        } else {
+            lcd.write(byte(1)); // empty
         }
-
-        xSemaphoreGive(i2cMutex);
     }
+
+    lcd.print("]");
+
+    xSemaphoreGive(i2cMutex);
 }
 
 /**

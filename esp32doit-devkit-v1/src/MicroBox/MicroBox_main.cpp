@@ -437,28 +437,28 @@ void MicroBox_Main::DisplayProgram() {
 
                 case 3:
                 {
-                    lcd.print("Auto Watering:", 0, 0);
+                    lcd.print("Auto Watering", 0, 0);
                     lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
                 }
                 break;
 
                 case 4:
                 {
-                    lcd.print("Watering:", 0, 0);
+                    lcd.print("Watering", 0, 0);
                     lcd.print(watering_process ? "RUN" : "IDLE", 0, 1);
                 }
                 break;
 
                 case 5:
                 {
-                    lcd.print("Fertilizer:", 0, 0);
+                    lcd.print("Fertilizer", 0, 0);
                     lcd.print(fertilizerProg.stateToString(), 0, 1);
                 }
                 break;
 
                 case 6:
                 {
-                    lcd.print("Fertilizer Date:", 0, 0);
+                    lcd.print("Fertilizer Date", 0, 0);
                     lcd.print("Next:", 0, 1);
                     lcd.print(fertilizerProg.getNextFertilizerDay());
                 }
@@ -466,7 +466,7 @@ void MicroBox_Main::DisplayProgram() {
 
                 case 7:
                 {
-                    lcd.print("Fertilizer Date:", 0, 0);
+                    lcd.print("Fertilizer Date", 0, 0);
                     lcd.print("Passed:", 0, 1);
                     lcd.print(fertilizerProg.getDaysPassed());
                 
@@ -475,7 +475,7 @@ void MicroBox_Main::DisplayProgram() {
 
                 case 8:
                 {
-                    lcd.print("Fertilizer Date:", 0, 0);
+                    lcd.print("Fertilizer Date", 0, 0);
                     lcd.print("Remaining:", 0, 1);
                     lcd.print(fertilizerProg.getDaysRemaining());
                 }
@@ -483,7 +483,7 @@ void MicroBox_Main::DisplayProgram() {
 
                 case 9:
                 {
-                    lcd.print("WiFi mode:", 0, 0);
+                    lcd.print("WiFi Mode", 0, 0);
                     lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
                 }
                 break;
@@ -492,7 +492,7 @@ void MicroBox_Main::DisplayProgram() {
                 {
                     int clientCount = ProgramWiFi.getConnectedClientCount();
 
-                    lcd.print("Status:", 0, 0);
+                    lcd.print("Status WiFi", 0, 0);
 
                     if (WiFi.getMode() == WIFI_STA) {
                         const char* statusWiFiSta = WiFi.status() == WL_CONNECTED

@@ -39,6 +39,21 @@ BlynkTimer Timer;      //!< BlynkTimerオブジェクトのインスタンス。
 
 bool switch_state; //!< Blynkの仮想ピンの状態を保持する変数。Blynkアプリからの入力を処理するために使用される。
 
+// unsigned long _rttStart = 0, rtt = 0;
+// void sendRTT(void) {
+//     _rttStart = millis();
+//     Blynk.virtualWrite(V5, _rttStart);
+// }
+
+// BLYNK_WRITE(V5) {
+//     unsigned long now = millis();
+
+//     if (_rttStart > 0 && now >= _rttStart) {
+//         rtt = now - _rttStart;
+//     }
+// }
+
+
 /**
  * @brief Blynkの仮想ピンV4に対するハンドラー関数。Blynkモードの無効化やWiFiモードの切り替えを管理する。
  * @details この関数は、Blynkアプリから仮想ピンV4に対してコマンドが送信されたときに呼び出される。
@@ -55,42 +70,42 @@ bool switch_state; //!< Blynkの仮想ピンの状態を保持する変数。Bly
  * @brief Blynkの仮想ピンV3に対するハンドラー関数。手動灌漑の制御を管理する。
  * @details この関数は、Blynkアプリから仮想ピンV3に対してコマンドが送信されたときに呼び出される。
  *          手動灌漑の状態を制御し、オート灌漑が有効な場合は手動灌漑を無効にする処理を行う。
+ *          - オート灌漑が有効な場合は、手動灌漑の状態をBlynkアプリに反映させる。
+ *          - オート灌漑が無効な場合は、リレーを制御して手動灌漑の状態を切り替える。
  * 
- * @param V4 仮想ピンV3の値を処理するための引数。Blynkアプリから送信された値を受け取る。
+ * @param V4 仮想ピンV4の値を処理するための引数。Blynkアプリから送信された値を受け取る。
  */
-BLYNK_WRITE(V4) {
-    if (param.asInt() == 1) {
-        myeeprom_obj.save_wifi_state(false);
-        delay(50);
-        __lastTimeReboot__ = millis();
-        RebootState = true;
-    }
-}
+// BLYNK_WRITE(V4) {
+//     if (wateringSys.AutoWateringState) {
+//         Blynk.virtualWrite(V2, wateringSys.AutoWateringState);
+//         Blynk.virtualWrite(V3, wateringSys.WateringProcess);
+//     }
+//     else {
+//         for (const auto &pin : RELAY_PINS) {
+//             RelayController::WRITE(
+//                 pin, 
+//                 param.asInt() == 1 ? true : false,
+//                 1000
+//             );
+//         }
+//     }
+// }
 
 /**
  * @brief Blynkの仮想ピンV3に対するハンドラー関数。手動灌漑の制御を管理する。
  * @details この関数は、Blynkアプリから仮想ピンV3に対してコマンドが送信されたときに呼び出される。
  *          手動灌漑の状態を制御し、オート灌漑が有効な場合は手動灌漑を無効にする処理を行う。
- *          - オート灌漑が有効な場合は、手動灌漑の状態をBlynkアプリに反映させる。
- *          - オート灌漑が無効な場合は、リレーを制御して手動灌漑の状態を切り替える。
  * 
  * @param V3 仮想ピンV3の値を処理するための引数。Blynkアプリから送信された値を受け取る。
  */
-BLYNK_WRITE(V3) {
-    if (wateringSys.AutoWateringState) {
-        Blynk.virtualWrite(V2, wateringSys.AutoWateringState);
-        Blynk.virtualWrite(V3, wateringSys.WateringProcess);
-    }
-    else {
-        for (const auto &pin : RELAY_PINS) {
-            RelayController::WRITE(
-                pin, 
-                param.asInt() == 1 ? true : false,
-                1000
-            );
-        }
-    }
-}
+// BLYNK_WRITE(V3) {
+//     if (param.asInt() == 1) {
+//         myeeprom_obj.save_wifi_state(false);
+//         delay(50);
+//         __lastTimeReboot__ = millis();
+//         RebootState = true;
+//     }
+// }
 
 /**
  * @brief Blynkの仮想ピンV2に対するハンドラー関数。オート灌漑の設定を管理する。
@@ -98,12 +113,12 @@ BLYNK_WRITE(V3) {
  * @param V2 仮想ピンV2の値を処理するための引数。Blynkアプリから送信された値を受け取る。オート灌漑の状態を切り替えるために使用される。
  *          - オート灌漑の状態をEEPROMに保存する。
  */
-BLYNK_WRITE(V2) {
-    lfsprog.changeConfigState(
-        AUTOWATERING,
-        param.asInt() == 1 ? true : false
-    );
-}
+// BLYNK_WRITE(V2) {
+//     lfsprog.changeConfigState(
+//         AUTOWATERING,
+//         param.asInt() == 1 ? true : false
+//     );
+// }
 
 /**
  * @brief Blynkの仮想ピンV0とV1に対する定期的なデータ送信を管理する関数。土壌水分レベルとDHT温度をBlynkアプリに送信する。
@@ -115,7 +130,7 @@ unsigned long _LastMillisSendData = 0;
 void sendDataSensor(void) {
     if ((unsigned long) (millis() - _LastMillisSendData) >= 100) {
         _LastMillisSendData = millis();
-        Blynk.virtualWrite(V1, dhtprog.temperature);
+        Blynk.virtualWrite(V1, tdsprog.getPPMValue());
         Blynk.virtualWrite(V0, soilmoisture.value);
     }
 }
@@ -134,6 +149,7 @@ void BlynkSetup() {
             lfsprog.__PASS_STA__.c_str()
         );
         Timer.setInterval(500L, sendDataSensor);
+        // Timer.setInterval(2000L, sendRTT);
     }
 }
 

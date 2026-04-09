@@ -36,7 +36,6 @@ class MicroBox_Main {
      */
     public:
         void splash_boot(uint32_t _delay);
-        void DisplayProgram(void);
     
     
     /****** DON'T MODIFY THIS METHOD's FUNCTION (BE CAREFUL)! ******/

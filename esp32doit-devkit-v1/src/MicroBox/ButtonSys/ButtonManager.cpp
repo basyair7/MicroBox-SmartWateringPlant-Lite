@@ -94,15 +94,20 @@ void ButtonManagerClass::manualFertilizer() {
 }
 
 uint8_t ButtonManagerClass::updateDisplay(const uint8_t interval) {
+    static unsigned long lastDebounceTime = 0;
     static bool lastState;
     static uint8_t count = interval;
 
     bool btn = btnDisplay.digitalReadPushButton();
-    if (btn != lastState) 
+    if (btn != lastState && (millis() - lastDebounceTime) > 50) {
+        lastDebounceTime = millis();
+        
         if (!btn) {
             count++;
             count = (count > interval ? 0 : count);
         }
+    }
+    
     lastState = btn;
 
     return count;

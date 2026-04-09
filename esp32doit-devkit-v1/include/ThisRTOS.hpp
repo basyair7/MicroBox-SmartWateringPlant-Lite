@@ -33,7 +33,16 @@
 
 class ThisRTOS {
     public:
-        void vTask1(void *pvParameter);
-        void vTask2(void *pvParameter);
-        void vTask3(void *pvParameter);
+        /****** ADD NEW FUNCTION HERE / ここに新しい関数を追加する。 ******/
+        // static void __example__(void);
+        static void DisplayProgram(void);
+
+    
+    public:
+        ///****** DON'T MODIFY THIS METHOD's FUNCTION (BE CAREFUL)! ******/
+        /****** このメソッドの機能を変更しないこと（注意）！ ******/
+        static void vTask1(void *pvParameter);
+        static void vTask2(void *pvParameter);
+        static void vTask3(void *pvParameter);
+        
 };

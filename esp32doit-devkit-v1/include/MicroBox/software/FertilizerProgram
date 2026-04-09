@@ -34,10 +34,11 @@
 #if DEBUG_MODE
     #define DAY_SECONDS 60UL        // 一日 ＝ 60秒 （テスト用に短縮）
     #define MIX_TIMEOUT 10UL        // 混合タイムアウト ＝ 10秒 （テスト用に短縮）
-    #define PUMP_DURATION 10UL      // ポンプ運転時間 ＝ 10秒 （テスト用に短縮）
+    #define PUMP_DURATION 5UL      // ポンプ運転時間 ＝ 5秒 （テスト用に短縮）
 #else
     #define DAY_SECONDS 86400UL
-    #define MIX_TIMEOUT 300UL
+    #define MIX_TIMEOUT 60UL
+    #define PUMP_DURATION 14UL
 #endif
 // ===============================================
 
@@ -57,7 +58,7 @@ class FertilizerProgram {
     
     // ---- フリップフロップ回路を用いてポンプの状態を切り替える。 ----
     unsigned long _pumpPreviousTime = 0; // ポンプ運転の時間管理
-    bool _pumpState = false; // ポンプの状態（オン／オフ）
+    bool _pumpState = false, _motorState = false; // ポンプの状態（オン／オフ）
     
     // ---- State ----
     FertilizerState _state = IDLE;

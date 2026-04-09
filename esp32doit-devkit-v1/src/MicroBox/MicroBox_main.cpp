@@ -124,12 +124,9 @@ void ThisRTOS::vTask1(void *pvParameter) {
     tdsprog.begin();
     watertemp.begin();
 
-    // pvParameterからMicroBox_Mainインスタンスのポインタを取得
-    MicroBox_Main* mainObj = static_cast<MicroBox_Main*>(pvParameter);
-
     while (true) {
         // 土壌水分センサーを実行し、読み取り値を更新
-        soilmoisture.getData(true, 3395, 4095);
+        soilmoisture.getData(true, 0, 4095);
 
         // DHTセンサーを実行し、読み取り値を更新
         dhtprog.running();
@@ -144,7 +141,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
         tdsprog.update();
 
         // DisplayProgram関数を呼び出してLCD表示を更新
-        mainObj->DisplayProgram();
+        ThisRTOS::DisplayProgram();
 
         // タスク実行頻度を制御するために100ミリ秒遅延
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -271,22 +268,15 @@ void MicroBox_Main::setup(unsigned long baud) {
 
     this->splash_boot(1000);
     
-    // FreeRTOSタスクを作成
-    static ThisRTOS rtos;
+    // FreeRTOSタスクを作成して実行
     // タスクを作成し、vTask 1を実行
-    xTaskCreateUniversal([](void *param) {
-        static_cast<ThisRTOS*>(param)->vTask1(param);
-    }, "Task 1", 4096, &rtos, 1, NULL, PRO_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask1, "Task 1", 4096, this, 1, NULL, PRO_CPU_NUM);
     
     // タスクを作成し、vTask 2を実行
-    xTaskCreateUniversal([](void *param) {
-        static_cast<ThisRTOS*>(param)->vTask2(param);
-    }, "Task 2", 4096, &rtos, 1, NULL, APP_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask2, "Task 2", 4096, this, 1, NULL, APP_CPU_NUM);
 
     // タスクを作成し、vTask 3を実行
-    xTaskCreateUniversal([](void *param) {
-        static_cast<ThisRTOS*>(param)->vTask3(param);
-    }, "Task 3", 4096, &rtos, 1, NULL, APP_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask3, "Task 3", 4096, this, 1, NULL, APP_CPU_NUM);
 
 }
 
@@ -351,15 +341,44 @@ void MicroBox_Main::splash_boot(uint32_t _delay) {
  *          I2Cミューテックスを使用して排他制御を行う。
  */
 constexpr uint8_t SLIDE_DURATION = 5;
-constexpr uint8_t TOTAL_SLIDES = 12;
+constexpr uint8_t TOTAL_SLIDES = 11;
 constexpr uint8_t MAX_STATE = SLIDE_DURATION * TOTAL_SLIDES;
 constexpr uint8_t AUTO_MODE_INDEX = TOTAL_SLIDES;
-void MicroBox_Main::DisplayProgram() {
+void ThisRTOS::DisplayProgram() {
     bool watering_process = wateringSys.WateringProcess;
     watering_process ? led_running.on() : led_running.off();
     
     uint8_t btnSlide = ButtonManager.updateDisplay(AUTO_MODE_INDEX);
 
+    static uint8_t lastSlide = 0;
+    bool isChanged = (btnSlide != lastSlide);
+    lastSlide = btnSlide;
+
+    static LCDMode lcdMode = LCD_AUTO;
+    static int lcdState = 0;
+    static uint8_t autoSlide = 0;
+    
+    uint8_t slide;
+
+    if (btnSlide == AUTO_MODE_INDEX) {
+        lcdMode = LCD_AUTO;
+    } else {
+        lcdMode = LCD_MANUAL;
+    }
+
+    
+    if (lcdMode == LCD_MANUAL) {
+        slide = btnSlide;
+    }
+
+    if (isChanged) {
+        if (!xSemaphoreTake(i2cMutex, portMAX_DELAY)) return;
+        lcd.init(); // LCDを再初期化して表示をリフレッシュ
+        lcd.backlight(ButtonManager.backlightState);
+        xSemaphoreGive(i2cMutex);
+    }
+
+    
     static String rtcDate;
     static String rtcTime;
     static unsigned long lastRTC = 0;
@@ -379,24 +398,9 @@ void MicroBox_Main::DisplayProgram() {
     if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1000L) {
         LastTimeRefreshLCD = millis();
 
-        static LCDMode lcdMode = LCD_AUTO;
-        static int lcdState = 0;
-        static uint8_t autoSlide = 0;
-        
-        uint8_t slide;
-
-        if (btnSlide == AUTO_MODE_INDEX) {
-            lcdMode = LCD_AUTO;
-        } else {
-            lcdMode = LCD_MANUAL;
-        }
-
         if (lcdMode == LCD_AUTO) {
             lcdState = (lcdState + 1) % MAX_STATE;
             slide = lcdState / SLIDE_DURATION;
-        }
-        else {
-            slide = btnSlide;
         }
 
         if (!otaDisplay && xSemaphoreTake(i2cMutex, portMAX_DELAY)) {
@@ -409,7 +413,7 @@ void MicroBox_Main::DisplayProgram() {
                     lcd.print("C");
 
                     lcd.print("TDS:", 0, 1);
-                    lcd.print(tdsprog.getTDSValue());
+                    lcd.print(tdsprog.getPPMValue());
                     lcd.print("ppm");
                 }
                 break;
@@ -423,6 +427,7 @@ void MicroBox_Main::DisplayProgram() {
                 }
                 break;
 
+                /*
                 case 2:
                 {
                     lcd.print("Temp:", 0, 0);
@@ -433,30 +438,30 @@ void MicroBox_Main::DisplayProgram() {
                     lcd.print(dhtprog.humidity);
                     lcd.print("%");
                 }
-                break;
+                break;*/
 
-                case 3:
+                case 2:
                 {
                     lcd.print("Auto Watering", 0, 0);
                     lcd.print(wateringSys.AutoWateringState ? "Enable" : "Disable", 0, 1);
                 }
                 break;
 
-                case 4:
+                case 3:
                 {
                     lcd.print("Watering", 0, 0);
                     lcd.print(watering_process ? "RUN" : "IDLE", 0, 1);
                 }
                 break;
 
-                case 5:
+                case 4:
                 {
                     lcd.print("Fertilizer", 0, 0);
                     lcd.print(fertilizerProg.stateToString(), 0, 1);
                 }
                 break;
 
-                case 6:
+                case 5:
                 {
                     lcd.print("Fertilizer Date", 0, 0);
                     lcd.print("Next:", 0, 1);
@@ -464,7 +469,7 @@ void MicroBox_Main::DisplayProgram() {
                 }
                 break;
 
-                case 7:
+                case 6:
                 {
                     lcd.print("Fertilizer Date", 0, 0);
                     lcd.print("Passed:", 0, 1);
@@ -473,7 +478,7 @@ void MicroBox_Main::DisplayProgram() {
                 }
                 break;
 
-                case 8:
+                case 7:
                 {
                     lcd.print("Fertilizer Date", 0, 0);
                     lcd.print("Remaining:", 0, 1);
@@ -481,14 +486,14 @@ void MicroBox_Main::DisplayProgram() {
                 }
                 break;
 
-                case 9:
+                case 8:
                 {
                     lcd.print("WiFi Mode", 0, 0);
                     lcd.print(WiFi.getMode() == WIFI_STA ? "STA" : "AP", 0, 1);
                 }
                 break;
 
-                case 10:
+                case 9:
                 {
                     int clientCount = ProgramWiFi.getConnectedClientCount();
 
@@ -510,7 +515,15 @@ void MicroBox_Main::DisplayProgram() {
                 }
                 break;
 
-                case 11:
+                // case 10:
+                // {
+                //     lcd.print("RTT Blynk", 0, 0);
+                //     lcd.print(WiFi.getMode() == WIFI_AP ? -1 : rtt, 0, 1);
+                //     lcd.print(WiFi.getMode() == WIFI_AP ? "" : "ms");
+                // }
+                // break;
+
+                case 10:
                 {
                     lcd.print("Date:", 0, 0);
                     lcd.print(rtcDate);

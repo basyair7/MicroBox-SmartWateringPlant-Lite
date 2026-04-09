@@ -55,12 +55,26 @@ inline void FertilizerProgram::run_motor(bool state) {
  * 目標値に達した場合、モーターを停止する。
  */
 inline void FertilizerProgram::mix_fertilizer() {
-    if (tdsprog.getTDSValue() < (PPM_TARGET - PPM_TOLERANCE)) {
-        // TDS値がしきい値を超えた場合、モーターを駆動させる。
-        this->run_motor(true);
-        this->FertilizerChecked = false;
-    } else {
-        // それ以外の場合、モーターを停止する。
+    static unsigned long _motorPrevTime = 0;
+    const unsigned long onTime = 5000; // モーターをオンにする時間（ミリ秒）
+    const unsigned long offTime = 5000; // モーターをオフにする時間（ミリ秒）
+
+    // 現在時刻を取得し、モーターの状態に応じたインターバルを計算する。
+    unsigned long currentTime = millis();
+    unsigned long interval = this->_motorState ? onTime : offTime;
+
+    // モーターの状態を切り替えるタイミングかどうかを判断し、必要に応じてモーターをオン・オフする。
+    this->FertilizerChecked = false;
+
+    // TDS値が目標値に達していない場合、モーターをオン・オフする。
+    if (currentTime - _motorPrevTime > interval) {
+        _motorPrevTime = currentTime;
+        this->_motorState = !this->_motorState;
+        this->run_motor(this->_motorState);
+    }
+
+    // TDS値が目標値に達している場合、モーターを停止し、FertilizerCheckedフラグを有効にする。
+    if (tdsprog.getPPMValue() >= (PPM_TARGET - PPM_TOLERANCE)) {
         this->run_motor(false);
         this->FertilizerChecked = true;
     }
@@ -73,7 +87,7 @@ inline void FertilizerProgram::mix_fertilizer() {
  */
 inline void FertilizerProgram::give_fertilizer(bool _run) {
     // 最終施肥日と設定された間隔に基づき、施肥の実行時刻かどうかを判定する。
-    const uint32_t onTime  = 500;
+    const uint32_t onTime  = 1000;
     const uint32_t offTime = 1000;
 
     if (!_run) {
@@ -158,7 +172,7 @@ void FertilizerProgram::begin(const uint8_t pumpPin, const uint8_t motorPin, boo
  * @brief 肥料制御のメイン状態機械。
  * IDLE -> MIXING -> PUMPING -> FINISHED の順番で動作する。
  */
-void FertilizerProgram::run(uint8_t hour, uint32_t _minute) {
+void FertilizerProgram::run(uint8_t hour, uint32_t _second) {
     // 1秒ごとに状態をチェックするためのタイミング管理。
     static unsigned long lastCheck = 0;
 
@@ -203,12 +217,7 @@ void FertilizerProgram::run(uint8_t hour, uint32_t _minute) {
 
                 this->_state = PUMPING;
             }
-#if DEBUG_MODE
-            else if (nowSec - this->_mixStartUnix > MIX_TIMEOUT)
-#else
-            else if (nowSec - this->_mixStartUnix > 300) 
-#endif       
-            {
+            else if (nowSec - this->_mixStartUnix > MIX_TIMEOUT) {
                 this->run_motor(false);
                 this->_state = FINISHED;
             }
@@ -222,7 +231,7 @@ void FertilizerProgram::run(uint8_t hour, uint32_t _minute) {
 #if DEBUG_MODE
             if (elapsed >= PUMP_DURATION)
 #else
-            if (elapsed >= (_minute * 60UL))
+            if (elapsed >= _second)
 #endif 
             {
                 this->give_fertilizer(false);

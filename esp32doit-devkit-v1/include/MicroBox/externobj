@@ -50,7 +50,8 @@ extern LFSMemory lfsprog;
 extern WateringSys wateringSys;
 
 extern bool RebootState;
-extern unsigned long __lastTimeReboot__;
 extern bool otaDisplay;
+// extern unsigned long rtt;
+extern unsigned long __lastTimeReboot__;
 
 extern SemaphoreHandle_t i2cMutex;

@@ -89,11 +89,11 @@ void WateringSys::run() {
         if (!this->AutoWateringState) return;
 
         // 土壌水分センサーの値を監視し、設定された閾値に基づいて散水処理を開始または停止します。
-        if (soilmoisture.value > WATERING_LVL_MAX) {
+        if (soilmoisture.value >= WATERING_LVL_MAX) {
             this->stopWatering();
             return; // 土壌水分値が上限しきい値以上の場合、散水を停止する。
         }
-        else if (soilmoisture.value < WATERING_LVL_MIN) {
+        else if (soilmoisture.value <= WATERING_LVL_MIN) {
             if (this->_isWatering) return; // すでに散水中の場合は、何もせずに終了する。
             this->startWatering();
         }

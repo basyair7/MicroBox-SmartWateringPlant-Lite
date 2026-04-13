@@ -159,7 +159,7 @@ void WebServerClass::run_css_js_webserver() {
     // CSSファイルとJavaScriptファイルのリストを定義する。
     const std::vector<String> list_css_files = {
         "recovery.css", "index.css", 
-        "config_wifi_ap.css", "config_wifi_sta.css",
+        "config_wifi.css",
         "config_rtc.css"
     };
 

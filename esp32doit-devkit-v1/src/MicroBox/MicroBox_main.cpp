@@ -285,13 +285,13 @@ void MicroBox_Main::setup(unsigned long baud) {
     
     // FreeRTOSタスクを作成して実行
     // タスクを作成し、vTask 1を実行
-    xTaskCreateUniversal(ThisRTOS::vTask1, "Task 1", 8192, this, 1, NULL, APP_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask1, "Task 1", 8192, this, 1, NULL, PRO_CPU_NUM);
     
     // タスクを作成し、vTask 2を実行
-    xTaskCreateUniversal(ThisRTOS::vTask2, "Task 2", 8192, this, 1, NULL, APP_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask2, "Task 2", 4096, this, 1, NULL, APP_CPU_NUM);
 
     // タスクを作成し、vTask 3を実行
-    xTaskCreateUniversal(ThisRTOS::vTask3, "Task 3", 8192, this, 1, NULL, APP_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask3, "Task 3", 4096, this, 1, NULL, APP_CPU_NUM);
 
 }
 
@@ -300,23 +300,6 @@ void MicroBox_Main::loop() {
      * ループには、他のタスクや
      * 実行する必要のある機能を含めることができます
     */
-}
-
-void ThisRTOS::recoveryI2C() {
-    pinMode(22, OUTPUT); // SCL
-    pinMode(21, INPUT_PULLUP); // SDA
-
-    // Clock manual 9x untuk release slave
-    for (int i = 0; i < 9; i++) {
-        digitalWrite(22, HIGH);
-        delayMicroseconds(5);
-        digitalWrite(22, LOW);
-        delayMicroseconds(5);
-    }
-
-    Wire.begin(21, 22);
-    Wire.setClock(100000);
-    Wire.setTimeOut(50);
 }
 
 /**
@@ -382,9 +365,9 @@ void ThisRTOS::DisplayProgram() {
     
     uint8_t btnSlide = ButtonManager.updateDisplay(AUTO_MODE_INDEX);
 
-    static uint8_t lastSlide = 0;
-    bool isChanged = (btnSlide != lastSlide);
-    lastSlide = btnSlide;
+    static uint8_t lastSlideBtn = 0;
+    bool isChanged = (btnSlide != lastSlideBtn);
+    lastSlideBtn = btnSlide;
 
     static LCDMode lcdMode = LCD_AUTO;
     static int lcdState = 0;
@@ -405,7 +388,6 @@ void ThisRTOS::DisplayProgram() {
 
     if (isChanged) {
         if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(10))) return;
-        recoveryI2C();
         lcd.init(); // LCDを再初期化して表示をリフレッシュ
         lcd.backlight(ButtonManager.backlightState);
         xSemaphoreGive(i2cMutex);
@@ -429,8 +411,7 @@ void ThisRTOS::DisplayProgram() {
 
     static unsigned long LastTimeRefreshLCD = 0;
     static uint8_t lastRenderedSlide = 255;
-    bool slideChanged = (slide != lastRenderedSlide);
-    lastRenderedSlide = slide;
+    static uint8_t lastSlide = 0;
 
     if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 300L) {
         LastTimeRefreshLCD = millis();
@@ -440,9 +421,10 @@ void ThisRTOS::DisplayProgram() {
             slide = lcdState / SLIDE_DURATION;
         }
 
-        if (slideChanged) {
-            lcd.clear();
-        }
+        bool isClear = (lastSlide != slide);
+        lastSlide = slide;
+
+        if (isClear) lcd.clear();
 
         if (!otaDisplay && xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(10))) {
             switch (slide) {

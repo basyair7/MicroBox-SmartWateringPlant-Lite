@@ -204,9 +204,24 @@ void ThisRTOS::vTask2(void *pvParameter) {
 void ThisRTOS::vTask3(void *pvParameter) {
     (void) pvParameter;
     
+    // 灌水システムを初期化
     wateringSys.begin();
+    
+    // 肥料システムのスケジュールをLittleFSから読み取り、初期化
+    fertilizerProg.__HOUR_FERTILIZER__     = lfsprog.__HOUR_FERTILIZER__;
+    fertilizerProg.__MINUTE_FERTILIZER__   = lfsprog.__MINUTE_FERTILIZER__;
+    fertilizerProg.__SECOND_FERTILIZER__   = lfsprog.__SECOND_FERTILIZER__;
+    fertilizerProg.__INTERVAL_FERTILIZER__ = lfsprog.__INTERVAL_FERTILIZER__;
+    fertilizerProg.__PPM_TARGET__          = lfsprog.__PPM_TARGET__;
+    fertilizerProg.__PPM_TOLERANCE__       = lfsprog.__PPM_TOLERANCE__;
+    
+    // 肥料システムを初期化
     fertilizerProg.begin(RELAY_FERTILIZER, RELAY_MOTOR);
+    
+    // ボタンマネージャーを初期化
     ButtonManager.init();
+    
+    // LCDのバックライト状態をEEPROMから読み取り、初期化
     lcd.backlight(ButtonManager.backlightState);
 
     while (true) {
@@ -226,7 +241,7 @@ void ThisRTOS::vTask3(void *pvParameter) {
             led_warning.run(1500);
 
         wateringSys.run();
-        fertilizerProg.run(HOUR_FERTILIZER, MINUTE_FERTILIZER);
+        fertilizerProg.run();
 
         // タスク実行頻度を制御するために100ミリ秒遅延
         vTaskDelay(pdMS_TO_TICKS(100));
@@ -244,7 +259,7 @@ void ThisRTOS::vTask3(void *pvParameter) {
 void MicroBox_Main::setup(unsigned long baud) {
     Wire.begin(21, 22); // SDA, SCL
     Wire.setClock(100000);
-    Wire.setTimeOut(200);
+    Wire.setTimeOut(50);
 
     Serial.begin(baud); //!< Initialize serial communication
 
@@ -256,7 +271,7 @@ void MicroBox_Main::setup(unsigned long baud) {
 
     // ハードウェアコンポーネントを初期化
     i2cMutex = xSemaphoreCreateMutex();
-    xSemaphoreTake(i2cMutex, portMAX_DELAY);
+    xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(10));
     lcd.init();
     rtcprog.begin(); //!< RTCプログラムを初期化
     xSemaphoreGive(i2cMutex);
@@ -266,17 +281,17 @@ void MicroBox_Main::setup(unsigned long baud) {
     led_warning.begin(LED_WARNING);
     bootbtn.begin();
 
-    this->splash_boot(1000);
+    this->splash_boot(200);
     
     // FreeRTOSタスクを作成して実行
     // タスクを作成し、vTask 1を実行
-    xTaskCreateUniversal(ThisRTOS::vTask1, "Task 1", 4096, this, 1, NULL, PRO_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask1, "Task 1", 8192, this, 1, NULL, APP_CPU_NUM);
     
     // タスクを作成し、vTask 2を実行
-    xTaskCreateUniversal(ThisRTOS::vTask2, "Task 2", 4096, this, 1, NULL, APP_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask2, "Task 2", 8192, this, 1, NULL, APP_CPU_NUM);
 
     // タスクを作成し、vTask 3を実行
-    xTaskCreateUniversal(ThisRTOS::vTask3, "Task 3", 4096, this, 1, NULL, APP_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask3, "Task 3", 8192, this, 1, NULL, APP_CPU_NUM);
 
 }
 
@@ -285,6 +300,23 @@ void MicroBox_Main::loop() {
      * ループには、他のタスクや
      * 実行する必要のある機能を含めることができます
     */
+}
+
+void ThisRTOS::recoveryI2C() {
+    pinMode(22, OUTPUT); // SCL
+    pinMode(21, INPUT_PULLUP); // SDA
+
+    // Clock manual 9x untuk release slave
+    for (int i = 0; i < 9; i++) {
+        digitalWrite(22, HIGH);
+        delayMicroseconds(5);
+        digitalWrite(22, LOW);
+        delayMicroseconds(5);
+    }
+
+    Wire.begin(21, 22);
+    Wire.setClock(100000);
+    Wire.setTimeOut(50);
 }
 
 /**
@@ -372,7 +404,8 @@ void ThisRTOS::DisplayProgram() {
     }
 
     if (isChanged) {
-        if (!xSemaphoreTake(i2cMutex, portMAX_DELAY)) return;
+        if (!xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(10))) return;
+        recoveryI2C();
         lcd.init(); // LCDを再初期化して表示をリフレッシュ
         lcd.backlight(ButtonManager.backlightState);
         xSemaphoreGive(i2cMutex);
@@ -385,7 +418,7 @@ void ThisRTOS::DisplayProgram() {
 
     if (millis() - lastRTC >= 1000) {
 
-        if (xSemaphoreTake(i2cMutex, portMAX_DELAY)) {
+        if (xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(10))) {
             rtcDate = rtcprog.datestr();
             rtcTime = rtcprog.timestr();
             xSemaphoreGive(i2cMutex);
@@ -395,7 +428,11 @@ void ThisRTOS::DisplayProgram() {
     }
 
     static unsigned long LastTimeRefreshLCD = 0;
-    if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 1000L) {
+    static uint8_t lastRenderedSlide = 255;
+    bool slideChanged = (slide != lastRenderedSlide);
+    lastRenderedSlide = slide;
+
+    if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 300L) {
         LastTimeRefreshLCD = millis();
 
         if (lcdMode == LCD_AUTO) {
@@ -403,8 +440,11 @@ void ThisRTOS::DisplayProgram() {
             slide = lcdState / SLIDE_DURATION;
         }
 
-        if (!otaDisplay && xSemaphoreTake(i2cMutex, portMAX_DELAY)) {
+        if (slideChanged) {
             lcd.clear();
+        }
+
+        if (!otaDisplay && xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(10))) {
             switch (slide) {
                 case 0:
                 {

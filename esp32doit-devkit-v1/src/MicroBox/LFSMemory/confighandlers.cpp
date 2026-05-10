@@ -73,6 +73,33 @@ void LFSMemory::changeConfigState(String stateConfig, bool value) {
 }
 
 /**
+ * 
+ */
+void LFSMemory::changeFertilizerConfigTime(uint8_t _hour, uint8_t _minute, uint32_t _second, uint32_t _interval)
+{
+    this->initializeOrUpdateFertilizerConfig(
+        this->file_config_fertilizer,
+        [&](StaticJsonDocument<200> &data) {
+            data["hour"]     = _hour;
+            data["minute"]   = _minute;
+            data["second"]   = _second;
+            data["interval"] = _interval;
+        }
+    );
+}
+
+void LFSMemory::changeFertilizerConfig(int _ppm_target, int _ppm_tolerance)
+{
+    this->initializeOrUpdateFertilizerConfig(
+        this->file_config_fertilizer,
+        [&](StaticJsonDocument<200> &data) {
+            data["ppm_target"] = _ppm_target;
+            data["ppm_tolerance"] = _ppm_tolerance;
+        }
+    );
+}
+
+/**
  *  @brief LFSMemory::readConfigState
  *  @details この関数は、指定された状態設定を読み取るための設定ハンドラです。
  *  @param stateConfig 読み取る状態設定のキー

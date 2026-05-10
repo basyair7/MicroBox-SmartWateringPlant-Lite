@@ -156,6 +156,95 @@ void LFSMemory::initializeOrUpdateState(const String &cfile, std::function<void 
 }
 
 /**
+ * @brief 指定されたファイルに保存された肥料設定を初期化または更新する。
+ * @details この関数は、指定されたファイルに保存された肥料設定を初期化または更新するための共通のロジックを提供します。
+ *          ファイルが存在しない場合や内容が破損している場合は、デフォルトの肥料設定で初期化されます。
+ *          更新は、提供されたラムダ関数を使用して行われます。
+ * @param cfile 肥料設定を保存するファイルの名前。
+ * @param updateFunc 肥料設定を更新するためのラムダ関数。StaticJsonDocument を引数に取り、必要な変更を加えることができます。
+ */
+void LFSMemory::initializeOrUpdateFertilizerConfig(const String &cfile, std::function<void (StaticJsonDocument<200>&)> updateFunc)
+{
+    StaticJsonDocument<200> doc;
+    String __readConfig__ = this->readconfig(cfile), __newConfig__ = "";
+    
+    if (__readConfig__ == "null" || !lfsIsExists(cfile)) {
+        // 肥料設定ファイルが存在しない、または破損している場合、デフォルトの肥料設定で初期化する。
+        Serial.println(F("Fertilizer config file missing, creating new one."));
+        doc["hour"] = HOUR_FERTILIZER;
+        doc["minute"] = MINUTE_FERTILIZER;
+        doc["second"] = SECOND_FERTILIZER;
+        doc["interval"] = INTERVAL_FERTILIZER;
+        doc["ppm_target"] = PPM_TARGET;
+        doc["ppm_tolerance"] = PPM_TOLERANCE;
+    }
+    else {
+        DeserializationError error = deserializeJson(doc, __readConfig__);
+        if (error || __readConfig__.length() == 0) {
+            this->handleError_deserializeJson(
+                "initializeOrUpdateFertilizerConfig", // エラー追跡用関数名
+                error.c_str() // エラーメッセージ
+            );
+            doc.clear();
+            doc["hour"] = HOUR_FERTILIZER;
+            doc["minute"] = MINUTE_FERTILIZER;
+            doc["second"] = SECOND_FERTILIZER;
+            doc["interval"] = INTERVAL_FERTILIZER;
+            doc["ppm_target"] = PPM_TARGET;
+            doc["ppm_tolerance"] = PPM_TOLERANCE;
+        }
+    }
+
+    // 提供されたラムダ関数を使用して変更を適用する。
+    updateFunc(doc);
+
+    // 更新されたデータをシリアル化してファイルに書き込む。
+    serializeJson(doc, __newConfig__);
+    this->writeconfig(cfile, __newConfig__);
+}
+
+void LFSMemory::initializeOrUpdateWateringConfig(const String &cfile, std::function<void (StaticJsonDocument<200>&)> updateFunc)
+{
+    StaticJsonDocument<200> doc;
+    String __readConfig__ = this->readconfig(cfile), __newConfig__ = "";
+
+    if (__readConfig__ == "null" || !lfsIsExists(cfile)) {
+        // 肥料設定ファイルが存在しない、または破損している場合、デフォルトの肥料設定で初期化する。
+        Serial.println(F("Watering config file missing, creating new one."));
+        doc["hour_start"] = HOUR_WATERING_START;
+        doc["hour_end"]   = HOUR_WATERING_END;
+        doc["interval"]   = INTERVAL_WATERING;
+
+        doc["watering_lvl_max"] = WATERING_LVL_MAX;
+        doc["watering_lvl_min"] = WATERING_LVL_MIN;
+    }
+    else {
+        DeserializationError error = deserializeJson(doc, __readConfig__);
+        if (error || __readConfig__.length() == 0) {
+            this->handleError_deserializeJson(
+                "initializeOrUpdateWateringConfig", // エラー追跡用関数名
+                error.c_str() // エラーメッセージ
+            );
+
+            doc.clear();
+            doc["hour_start"] = HOUR_WATERING_START;
+            doc["hour_end"]   = HOUR_WATERING_END;
+            doc["interval"]   = INTERVAL_WATERING;
+
+            doc["watering_lvl_max"] = WATERING_LVL_MAX;
+            doc["watering_lvl_min"] = WATERING_LVL_MIN;
+        }
+    }
+
+    // 提供されたラムダ関数を使用して変更を適用する。
+    updateFunc(doc);
+
+    // 更新されたデータをシリアル化してファイルに書き込む。
+    serializeJson(doc, __newConfig__);
+    this->writeconfig(cfile, __newConfig__);
+}
+
+/**
  * @brief LittleFSに保存されたWiFi設定を使用して、WiFi関連の変数を初期化する。
  * @details この関数は、LittleFSに保存されたWiFi設定を読み取り、WiFi関連の変数を初期化します。
  *          設定ファイルが存在しない場合や内容が破損している場合は、デフォルトのWiFi設定で初期化されます。
@@ -199,6 +288,38 @@ void LFSMemory::initializeState(void) {
             // 状態設定を初期化するためのコードをここに記述します。
             this->__WATERING_MODE_STATE__ = data[AUTOWATERING];
             this->__AUTO_CHANGE_MODE__    = data[AUTOCHANGE];
+        }
+    );
+}
+
+/**
+ * @brief LittleFSに保存された肥料設定を使用して、肥料関連の変数を初期化する。
+ * @details この関数は、LittleFSに保存された肥料設定を読み取り、肥料関連の変数を初期化します。
+ *          設定ファイルが存在しない場合や内容が破損している場合は、デフォルトの肥料設定で初期化されます。
+ */
+void LFSMemory::initializeFertilizerConfig(void) {
+    this->initializeOrUpdateFertilizerConfig(
+        this->file_config_fertilizer,
+        [&](StaticJsonDocument<200> &data) {
+            this->__HOUR_FERTILIZER__ = data["hour"];
+            this->__MINUTE_FERTILIZER__ = data["minute"];
+            this->__SECOND_FERTILIZER__ = data["second"];
+            this->__INTERVAL_FERTILIZER__ = data["interval"];
+            this->__PPM_TARGET__ = data["ppm_target"];
+            this->__PPM_TOLERANCE__ = data["ppm_tolerance"];
+        }
+    );
+}
+
+void LFSMemory::initializeWateringConfig(void) {
+    this->initializeOrUpdateWateringConfig(
+        this->file_config_watering,
+        [&](StaticJsonDocument<200> &data) {
+            this->__HOUR_WATERING_START__ = data["hour_start"];
+            this->__HOUR_WATERING_END__   = data["hour_end"];
+            this->__INTERVAL_WATERING__   = data["interval"];
+            this->__WATERING_LVL_MAX__    = data["watering_lvl_max"];
+            this->__WATERING_LVL_MIN__    = data["watering_lvl_min"];
         }
     );
 }
@@ -268,6 +389,57 @@ void LFSMemory::reinitializeState(void) {
 }
 
 /**
+ * @brief LittleFSに保存された肥料設定をデフォルトの値で再初期化する。
+ * @details この関数は、LittleFSに保存された肥料設定をデフォルトの値で再初期化します。これにより、肥料設定がリセットされ、デフォルトの施肥開始時間や施肥間隔が適用されます。
+ *          既存の肥料設定ファイルが存在する場合は、上書きされます。
+ */
+void LFSMemory::reinitializeFertilizerConfig(void) {
+    this->initializeOrUpdateFertilizerConfig(
+        this->file_config_fertilizer,
+        [&](StaticJsonDocument<200> &data) {
+            // 肥料設定をデフォルト値にリセットする。
+            this->__HOUR_FERTILIZER__     = HOUR_FERTILIZER;
+            this->__MINUTE_FERTILIZER__   = MINUTE_FERTILIZER;
+            this->__SECOND_FERTILIZER__   = SECOND_FERTILIZER;
+            this->__INTERVAL_FERTILIZER__ = INTERVAL_FERTILIZER;
+            this->__PPM_TARGET__          = PPM_TARGET;
+            this->__PPM_TOLERANCE__       = PPM_TOLERANCE;
+
+            // デフォルト値をデータに設定する。
+            data["hour"]     = this->__HOUR_FERTILIZER__;
+            data["minute"]   = this->__MINUTE_FERTILIZER__;
+            data["second"]   = this->__SECOND_FERTILIZER__;
+            data["interval"] = this->__INTERVAL_FERTILIZER__;
+
+            data["ppm_target"]    = this->__PPM_TARGET__;
+            data["ppm_tolerance"] = this->__PPM_TOLERANCE__;
+
+            Serial.println(F("Reinitialize Fertilizer Config : Done"));
+        }
+    );
+}
+
+void LFSMemory::reinitializeWateringConfig(void) {
+    this->initializeOrUpdateWateringConfig(
+        this->file_config_watering,
+        [&](StaticJsonDocument<200> &data) {
+            this->__HOUR_WATERING_START__ = HOUR_WATERING_START;
+            this->__HOUR_WATERING_END__   = HOUR_WATERING_END;
+            this->__INTERVAL_WATERING__   = INTERVAL_WATERING;
+            this->__WATERING_LVL_MAX__    = WATERING_LVL_MAX;
+            this->__WATERING_LVL_MIN__    = WATERING_LVL_MIN;
+
+            data["hour_start"] = this->__HOUR_WATERING_START__;
+            data["hour_end"]   = this->__HOUR_WATERING_END__;
+            data["interval"]   = this->__INTERVAL_WATERING__;
+
+            data["watering_lvl_max"] = this->__WATERING_LVL_MAX__;
+            data["watering_lvl_min"] = this->__WATERING_LVL_MIN__;
+        }
+    );
+}
+
+/**
  * @brief LittleFSに保存されたWiFi設定を変更するための設定ハンドラを提供する。
  * @details この関数は、WiFiステーションモードのSSIDとパスワードを変更するための設定ハンドラです。提供された新しいSSIDとパスワードを使用して、WiFi設定を更新します。
  *          更新された設定は、LittleFSに保存されます。
@@ -289,6 +461,7 @@ void LFSMemory::setupLFS(void) {
     this->initializeWiFiConfig();
     this->initializeVarRelay();
     this->initializeState();
+    this->initializeFertilizerConfig();
     this->listFiles();
 
     // LittleFSに保存されたWiFi設定をシリアルモニタに表示する。

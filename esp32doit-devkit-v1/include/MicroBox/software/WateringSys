@@ -25,26 +25,43 @@
 
 #include <Arduino.h>
 #include "MyEEPROM"
+#include "../hardware/DS3231rtc"
 #include "../hardware/LEDBoard.h"
 #include "variable"
 
 class WateringSys {
     unsigned long _LastMillis1 = 0, _LastResetFlag = 0;
     bool _isWatering = false;
+    bool hasSaveToday = false;
+
+    uint32_t lastWateringDay;
     MyEEPROM eeprom_obj;
 
     public:
+        int __WATERING_LVL_MAX__ = WATERING_LVL_MAX, __WATERING_LVL_MIN__ = WATERING_LVL_MIN;
+        uint8_t __HOUR_START__ = HOUR_WATERING_START, __HOUR_END__ = HOUR_WATERING_END;
+        uint8_t __INTERVAL_WATERING__ = INTERVAL_WATERING;
+
         bool WateringProcess = false;
         bool AutoWateringState = false;
 
         void begin();
-        void run();
+        void run(int state);
+
+        DateTime getNextWateringDate() const;
 
     private:
+        void handleSensorMode();
+        void handleRTCMode();
         bool wateringProcess() const;
-
         void startWatering();
         void stopWatering();
+
+        void LastWatering(
+            TimeSpan *time_last_watering = nullptr,
+            int *CurrentHour = nullptr,
+            int *CurrentMinute = nullptr
+        );
 
     private:
         bool hasStarted = false;

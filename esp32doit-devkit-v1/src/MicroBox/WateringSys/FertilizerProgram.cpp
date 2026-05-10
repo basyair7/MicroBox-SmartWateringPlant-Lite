@@ -63,6 +63,13 @@ inline void FertilizerProgram::mix_fertilizer() {
     unsigned long currentTime = millis();
     unsigned long interval = this->_motorState ? onTime : offTime;
 
+    // TDS値が目標値に達している場合、モーターを停止し、FertilizerCheckedフラグを有効にする。
+    if (tdsprog.getPPMValue() > (this->__PPM_TARGET__ - this->__PPM_TOLERANCE__)) {
+        this->run_motor(false);
+        this->FertilizerChecked = true;
+        return;
+    }
+
     // モーターの状態を切り替えるタイミングかどうかを判断し、必要に応じてモーターをオン・オフする。
     this->FertilizerChecked = false;
 
@@ -71,12 +78,6 @@ inline void FertilizerProgram::mix_fertilizer() {
         _motorPrevTime = currentTime;
         this->_motorState = !this->_motorState;
         this->run_motor(this->_motorState);
-    }
-
-    // TDS値が目標値に達している場合、モーターを停止し、FertilizerCheckedフラグを有効にする。
-    if (tdsprog.getPPMValue() >= (PPM_TARGET - PPM_TOLERANCE)) {
-        this->run_motor(false);
-        this->FertilizerChecked = true;
     }
 }
 
@@ -172,7 +173,7 @@ void FertilizerProgram::begin(const uint8_t pumpPin, const uint8_t motorPin, boo
  * @brief 肥料制御のメイン状態機械。
  * IDLE -> MIXING -> PUMPING -> FINISHED の順番で動作する。
  */
-void FertilizerProgram::run(uint8_t hour, uint32_t _second) {
+void FertilizerProgram::run() {
     // 1秒ごとに状態をチェックするためのタイミング管理。
     static unsigned long lastCheck = 0;
 
@@ -196,7 +197,11 @@ void FertilizerProgram::run(uint8_t hour, uint32_t _second) {
 #if DEBUG_MODE
             if ((uint32_t)(nowSec - this->lastFertilizerDay) >= DAY_SECONDS)
 #else
-            if (timeSinceLast.days() >= INTERVAL_FERTILIZER && nowRTC.hour() == hour && nowRTC.minute() == 0) 
+            if (
+                timeSinceLast.days() >= this->__INTERVAL_FERTILIZER__
+                && nowRTC.hour() == this->__HOUR_FERTILIZER__ 
+                && nowRTC.minute() == this->__MINUTE_FERTILIZER__
+            ) 
 #endif       
             {
                 this->_mixStartUnix = nowSec;
@@ -228,11 +233,8 @@ void FertilizerProgram::run(uint8_t hour, uint32_t _second) {
         {
             // 一定時間だけ肥料を供給する状態。
             uint32_t elapsed = nowSec - this->_pumpStartUnix;
-#if DEBUG_MODE
-            if (elapsed >= PUMP_DURATION)
-#else
-            if (elapsed >= _second)
-#endif 
+            
+            if (elapsed >= this->__SECOND_FERTILIZER__)
             {
                 this->give_fertilizer(false);
                 _state = FINISHED;

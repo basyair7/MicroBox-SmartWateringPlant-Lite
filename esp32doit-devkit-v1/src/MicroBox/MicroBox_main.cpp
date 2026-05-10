@@ -70,6 +70,7 @@ const TDSConfig tds_config = {
     TDS_A,
     TDS_B,
     TDS_VOLTAGE_OFFSET,
+    TDS_FACTOR,
     SCOUNT
 };
 TDSProgram tdsprog = TDSProgram(tds_config);    //!< TDSセンサー管理モジュール
@@ -139,6 +140,7 @@ void ThisRTOS::vTask1(void *pvParameter) {
 
         // TDSセンサーを実行し、読み取り値を更新
         tdsprog.update();
+        // tdsprog.checkDebug();
 
         // DisplayProgram関数を呼び出してLCD表示を更新
         ThisRTOS::DisplayProgram();
@@ -240,7 +242,7 @@ void ThisRTOS::vTask3(void *pvParameter) {
         if (WiFi.status() == WL_DISCONNECTED || WiFi.getMode() == WIFI_AP) 
             led_warning.run(1500);
 
-        wateringSys.run();
+        wateringSys.run(1);
         fertilizerProg.run();
 
         // タスク実行頻度を制御するために100ミリ秒遅延
@@ -410,7 +412,7 @@ void ThisRTOS::DisplayProgram() {
     }
 
     static unsigned long LastTimeRefreshLCD = 0;
-    static uint8_t lastRenderedSlide = 255;
+    static unsigned long LastTimeClearLCD   = 0;
     static uint8_t lastSlide = 0;
 
     if ((unsigned long) (millis() - LastTimeRefreshLCD) >= 300L) {
@@ -424,7 +426,10 @@ void ThisRTOS::DisplayProgram() {
         bool isClear = (lastSlide != slide);
         lastSlide = slide;
 
-        if (isClear) lcd.clear();
+        if (isClear || (unsigned long)(millis() - LastTimeClearLCD) >= 1000 * 5UL) {
+            LastTimeClearLCD = millis();
+            lcd.clear();
+        }
 
         if (!otaDisplay && xSemaphoreTake(i2cMutex, pdMS_TO_TICKS(10))) {
             switch (slide) {

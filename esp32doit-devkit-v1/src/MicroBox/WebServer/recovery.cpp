@@ -63,7 +63,7 @@ void WebServerClass::RecoveryPage(AsyncWebServerRequest *req) {
         "%PASS_STA%",
         "%AUTO_CHANGE_WIFI%",
 
-        "%LOCALIP%", "%LOCALIP%", "%LOCALIP%", "%LOCALIP%"
+        "%LOCALIP%", "%LOCALIP%", "%LOCALIP%", "%LOCALIP%", "%LOCALIP%"
     };
 
     const String tags_html[] = {
@@ -81,7 +81,7 @@ void WebServerClass::RecoveryPage(AsyncWebServerRequest *req) {
         ProgramWiFi.__PASS_STA__,
         _autoChangeWiFi ? "Enable" : "Disable",
 
-        this->LocalIP, this->LocalIP, this->LocalIP, this->LocalIP
+        this->LocalIP, this->LocalIP, this->LocalIP, this->LocalIP, this->LocalIP
     };
 
     // ページを置き換え

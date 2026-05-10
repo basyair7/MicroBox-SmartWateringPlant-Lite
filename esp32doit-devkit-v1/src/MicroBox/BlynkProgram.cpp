@@ -126,14 +126,24 @@ bool switch_state; //!< Blynkの仮想ピンの状態を保持する変数。Bly
  *          - 土壌水分レベルは仮想ピンV0に送信される。
  *          - DHT温度は仮想ピンV1に送信される。
  */
-unsigned long _LastMillisSendData = 0;
 void sendDataSensor(void) {
+    static unsigned long _LastMillisSendData = 0;
     if ((unsigned long) (millis() - _LastMillisSendData) >= 100) {
         _LastMillisSendData = millis();
         Blynk.virtualWrite(V1, tdsprog.getPPMValue());
         Blynk.virtualWrite(V0, soilmoisture.value);
     }
 }
+
+void sendDataState(void) {
+    static unsigned long _LastMillisSendData = 0;
+    if ((unsigned long) (millis() - _LastMillisSendData) >= 100) {
+        _LastMillisSendData = millis();
+        Blynk.virtualWrite(V2, wateringSys.WateringProcess ? "RUN" : "IDLE");
+        Blynk.virtualWrite(V3, fertilizerProg.stateToString());
+    }
+}
+
 
 /**
  * @brief Blynkを初期化し、定期タスクを設定する。
@@ -149,6 +159,7 @@ void BlynkSetup() {
             lfsprog.__PASS_STA__.c_str()
         );
         Timer.setInterval(500L, sendDataSensor);
+        Timer.setInterval(500L, sendDataState);
         // Timer.setInterval(2000L, sendRTT);
     }
 }

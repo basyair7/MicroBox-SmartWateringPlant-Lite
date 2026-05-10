@@ -151,6 +151,29 @@ void WebServerClass::RoutesSystem() {
             std::placeholders::_1
         )
     );
+
+    // 肥料設定のHTTP GETエンドポイントを設定
+    this->serverAsync.on("/config-fertilizer", HTTP_GET,
+        std::bind(
+            &WebServerClass::Fertilizer_Config_Main, this,
+            std::placeholders::_1
+        )
+    );
+
+    // 肥料設定保存のHTTP POSTエンドポイントを設定
+    this->serverAsync.on("/save-config-fertilizer", HTTP_POST,
+        std::bind(
+            &WebServerClass::Save_Fertilizer_Config, this,
+            std::placeholders::_1
+        )
+    );
+
+    this->serverAsync.on("/save-config-fertilizer-time", HTTP_POST,
+        std::bind(
+            &WebServerClass::Save_Fertilizer_ConfigTime, this,
+            std::placeholders::_1
+        )
+    );
 }
 
 /**

@@ -58,4 +58,5 @@ void WebServerClass::ResetSys(AsyncWebServerRequest *req) {
     lfsprog.reinitializeState();
     lfsprog.reinitializeVarRelay();
     lfsprog.reinitializeWiFiConfig();
+    lfsprog.reinitializeFertilizerConfig();
 }

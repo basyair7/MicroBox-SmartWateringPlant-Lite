@@ -43,6 +43,7 @@ struct TDSConfig
     float tds_a;
     float tds_b;
     float voltage_offset;
+    float tds_factor;
     int scount;
 };
 
@@ -56,6 +57,7 @@ class TDSProgram {
     uint16_t _adcResolution; //< ADCの分解能「ぶんかいのう」。通常「つうじょう」は10ビット（1023）または12ビット（4095）ですが、使用するマイクロコントローラーによって異「こと」なります。
     uint8_t _scount;         //< センサー読み取り値を平均化「へいきんか」するためのサンプル数。デフォルトは10ですが、必要「ひつよう」に応「おう」じて変更「へんこう」できます。
     float _tds_a, _tds_b, _tds_voltage_offset;
+    float _tds_factor;
 
     int _analogBuffer[DEFAULT_SCOUNT];     //< センサーからのアナログ読み取り値を格納「かくのう」するためのバッファ。平均化「へいきんか」処理「しょり」のために複数「ふくすう」のサンプルを保存「ほぞん」します。
     int _analogBufferTemp[DEFAULT_SCOUNT]; //< 平均化「へいきんか」処理「しょり」のための一時的「いちじてき」なバッファ。センサーからの読み取り値をコピーして、中央値「ちゅうおうち」を計算「けいさん」するために使用されます。
@@ -114,6 +116,7 @@ class TDSProgram {
             _tds_a(tdsConfig.tds_a),
             _tds_b(tdsConfig.tds_b),
             _tds_voltage_offset(tdsConfig.voltage_offset),
+            _tds_factor(tdsConfig.tds_factor),
             _scount(tdsConfig.scount <= DEFAULT_SCOUNT ? tdsConfig.scount : DEFAULT_SCOUNT) 
         {}
 
@@ -180,9 +183,18 @@ class TDSProgram {
                                     - 255.86f * compensationVoltage * compensationVoltage
                                     + 857.39f * compensationVoltage) * 0.5f;
                 
-                this->_ppm = (this->_tds_a * this->_tdsValue) + this->_tds_b;
+                // this->_ppm = (this->_tds_a * this->_tdsValue) + this->_tds_b;
+                this->_ppm = this->_tdsValue * this->_tds_factor;
                 if (this->_ppm < 0) this->_ppm = 0;
             }
+        }
+
+        void checkDebug() {
+            Serial.println(F("DEBUG TDS PROGRAM"));
+            Serial.print("ADC: "); Serial.println(analogRead(_pin));
+            Serial.print("Voltage: "); Serial.println(_averageVoltage);
+            Serial.print("TDS raw: "); Serial.println(_tdsValue);
+            Serial.println("------");
         }
 
         /*

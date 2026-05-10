@@ -84,7 +84,7 @@ void ButtonManagerClass::toggleBacklight() {
 void ButtonManagerClass::manualFertilizer() {
     static bool lastState;
     bool btn1 = btnBacklight.digitalReadPushButton();
-    bool btn2 = btnDisplay.digitalReadPushButton();
+    bool btn2 = btnAutoWatering.digitalReadPushButton();
     bool currentState = btn1 && btn2;
 
     if (currentState && !lastState) {
@@ -95,23 +95,28 @@ void ButtonManagerClass::manualFertilizer() {
 
 uint8_t ButtonManagerClass::updateDisplay(const uint8_t interval) {
     static unsigned long lastDebounceTime = 0;
-    static bool lastState;
+    static bool lastState = true;
+    // static uint8_t count = interval - 1;
     static uint8_t count = interval;
 
     bool btn = btnDisplay.digitalReadPushButton();
-    if (btn != lastState && (millis() - lastDebounceTime) > 50) {
-        lastDebounceTime = millis();
-        
-        if (!btn) {
+    // debounce
+    if ((millis() - lastDebounceTime) > 10) {
+
+        // detect falling edge
+        if (lastState == HIGH && btn == LOW) {
             count++;
             count = (count > interval ? 0 : count);
+
+            lastDebounceTime = millis(); // reset debounce
         }
     }
-    
+
     lastState = btn;
 
     return count;
 }
+
 
 /**
  * @brief ButtonManagerClassの初期化を行う。各ボタンの初期化と、EEPROMからの状態の読み込みを行う。

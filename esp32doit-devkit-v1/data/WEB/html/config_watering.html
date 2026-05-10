@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="basyair7">
-    <link rel="stylesheet" href="../css/config_fertilizer.css">
-    <link rel="stylesheet" href="/css/config_fertilizer.css">
+    <link rel="stylesheet" href="../css/config_watering.css">
+    <link rel="stylesheet" href="/css/config_watering.css">
     <script src="../js/date_time_rtc.js"></script>
     <script src="/js/date_time_rtc.js"></script>
     <script src="../js/sweetalert.min.js"></script>
@@ -13,18 +13,19 @@
 
     <script type="text/javascript">
         function validateForm() {
-            let time = document.getElementById("time");
-            let seconds = document.getElementById("seconds");
+            let time_start = document.getElementById("time_start");
+            let time_end   = document.getElementById("time_end");
             let interval = document.getElementById("interval");
-            let ppm_target = document.getElementById("ppm_target");
-            let ppm_tolerance = document.getElementById("ppm_tolerance");
 
-            if (ppm_target.value.trim() === "" || ppm_tolerance.value.trim() === "") 
+            let watering_lvl_max = document.getElementById("watering_lvl_max");
+            let watering_lvl_min = document.getElementById("watering_lvl_min");
+
+            if (watering_lvl_max.value.trim() === "" || watering_lvl_min.value.trim() === "") 
             {
                 Swal.fire({
                     icon: "warning",
                     title: "Warning",
-                    text: "PPM TARGET or TOLERANCE input cannot be empty."
+                    text: "Watering Level input cannot be empty."
                 });
                 return false;
             }
@@ -38,7 +39,7 @@
                 return false;
             }
 
-            if (time.value.trim() === "") {
+            if (time_start.value.trim() === "" && time_end.value.trim() === "") {
                 Swal.fire({
                     icon: "warning",
                     title: "Warning",
@@ -47,24 +48,15 @@
                 return false;
             }
 
-            if (seconds.value.trim() === "" || isNaN(seconds.value) || seconds.value < 0 || seconds.value >= 60) {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Warning",
-                    text: "Seconds input must be a number between 0 and 59."
-                });
-                return false;
-            }
-
             return true;
         }
     </script>
 
-    <title>Setup Fertilizer - MicroBOX (Smart Watering Plant) %VERSIONPROJECT%</title>
+    <title>Setup Watering - MicroBOX (Smart Watering Plant) %VERSIONPROJECT%</title>
 </head>
 <body>
     <main class="container">
-        <h4>Setup Fertilizer</h4>
+        <h4>Setup Watering</h4>
         <table>
             <tr>
                 <td>Time</td>
@@ -79,31 +71,31 @@
             </tr>
 
             <tr>
-                <td>PPM TARGET</td>
+                <td>WATERING LEVEL MAX (%)</td>
                 <td>:</td>
-                <td>%PPM_TARGET%</td>
+                <td>%WATERING_LVL_MAX%</td>
             </tr>
 
             <tr>
-                <td>PPM TOLERANCE (%)</td>
+                <td>WATERING LEVEL MIN (%)</td>
                 <td>:</td>
-                <td>%PPM_TOLERANCE%</td>
+                <td>%WATERING_LVL_MIN%</td>
             </tr>
             
         </table>
 
-        <form action="/save-config-fertilizer-time" method="post" onsubmit="return validateForm()">
+        <form action="/save-config-watering-time" method="post" onsubmit="return validateForm()">
             <table>
                 <tr>
-                    <td>Time (HH:MM)</td>
+                    <td>Time Start (HH:MM)</td>
                     <td>:</td>
-                    <td><input type="time" id="time" name="time" required></td>
+                    <td><input type="time" id="time_start" name="time_start" required></td>
                 </tr>
-                
+
                 <tr>
-                    <td>Seconds</td>
+                    <td>Time End (HH:MM)</td>
                     <td>:</td>
-                    <td><input type="number" id="seconds" name="seconds" min="0" max="59" required></td>
+                    <td><input type="time" id="time_end" name="time_end" required></td>
                 </tr>
 
                 <tr>
@@ -111,6 +103,7 @@
                     <td>:</td>
                     <td><input type="number" id="interval" name="interval" min="1" required></td>
                 </tr>
+
                 <tr>
                     <td></td>
                     <td></td>
@@ -119,18 +112,18 @@
             </table>
         </form>
 
-        <form action="/save-config-fertilizer">
+        <form action="/save-config-watering">
             <table>
                 <tr>
-                    <td>PPM TARGET</td>
+                    <td>Watering Level Max (%)</td>
                     <td>:</td>
-                    <td><input type="number" id="ppm_target" name="ppm_target" required></td>
+                    <td><input type="number" id="watering_lvl_max" name="watering_lvl_max" required></td>
                 </tr>
                 
                 <tr>
-                    <td>PPM TOLERANCE (%)</td>
+                    <td>Watering Level Min (%)</td>
                     <td>:</td>
-                    <td><input type="number" id="ppm_tolerance" name="ppm_tolerance" required></td>
+                    <td><input type="number" id="watering_lvl_min" name="watering_lvl_min" required></td>
                 </tr>
                 <tr>
                     <td></td>

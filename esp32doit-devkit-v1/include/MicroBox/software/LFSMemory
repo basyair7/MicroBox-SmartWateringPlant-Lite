@@ -61,9 +61,11 @@ extern "C" {
  * @brief LitteFSを使用して、設定および実行時状態（じっこうじじょうたい）を管理します。
  */
 class LFSMemory {
-    const String file_config_wifi  = "/config/wifi.json";
-    const String file_config_relay = "/config/relay.json";
-    const String file_config_state = "/config/state.json";
+    const String file_config_wifi       = "/config/wifi.json";
+    const String file_config_relay      = "/config/relay.json";
+    const String file_config_state      = "/config/state.json";
+    const String file_config_watering   = "/config/watering.json";
+    const String file_config_fertilizer = "/config/fertilizer.json";
 
     public:
         // WiFi設定変数
@@ -71,6 +73,18 @@ class LFSMemory {
         String __PASS_STA__  = WIFI_PASS_STA_DEFAULT;
         String __SSID_AP__   = WIFI_SSID_AP_DEFAULT;
         String __PASS_AP__   = WIFI_PASS_AP_DEFAULT;
+
+        uint8_t __HOUR_FERTILIZER__      = HOUR_FERTILIZER; // 施肥開始時間（時）
+        uint8_t __MINUTE_FERTILIZER__    = MINUTE_FERTILIZER; // 施肥開始時間（分）
+        uint32_t __SECOND_FERTILIZER__   = SECOND_FERTILIZER; // 施肥開始時間（秒）
+        uint32_t __INTERVAL_FERTILIZER__ = INTERVAL_FERTILIZER; // 施肥間隔（日数）
+
+        uint8_t __HOUR_WATERING_START__  = HOUR_WATERING_START;
+        uint8_t __HOUR_WATERING_END__    = HOUR_WATERING_END;
+        uint32_t __INTERVAL_WATERING__   = INTERVAL_WATERING;
+
+        int __PPM_TARGET__ = PPM_TARGET, __PPM_TOLERANCE__ = PPM_TOLERANCE;
+        int __WATERING_LVL_MAX__ = WATERING_LVL_MAX, __WATERING_LVL_MIN__ = WATERING_LVL_MIN;
 
         // 実行時状態を保持する変数
         bool __WATERING_MODE_STATE__ = false;
@@ -100,6 +114,14 @@ class LFSMemory {
         void reinitializeVarRelay(void);
 
         /**
+         * @brief ストレージから肥料設定を再初期化（さいしょきか）します。
+          肥料設定には、施肥開始時間や施肥間隔などの設定が含まれます。
+         */
+        void reinitializeFertilizerConfig(void);
+
+        void reinitializeWateringConfig(void);
+
+        /**
          * @brief リレー変数の値（あたい）を変更します。
          * @param varName 名前のリレー変数。
          * @param value 新しい値のリレー変数。
@@ -122,6 +144,12 @@ class LFSMemory {
          * @param state 新しい状態値（じょうたいち）。
          */
         void changeStateRelay(String varName, bool state);
+
+        void changeFertilizerConfigTime(uint8_t _hour, uint8_t _minute, uint32_t _second, uint32_t _interval);
+        void changeFertilizerConfig(int _ppm_target, int _ppm_tolerance);
+
+        void changeWateringConfigTime(uint8_t _hour, uint8_t _minute, uint32_t _second, uint32_t _interval);
+        void changeWateringConfig(int _ppm_target, int _ppm_tolerance);
 
         /**
          * @brief リレー設定の詳細（しょうさい）を解析（かいせき）します。
@@ -184,26 +212,111 @@ class LFSMemory {
         void __initialize_data_relay__(DynamicJsonDocument &doc);
 
     private:
+        /**
+         * @brief 指定されたファイルに保存されたWiFi設定を初期化または更新する。
+         * @details この関数は、指定されたファイルに保存されたWiFi設定を初期化または更新するための共通のロジックを提供します。
+         */
         void initializeOrUpdateWiFiConfig(
             const String &cfile,
             std::function<void (StaticJsonDocument<500>&)> updateFunc
         );
+
+        /**
+         * @brief 指定されたファイルに保存されたリレー設定を初期化または更新する。
+         * @details この関数は、指定されたファイルに保存されたリレー設定を初期化または更新するための共通のロジックを提供します。
+         */
         void initializeOrUpdateState(
             const String &cfile,
             std::function<void (StaticJsonDocument<200>&)> updateFunc
         );
+
+        /**
+         * @brief 指定されたファイルに保存されたリレー設定を初期化または更新する。
+         * @details この関数は、指定されたファイルに保存されたリレー設定を初期化または更新するための共通のロジックを提供します。
+          ファイルが存在しない場合や内容が破損している場合は、デフォルトのリレー設定で初期化されます。
+          更新は、提供されたラムダ関数を使用して行われます。
+         */
         void initializeOrUpdateVarRelay(
             const String &cfile,
             std::function<void (DynamicJsonDocument&)> updateFunc
         );
 
+        /**
+         * @brief 指定されたファイルに保存された肥料設定を初期化または更新する。
+         * @details この関数は、指定されたファイルに保存された肥料設定を初期化または更新するための共通のロジックを提供します。
+          ファイルが存在しない場合や内容が破損している場合は、デフォルトの肥料設定で初期化されます。
+          更新は、提供されたラムダ関数を使用して行われます。
+         */
+        void initializeOrUpdateFertilizerConfig(
+            const String &cfile, 
+            std::function<void (StaticJsonDocument<200>&)> updateFunc
+        );
+
+        void initializeOrUpdateWateringConfig(
+            const String &cfile,
+            std::function<void (StaticJsonDocument<200>&)> updateFunc
+        );
+
+        /**
+         * @brief 指定されたファイルに保存された状態設定を初期化または更新する。
+         * @details この関数は、指定されたファイルに保存された状態設定を初期化または更新するための共通のロジックを提供します。
+          ファイルが存在しない場合や内容が破損している場合は、デフォルトの状態値で初期化されます。
+          更新は、提供されたラムダ関数を使用して行われます。
+         */
         void initializeState(void);
+
+        /**
+         * @brief 指定されたファイルに保存されたWiFi設定を使用して、WiFi関連の変数を初期化する。
+         * @details この関数は、指定されたファイルに保存されたWiFi設定を読み取り、WiFi関連の変数を初期化します。
+          設定ファイルが存在しない場合や内容が破損している場合は、デフォルトのWiFi設定で初期化されます。
+         */
         void initializeWiFiConfig(void);
+
+        /**
+         * @brief 指定されたファイルに保存されたリレー設定を使用して、リレー関連の変数を初期化する。
+         * @details この関数は、指定されたファイルに保存されたリレー設定を読み取り、リレー関連の変数を初期化します。
+          設定ファイルが存在しない場合や内容が破損している場合は、デフォルトのリレー設定で初期化されます。
+         */
         void initializeVarRelay(void);
 
+        /**
+         * @brief 指定されたファイルに保存されたシステム状態設定を使用して、状態関連の変数を初期化する。
+         * @details この関数は、指定されたファイルに保存されたシステム状態設定を読み取り、状態関連の変数を初期化します。
+          設定ファイルが存在しない場合や内容が破損している場合は、デフォルトの状態値で初期化されます。
+         */
+        void initializeFertilizerConfig(void);
+
+        void initializeWateringConfig(void);
+
+        /**
+         * @brief 指定されたファイルに保存された肥料設定を初期化または更新する。
+         * @details この関数は、指定されたファイルに保存された肥料設定を初期化または更新するための共通のロジックを提供します。
+          ファイルが存在しない場合や内容が破損している場合は、デフォルトの肥料設定で初期化されます。
+          更新は、提供されたラムダ関数を使用して行われます。
+         */
         String readconfig(const String path);
+        
+        /**
+         * @brief 指定されたファイルに保存されたリレー設定を初期化または更新する。
+         * @details この関数は、指定されたファイルに保存されたリレー設定を初期化または更新するための共通のロジックを提供します。
+          ファイルが存在しない場合や内容が破損している場合は、デフォルトのリレー設定で初期化されます。
+          更新は、提供されたラムダ関数を使用して行われます。
+          @param path 読み取るファイルのパス。
+          例えば、"/config/relay.json"などのファイルパスを指定できます。
+          @return ファイルの内容を文字列形式で返します。
+         */
         bool removefileconfig(const String path);
+
+        /**
+         * @brief 指定されたファイルに保存された状態設定を初期化または更新する。
+         * @details この関数は、指定されたファイルに保存された状態設定を初期化または更新するための共通のロジックを提供します。
+          ファイルが存在しない場合や内容が破損している場合は、デフォルトの状態値で初期化されます。
+          更新は、提供されたラムダ関数を使用して行われます。
+          @param path 書き込み先のファイルパス。
+          @param valJson 書き込むJSONデータを文字列形式で指定します。
+         */
         void writeconfig(const String path, String valJson);
+
         void listFiles(void);
 
         /**

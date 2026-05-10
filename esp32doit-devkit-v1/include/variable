@@ -49,12 +49,17 @@
 #define WATERING_LVL_MAX    80   //< 土壌水分に対する灌水レベルの最大値
 #define WATERING_LVL_MIN    60   //< 土壌水分に対する灌水レベルの最小値
 
-#define PPM_TARGET          1150  //< TDSの目標値 (PPM)
+#define PPM_TARGET          1000  //< TDSの目標値 (PPM)
 #define PPM_TOLERANCE       5   //< TDSの許容範囲 (PPM)
 
 #define HOUR_FERTILIZER     8
-#define MINUTE_FERTILIZER   18
+#define MINUTE_FERTILIZER   0
+#define SECOND_FERTILIZER   14UL
 #define INTERVAL_FERTILIZER 7    //< 肥料適用間隔（日数）
+
+#define HOUR_WATERING_START 8
+#define HOUR_WATERING_END   10
+#define INTERVAL_WATERING   2
 
 
 inline const uint16_t RELAY_PINS[2] = {
@@ -67,6 +72,7 @@ inline const String VALUE_DEFAULT[2] {
 
 // EEPROMアドレス定義
 // EEPROM操作にとって重要なため、これらのアドレスを置き換えないでください
-#define ADDR_EEPROM_WIFI_MODE     0x04 ///< Wi-Fiモードを保存するためのEEPROMアドレス
-#define ADDR_EEPROM_BACKLIGHT_LCD 0x08
-#define ADDR_EEPROM_AUTO_FERTILIZER 0x0C
+#define ADDR_EEPROM_WIFI_MODE     0x00 ///< Wi-Fiモードを保存するためのEEPROMアドレス
+#define ADDR_EEPROM_BACKLIGHT_LCD 0x04
+#define ADDR_EEPROM_AUTO_FERTILIZER 0x10
+#define ADDR_EEPROM_SAVE_STATE_WATERING 0X20

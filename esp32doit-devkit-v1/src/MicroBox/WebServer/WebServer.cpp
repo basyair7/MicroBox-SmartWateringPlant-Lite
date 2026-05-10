@@ -160,7 +160,7 @@ void WebServerClass::run_css_js_webserver() {
     const std::vector<String> list_css_files = {
         "recovery.css", "index.css", 
         "config_wifi.css",
-        "config_rtc.css"
+        "config_rtc.css", "config_fertilizer.css",
     };
 
     const std::vector<String> list_js_files = {

@@ -179,6 +179,17 @@ class WebServerClass : protected Info {
         void __getRTCServer__(StaticJsonDocument<200> &doc);
         void RTCServer(AsyncWebServerRequest *req);
         void handleRTCServer(AsyncWebSocketClient *client);
+
+    private:
+        // 肥料設定関連のプライベートメソッド
+        void Fertilizer_Config_Main(AsyncWebServerRequest *req);
+        void Save_Fertilizer_Config(AsyncWebServerRequest *req);
+        void Save_Fertilizer_ConfigTime(AsyncWebServerRequest *req);
+
+    private:
+        void Watering_Config_Main(AsyncWebServerRequest *req);
+        void Save_Watering_Config(AsyncWebServerRequest *req);
+        void Save_Watering_ConfigTime(AsyncWebServerRequest *req);
     
     private:
         String RelayChecked(uint8_t pinRelay);

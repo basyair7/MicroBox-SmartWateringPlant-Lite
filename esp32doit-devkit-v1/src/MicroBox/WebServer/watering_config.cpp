@@ -1,33 +1,23 @@
 /**
- *  @file config
+ *  @file fertilizer_config.cpp
  *  @version 1.0.1
- *  @brief このファイルは、MicroBoxプロジェクトの設定定数および定義を含み、
- *         ピン割り当て、EEPPROMアドレス、その他重要な設定を含む。
+ *  @brief 
  *  @date 2026
  *  @author basyair7
- * 
+ *  
  *  @copyright
  *  Copyright (C) 2026, basyair7
- * 
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- * 
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- * 
  *  You should have received a copy of the GNU General Public License
  *  along with this program. If not, see <https://www.gnu.org/licenses/>
  */
 
-#pragma once
-#define VREF               3.1      ///< Reference voltage for ADC calculations
-#define ADC_RESOLUTION     4095     ///< ADC resolution for ESP32 (12-bit)
-#define SCOUNT             10       ///< Number of samples to average for sensor readings
-#define TDS_A              3.31
-#define TDS_B              -178.45
-#define TDS_VOLTAGE_OFFSET 0.08
-#define TDS_FACTOR         2.11f
+#include "MicroBox/software/WebServer"
+#include "MicroBox/externobj"

@@ -71,20 +71,28 @@ class FertilizerProgram {
     uint32_t _pumpStartUnix;
 
     public:
+        uint8_t __HOUR_FERTILIZER__ = HOUR_FERTILIZER; // 施肥開始時間（時）
+        uint8_t __MINUTE_FERTILIZER__ = MINUTE_FERTILIZER; // 施肥開始時間（分）
+        uint32_t __SECOND_FERTILIZER__ = SECOND_FERTILIZER; // 施肥開始時間（秒）
+        uint32_t __INTERVAL_FERTILIZER__ = INTERVAL_FERTILIZER; // 施肥間隔（日数）
+
+        int __PPM_TARGET__ = PPM_TARGET, __PPM_TOLERANCE__ = PPM_TOLERANCE;
+
+    public:
         const char* stateToString() const {
             switch (this->_state) {
                 case IDLE: return "IDLE";
                 case MIXING: return "MIXING";
                 case PUMPING: return "PUMPING";
                 case FINISHED: return "FINISHED";
-                default: return "UNKNOWN"; 
+                default: return "UNKNOWN";
             }
         }
 
         void forceStart();
 
         void begin(const uint8_t pumpPin, const uint8_t motorPin, bool _optocouple = true);
-        void run(uint8_t hour, uint32_t minute);
+        void run();
 
         uint32_t getNextFertilizerDay();
         uint32_t getDaysPassed();

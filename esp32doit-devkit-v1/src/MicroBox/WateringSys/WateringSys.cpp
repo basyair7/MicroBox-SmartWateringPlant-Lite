@@ -61,6 +61,52 @@ inline void WateringSys::stopWatering() {
     }
 }
 
+void WateringSys::handleSensorMode() {
+    // 土壌水分センサーの値を監視し、設定された閾値に基づいて散水処理を開始または停止します。
+    if (soilmoisture.value >= this->__WATERING_LVL_MAX__) {
+        this->stopWatering();
+        return; // 土壌水分値が上限しきい値以上の場合、散水を停止する。
+    }
+
+    if (soilmoisture.value <= this->__WATERING_LVL_MIN__) {
+        if (this->_isWatering) return; // すでに散水中の場合は、何もせずに終了する。
+        this->startWatering();
+    }
+}
+
+void WateringSys::handleRTCMode() {
+    int hour, minute;
+    TimeSpan sinceLast;
+    this->LastWatering(&sinceLast, &hour, &minute);
+
+    if (sinceLast.days() < this->__INTERVAL_WATERING__) return;
+
+    if (hour == 0 && minute == 0) this->hasSaveToday = false;
+
+    bool inWindow = (hour >= this->__HOUR_START__ && hour < this->__HOUR_END__);
+
+    if (inWindow) {
+        if (!this->_isWatering && (soilmoisture.value <= this->__WATERING_LVL_MIN__)) 
+        {
+            this->startWatering();
+        }
+        else if (this->_isWatering && (soilmoisture.value >= this->__WATERING_LVL_MAX__))
+        {
+            this->stopWatering();
+        }
+    }
+
+    if (hour == this->__HOUR_END__) {
+        if (this->_isWatering) {
+            this->stopWatering();
+        }
+        if (!this->hasSaveToday) {
+            this->LastWatering();
+            this->hasSaveToday = true;
+        }
+    }
+}
+
 /**
  * @brief WateringSysの初期化を行う。
  * @details 
@@ -68,6 +114,7 @@ inline void WateringSys::stopWatering() {
  */
 void WateringSys::begin() {
     lfsprog.readConfigState(AUTOWATERING, &this->AutoWateringState);
+    eeprom_obj.get(ADDR_EEPROM_SAVE_STATE_WATERING, this->lastWateringDay);
 }
 
 /**
@@ -77,7 +124,12 @@ void WateringSys::begin() {
  * 散水処理は、一定の時間間隔で実行されます。
  */
 
-void WateringSys::run() {
+void WateringSys::run(int state) {
+    if (millis() - this->_LastResetFlag >= 1000 * 60UL) {
+        this->_LastResetFlag = millis();
+        this->resetFlags();
+    }
+
     // 散水プロセスの実行は、一定の時間間隔で行われます。
     if (millis() - _LastMillis1 >= 5000) {
         _LastMillis1 = millis();
@@ -88,16 +140,38 @@ void WateringSys::run() {
         lfsprog.readConfigState(AUTOWATERING, &this->AutoWateringState);
         if (!this->AutoWateringState) return;
 
-        // 土壌水分センサーの値を監視し、設定された閾値に基づいて散水処理を開始または停止します。
-        if (soilmoisture.value >= WATERING_LVL_MAX) {
-            this->stopWatering();
-            return; // 土壌水分値が上限しきい値以上の場合、散水を停止する。
-        }
-        else if (soilmoisture.value <= WATERING_LVL_MIN) {
-            if (this->_isWatering) return; // すでに散水中の場合は、何もせずに終了する。
-            this->startWatering();
+        switch(state) {
+            case 1:
+                this->handleSensorMode();
+                break;
+            case 2:
+                this->handleRTCMode();
+                break;
         }
     }
+}
+
+void WateringSys::LastWatering(TimeSpan *time_last_watering, int *CurrentHour, int *CurrentMinute) 
+{
+    DateTime now = rtcprog.now();
+
+    if (CurrentHour != nullptr)   *CurrentHour = now.hour();
+    if (CurrentMinute != nullptr) *CurrentMinute = now.minute();
+
+    if (time_last_watering != nullptr) {
+        DateTime lastDate(this->lastWateringDay);
+        *time_last_watering = now - lastDate;
+    } else {
+        this->lastWateringDay = now.unixtime();
+        eeprom_obj.save_state(ADDR_EEPROM_SAVE_STATE_WATERING, lastWateringDay);
+    }
+}
+
+DateTime WateringSys::getNextWateringDate() const {
+    DateTime _lastWateringDate(this->lastWateringDay);
+    DateTime _nextWateringDate = _lastWateringDate + TimeSpan(this->__INTERVAL_WATERING__ * 86400);
+
+    return _nextWateringDate;
 }
 
 bool WateringSys::wateringProcess() const {

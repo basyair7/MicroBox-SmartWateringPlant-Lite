@@ -13,12 +13,9 @@
 
     <script type="text/javascript">
         function validateForm() {
-            let time = document.getElementById("time");
-            let seconds = document.getElementById("seconds");
-            let interval = document.getElementById("interval");
             let ppm_target = document.getElementById("ppm_target");
             let ppm_tolerance = document.getElementById("ppm_tolerance");
-
+            
             if (ppm_target.value.trim() === "" || ppm_tolerance.value.trim() === "") 
             {
                 Swal.fire({
@@ -28,6 +25,14 @@
                 });
                 return false;
             }
+
+            return true;
+        }
+
+        function validateFormTime() {
+            let time = document.getElementById("time");
+            let seconds = document.getElementById("seconds");
+            let interval = document.getElementById("interval");
 
             if (interval.value.trim() === "") {
                 Swal.fire({
@@ -92,7 +97,7 @@
             
         </table>
 
-        <form action="/save-config-fertilizer-time" method="post" onsubmit="return validateForm()">
+        <form action="/save-config-fertilizer-time" method="post" onsubmit="return validateFormTime()">
             <table>
                 <tr>
                     <td>Time (HH:MM)</td>
@@ -119,7 +124,7 @@
             </table>
         </form>
 
-        <form action="/save-config-fertilizer">
+        <form action="/save-config-fertilizer" method="post" onsubmit="return validateForm()">
             <table>
                 <tr>
                     <td>PPM TARGET</td>

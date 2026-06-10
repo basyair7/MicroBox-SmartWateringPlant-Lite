@@ -290,10 +290,10 @@ void MicroBox_Main::setup(unsigned long baud) {
     xTaskCreateUniversal(ThisRTOS::vTask1, "Task 1", 8192, this, 1, NULL, PRO_CPU_NUM);
     
     // タスクを作成し、vTask 2を実行
-    xTaskCreateUniversal(ThisRTOS::vTask2, "Task 2", 4096, this, 1, NULL, APP_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask2, "Task 2", 4096, this, 2, NULL, APP_CPU_NUM);
 
     // タスクを作成し、vTask 3を実行
-    xTaskCreateUniversal(ThisRTOS::vTask3, "Task 3", 4096, this, 1, NULL, APP_CPU_NUM);
+    xTaskCreateUniversal(ThisRTOS::vTask3, "Task 3", 4096, this, 3, NULL, APP_CPU_NUM);
 
 }
 

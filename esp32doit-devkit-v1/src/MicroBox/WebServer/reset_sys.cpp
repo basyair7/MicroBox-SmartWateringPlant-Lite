@@ -27,6 +27,12 @@
  * @param req 非同期Webサーバーリクエスト
  */
 void WebServerClass::ResetSys(AsyncWebServerRequest *req) {
+    // 設定を再初期化
+    lfsprog.reinitializeState();
+    lfsprog.reinitializeVarRelay();
+    lfsprog.reinitializeWiFiConfig();
+    lfsprog.reinitializeFertilizerConfig();
+    
     // HTMLファイルを読み込む
     String page = this->file_buffer(DIRHTML + "reset-sys.html");
     if (page == "") {
@@ -53,10 +59,4 @@ void WebServerClass::ResetSys(AsyncWebServerRequest *req) {
         page.replace(placeholders[i], tags_html[i]);
 
     req->send_P(200, TEXTHTML, page.c_str());
-
-    // 設定を再初期化
-    lfsprog.reinitializeState();
-    lfsprog.reinitializeVarRelay();
-    lfsprog.reinitializeWiFiConfig();
-    lfsprog.reinitializeFertilizerConfig();
 }

@@ -88,13 +88,7 @@ void WebServerClass::Save_Fertilizer_Config(AsyncWebServerRequest *req) {
     }
 
     // 成功レスポンスを返す
-    StaticJsonDocument<200> response;
-    response["status"] = "success";
-    response["message"] = "Fertilizer configuration saved successfully.";
-    
-    String jsonResponse;
-    serializeJson(response, jsonResponse);
-    req->send_P(200, APPJSON, jsonResponse.c_str());
+    this->W_page_app(req);
 }
 
 void WebServerClass::Save_Fertilizer_ConfigTime(AsyncWebServerRequest *req) {
@@ -130,11 +124,34 @@ void WebServerClass::Save_Fertilizer_ConfigTime(AsyncWebServerRequest *req) {
     }
 
     // 成功レスポンスを返す
-    StaticJsonDocument<200> response;
-    response["status"] = "success";
-    response["message"] = "Fertilizer configuration time saved successfully.";
-    
-    String jsonResponse;
-    serializeJson(response, jsonResponse);
-    req->send_P(200, APPJSON, jsonResponse.c_str());
+    this->W_page_app(req);
+}
+
+void WebServerClass::W_page_app(AsyncWebServerRequest *req) {
+    // HTMLファイルを読み込む
+    String page = this->file_buffer(DIRHTML + "save_config_fertilizer.html");
+    if (page == "") {
+        this->handleNotFound(req);
+        return;
+    }
+
+    // IPアドレスを取得
+    clientIP = req->client()->localIP();
+    LocalIP = clientIP.toString();
+
+    const char *placeholders[] = {
+        "%VERSION_PROJECT%",
+        "%LOCALIP%"
+    };
+
+    const char *tags_html[] = {
+        this->__VERSION_PROJECT__.c_str(),
+        this->LocalIP.c_str()
+    };
+
+    // ページを置き換え
+    for (size_t i = 0; i < sizeof(tags_html)/sizeof(tags_html[0]); i++)
+        page.replace(placeholders[i], tags_html[i]);
+
+    req->send_P(200, TEXTHTML, page.c_str());
 }

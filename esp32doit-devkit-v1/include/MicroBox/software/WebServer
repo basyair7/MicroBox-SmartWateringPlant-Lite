@@ -185,6 +185,7 @@ class WebServerClass : protected Info {
         void Fertilizer_Config_Main(AsyncWebServerRequest *req);
         void Save_Fertilizer_Config(AsyncWebServerRequest *req);
         void Save_Fertilizer_ConfigTime(AsyncWebServerRequest *req);
+        void W_page_app(AsyncWebServerRequest *req);
 
     private:
         void Watering_Config_Main(AsyncWebServerRequest *req);

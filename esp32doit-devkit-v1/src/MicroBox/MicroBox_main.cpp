@@ -127,7 +127,8 @@ void ThisRTOS::vTask1(void *pvParameter) {
 
     while (true) {
         // 土壌水分センサーを実行し、読み取り値を更新
-        soilmoisture.getData(true, 0, 4095);
+        // soilmoisture.getData(true, 0, 4095);
+        soilmoisture.getData(true, 2200, 4095);
 
         // DHTセンサーを実行し、読み取り値を更新
         dhtprog.running();
@@ -144,6 +145,9 @@ void ThisRTOS::vTask1(void *pvParameter) {
 
         // DisplayProgram関数を呼び出してLCD表示を更新
         ThisRTOS::DisplayProgram();
+        // Serial.println(soilmoisture.value);
+        // soilmoisture.getData(false);
+        // Serial.println(soilmoisture.value);
 
         // タスク実行頻度を制御するために100ミリ秒遅延
         vTaskDelay(pdMS_TO_TICKS(100));
